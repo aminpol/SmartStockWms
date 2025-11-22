@@ -1,4 +1,3 @@
-// QR / Barcode generator logic
 import { crearQR, crearBarcode } from "./generador.js";
 
 let codigosGenerados = [];
@@ -19,14 +18,14 @@ window.addEventListener("DOMContentLoaded", () => {
     sizeValue.textContent = e.target.value + "px";
   });
 
-  // Auto‑expand textarea
+  // Auto-expand textarea
   const contenidoInput = document.getElementById("contenido");
   contenidoInput.addEventListener("input", function () {
     this.style.height = "auto";
     this.style.height = this.scrollHeight + "px";
   });
 
-  // Listeners para ancho y alto
+  // Listeners para Ancho y Alto
   const widthSlider = document.getElementById("codeWidth");
   const widthValue = document.getElementById("widthValue");
   const heightSlider = document.getElementById("codeHeight");
@@ -49,12 +48,15 @@ function updateDimensions() {
   const boxes = document.querySelectorAll(".codigoBox");
 
   boxes.forEach((box) => {
+    // Update Box Width (relative to base 220px)
     const baseWidth = 220;
     const newWidth = baseWidth * (width / 100);
     box.style.width = `${newWidth}px`;
 
+    // Update Content Height
     const svg = box.querySelector("svg");
     const img = box.querySelector("img");
+
     if (svg) {
       svg.setAttribute("height", height);
       svg.style.height = `${height}px`;
@@ -80,18 +82,20 @@ window.generarCodigos = function () {
   localStorage.setItem("textoTamano", textoTamano);
 
   const lineas = contenido.split("\n").filter((l) => l.trim().length > 0);
-  codigosGenerados = [];
+  codigosGenerados = []; // Reset array, though we mainly rely on DOM for print now
 
   lineas.forEach((dato) => {
     const box = document.createElement("div");
     box.className = "codigoBox";
 
-    // Botón de borrado
+    // Delete Button
     const btnDelete = document.createElement("button");
     btnDelete.className = "btn-delete";
     btnDelete.textContent = "×";
     btnDelete.title = "Eliminar código";
-    btnDelete.onclick = () => box.remove();
+    btnDelete.onclick = function () {
+      box.remove();
+    };
     box.appendChild(btnDelete);
 
     const visual = tipo === "qr" ? crearQR(dato) : crearBarcode(dato);
@@ -115,12 +119,12 @@ window.generarCodigos = function () {
   localStorage.setItem("codigosGenerados", JSON.stringify(datos));
 
   contenidoInput.value = "";
-  contenidoInput.style.height = "40px";
+  contenidoInput.style.height = "40px"; // Reset height
 
   // Mostrar modal de éxito
   document.getElementById("modalExito").classList.remove("hidden");
 
-  // Aplicar dimensiones actuales
+  // Apply current dimensions
   setTimeout(updateDimensions, 0);
 };
 
@@ -131,107 +135,185 @@ window.cerrarModal = function () {
 window.mostrarCodigos = function () {
   const pantallaFormulario = document.getElementById("pantallaFormulario");
   const pantallaCodigos = document.getElementById("pantallaCodigos");
+
   pantallaFormulario.classList.add("hidden");
   pantallaCodigos.classList.remove("hidden");
 
   const previewArea = document.getElementById("previewArea");
   previewArea.innerHTML = "";
   codigosGenerados.forEach((box) => previewArea.appendChild(box));
+
+  // Ensure dimensions are applied when showing
   updateDimensions();
 };
 
 window.volver = function () {
   const pantallaFormulario = document.getElementById("pantallaFormulario");
   const pantallaCodigos = document.getElementById("pantallaCodigos");
+
   pantallaFormulario.classList.remove("hidden");
   pantallaCodigos.classList.add("hidden");
 };
 
-// Impresión: usar iframe oculto para aislar los códigos y evitar la UI completa
 window.imprimirTodos = function () {
   const area = document.getElementById("previewArea");
+
   if (!area.innerHTML.trim()) {
     alert("No hay códigos para imprimir");
     return;
   }
 
-  // Clonar y eliminar botones de borrado
+  // Clone the area to manipulate it for printing (remove delete buttons)
   const clone = area.cloneNode(true);
-  clone.querySelectorAll(".btn-delete").forEach((btn) => btn.remove());
 
-  // Crear iframe oculto
-  const iframe = document.createElement("iframe");
-  iframe.style.position = "fixed";
-  iframe.style.right = "0";
-  iframe.style.bottom = "0";
-  iframe.style.width = "0";
-  iframe.style.height = "0";
-  iframe.style.border = "0";
-  iframe.style.visibility = "hidden";
-  document.body.appendChild(iframe);
+  // Remove delete buttons from the clone
+  const deleteButtons = clone.querySelectorAll(".btn-delete");
+  deleteButtons.forEach((btn) => btn.remove());
 
-  const doc = iframe.contentDocument || iframe.contentWindow.document;
-  doc.open();
-  doc.write(`<!DOCTYPE html>
-<html>
-<head>
-<title>Impresión de códigos</title>
-<style>
-@media print {
-  @page {
-    size: 3.8in 7.06in;
-    margin: 0;
-  }
-  body { 
-    margin: 0; 
-    padding: 0; 
-    width: 3.8in;
-    height: 7.06in;
-  }
-  .codigoBox { 
-    page-break-inside: avoid; 
-    page-break-after: always; 
-    width: 100%;
-    height: 100vh; /* Ocupar toda la altura de la página/etiqueta */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border: none; /* Sin bordes para impresión final */
-    padding: 0;
-    box-sizing: border-box;
-  }
-  .codigoBox:last-child { 
-    page-break-after: avoid; 
-  }
-  .codigoBox svg, .codigoBox img { 
-    display: block; 
-    max-width: 90%; /* Margen de seguridad */
-    max-height: 80%;
-    width: auto;
-    height: auto;
-  }
-  .etiqueta { 
-    width: 100%; 
-    text-align: center; 
-    word-wrap: break-word; 
-    margin-top: 10px; 
-    font-size: 1.2rem; /* Texto legible */
-  }
-}
-</style>
-</head>
-<body>${clone.innerHTML}</body>
-</html>`);
-  doc.close();
+  // Create a temporary print container
+  const printContainer = document.createElement("div");
+  printContainer.id = "printContainer";
+  printContainer.innerHTML = clone.innerHTML;
 
-  // Imprimir después de un breve retardo para asegurar renderizado
+  // Hide the main app and show only the print container
+  const appContainer = document.querySelector(".app-container");
+  const pantalla = document.querySelector(".pantalla");
+
+  // Store original styles
+  const originalAppDisplay = appContainer.style.display;
+  const originalPantallaBackground = pantalla.style.background;
+
+  // Hide app and prepare for print
+  appContainer.style.display = "none";
+  pantalla.style.background = "white";
+  document.body.appendChild(printContainer);
+
+  // Add print-specific styles
+  const printStyle = document.createElement("style");
+  printStyle.id = "printStyles";
+  printStyle.textContent = `
+    @media print {
+      /* Hide everything except print container */
+      body * {
+        visibility: hidden;
+      }
+      
+      #printContainer,
+      #printContainer * {
+        visibility: visible;
+      }
+      
+      #printContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      
+      /* Hide app elements explicitly */
+      .pantalla,
+      .app-container {
+        display: none !important;
+      }
+      
+      body { 
+        padding: 0; 
+        margin: 0; 
+        font-family: Arial, sans-serif;
+        background: white;
+        height: auto;
+        overflow: visible;
+      }
+      
+      html {
+        height: auto;
+      }
+      
+      @page {
+        margin: 10mm;
+      }
+      
+      .codigoBox { 
+        page-break-inside: avoid; 
+        margin-bottom: 20px;
+        text-align: center;
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+      
+      .codigoBox:last-child {
+        page-break-after: avoid;
+        margin-bottom: 0;
+      }
+      
+      .codigoBox svg, .codigoBox img {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+      }
+      
+      .etiqueta { 
+        width: 100%; 
+        text-align: center; 
+        word-wrap: break-word;
+        margin-top: 2px;
+      }
+      
+      .btn-delete { 
+        display: none !important; 
+      }
+    }
+    
+    @media screen {
+      #printContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        padding: 20px;
+      }
+      
+      #printContainer .codigoBox { 
+        margin-bottom: 20px;
+        text-align: center;
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+      
+      #printContainer .codigoBox svg, 
+      #printContainer .codigoBox img {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+      }
+      
+      #printContainer .etiqueta { 
+        width: 100%; 
+        text-align: center; 
+        word-wrap: break-word;
+        margin-top: 2px;
+      }
+      
+      #printContainer .btn-delete { 
+        display: none !important; 
+      }
+    }
+  `;
+  document.head.appendChild(printStyle);
+
+  // Trigger print dialog
   setTimeout(() => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    // Limpiar iframe
+    window.print();
+
+    // Clean up after print (or cancel)
     setTimeout(() => {
-      document.body.removeChild(iframe);
+      // Remove print container and styles
+      printContainer.remove();
+      printStyle.remove();
+
+      // Restore original styles
+      appContainer.style.display = originalAppDisplay;
+      pantalla.style.background = originalPantallaBackground;
     }, 500);
   }, 500);
 };

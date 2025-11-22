@@ -314,3 +314,66 @@ input[type="range"] {
     max-width: 100%;
   }
 }
+
+/* Global Print Styles */
+@media print {
+  @page {
+    size: 3.8in 7.06in;
+    margin: 0;
+  }
+
+  body {
+    background: white;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Hide UI elements */
+  .pantallaFormulario,
+  .controls-bar,
+  .acciones,
+  h2,
+  .logo-container,
+  .config-section,
+  .btn-delete,
+  #pantallaFormulario {
+    display: none !important;
+  }
+
+  /* Ensure code view is visible */
+  .pantalla,
+  .app-container,
+  .contenedor,
+  #pantallaCodigos {
+    display: block !important;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  #previewArea {
+    display: block !important;
+    margin: 0;
+  }
+
+  /* Style codes for print */
+  .codigoBox {
+    page-break-inside: avoid;
+    page-break-after: always;
+    width: 100% !important;
+    height: 100vh !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0 !important;
+  }
+
+  .codigoBox:last-child {
+    page-break-after: avoid;
+  }
+}
