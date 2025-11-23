@@ -128,7 +128,9 @@ window.cerrarModal = function () {
   document.getElementById("modalExito").classList.add("hidden");
 };
 
-window.mostrarCodigos = function () {
+// Nueva función para ir a la vista de códigos desde el modal
+window.irACodigos = function () {
+  cerrarModal();
   const pantallaFormulario = document.getElementById("pantallaFormulario");
   const pantallaCodigos = document.getElementById("pantallaCodigos");
   pantallaFormulario.classList.add("hidden");
@@ -141,23 +143,63 @@ window.mostrarCodigos = function () {
 };
 
 window.volver = function () {
-  const pantallaFormulario = document.getElementById("pantallaFormulario");
-  const pantallaCodigos = document.getElementById("pantallaCodigos");
-  pantallaFormulario.classList.remove("hidden");
-  pantallaCodigos.classList.add("hidden");
+  const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+
+  if (isDesktop) {
+    // Desktop: Limpiar códigos generados (Reset)
+    const previewArea = document.getElementById("previewArea");
+    previewArea.innerHTML = "";
+    codigosGenerados = [];
+    // Opcional: Ocultar modal si estuviera abierto (aunque volver suele usarse después)
+  } else {
+    // Mobile: Volver a la vista del formulario
+    const pantallaFormulario = document.getElementById("pantallaFormulario");
+    const pantallaCodigos = document.getElementById("pantallaCodigos");
+    pantallaFormulario.classList.remove("hidden");
+    pantallaCodigos.classList.add("hidden");
+  }
 };
 
 // Impresión: usar iframe oculto para aislar los códigos y evitar la UI completa
 window.imprimirTodos = function () {
-  const area = document.getElementById("previewArea");
-  if (!area.innerHTML.trim()) {
+  // Obtener solo los códigos visibles en el DOM (excluye los eliminados)
+  const visibleCodes = Array.from(
+    document.querySelectorAll("#previewArea .codigoBox")
+  );
+
+  if (visibleCodes.length === 0) {
     alert("No hay códigos para imprimir");
     return;
   }
 
-  // Clonar y eliminar botones de borrado
-  const clone = area.cloneNode(true);
-  clone.querySelectorAll(".btn-delete").forEach((btn) => btn.remove());
+  // Crear contenedor temporal para armar las páginas
+  const printContainer = document.createElement("div");
+
+  // Configurar para 4 códigos por etiqueta (página)
+  const codigosPorPagina = 4;
+
+  for (let i = 0; i < visibleCodes.length; i += codigosPorPagina) {
+    const pagina = document.createElement("div");
+    pagina.className = "print-page";
+
+    const grupo = visibleCodes.slice(i, i + codigosPorPagina);
+
+    // Si la página no está llena (menos de 4 códigos), añadir clase especial
+    if (grupo.length < 4) {
+      pagina.classList.add("partial-page");
+    }
+
+    grupo.forEach((codigoOriginal) => {
+      // Clonar código
+      const clon = codigoOriginal.cloneNode(true);
+      // Eliminar botón de borrado
+      const btnDelete = clon.querySelector(".btn-delete");
+      if (btnDelete) btnDelete.remove();
+      pagina.appendChild(clon);
+    });
+
+    printContainer.appendChild(pagina);
+  }
 
   // Crear iframe oculto
   const iframe = document.createElement("iframe");
@@ -179,53 +221,68 @@ window.imprimirTodos = function () {
 <style>
 @media print {
   @page {
-    size: 3.8in 7.06in;
+    size: 11cm 19cm; /* Tamaño exacto de la etiqueta */
     margin: 0;
   }
   body { 
     margin: 0; 
     padding: 0; 
-    width: 3.8in;
-    height: 7.06in;
   }
+  .print-page {
+    width: 11cm;
+    height: 19cm;
+    display: grid;
+    grid-template-rows: repeat(4, 1fr); /* Dividir en 4 filas iguales */
+    align-items: center;
+    justify-items: center;
+    page-break-after: always;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 0.5cm; /* Pequeño margen interno */
+  }
+
+  .print-page:last-child { 
+    page-break-after: avoid; 
+  }
+  
   .codigoBox { 
-    page-break-inside: avoid; 
-    page-break-after: always; 
     width: 100%;
-    height: 100vh; /* Ocupar toda la altura de la página/etiqueta */
+    height: 100%; /* Ocupar toda la celda del grid */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    border: none; /* Sin bordes para impresión final */
-    padding: 0;
-    box-sizing: border-box;
+    border: none;
+    padding: 2px 0;
+    margin: 0;
+    overflow: hidden;
   }
-  .codigoBox:last-child { 
-    page-break-after: avoid; 
-  }
+  
   .codigoBox svg, .codigoBox img { 
     display: block; 
-    max-width: 90%; /* Margen de seguridad */
-    max-height: 80%;
+    max-width: 90%; 
+    max-height: 3.5cm; /* Limitar altura para que quepan 4 */
     width: auto;
     height: auto;
+    object-fit: contain;
   }
+  
   .etiqueta { 
     width: 100%; 
     text-align: center; 
     word-wrap: break-word; 
-    margin-top: 10px; 
-    font-size: 1.2rem; /* Texto legible */
+    margin-top: 2px; 
+    font-size: 10px; /* Texto más pequeño para ajustar */
+    line-height: 1.1;
   }
 }
 </style>
 </head>
-<body>${clone.innerHTML}</body>
+<body>${printContainer.innerHTML}</body>
 </html>`);
   doc.close();
 
-  // Imprimir después de un breve retardo para asegurar renderizado
+  // Imprimir después de un breve retardo
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();

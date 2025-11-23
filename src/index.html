@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Amin Code Generator</title>
     <link rel="stylesheet" href="estilos.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
   </head>
   <body>
     <div class="pantalla">
@@ -13,16 +17,22 @@
         <main class="contenedor">
           <!-- View 1: Form -->
           <div id="pantallaFormulario">
-            <div class="logo-container">
+            <div class="logo-container animated-barcode">
               <img
-                src="iconQr.png"
-                alt="Logo"
+                src="barra.png"
+                alt="Barcode Logo"
                 class="icon-logo"
-                width="64"
-                height="64"
+                width="200"
+                height="80"
               />
             </div>
-            <h2>Amin Code Generator</h2>
+            <h2 class="animated-title">
+              <span>A</span><span>m</span><span>i</span><span>n</span>
+              <span>C</span><span>o</span><span>d</span><span>e</span>
+              <span>G</span><span>e</span><span>n</span><span>e</span
+              ><span>r</span><span>a</span><span>t</span><span>o</span
+              ><span>r</span>
+            </h2>
 
             <!-- Configuration Section -->
             <div class="config-section">
@@ -62,14 +72,21 @@
               <button id="btnGenerar" onclick="generarCodigos()">
                 Generar códigos
               </button>
-              <button id="btnVer" onclick="mostrarCodigos()">
-                Ver códigos generados
-              </button>
             </div>
           </div>
 
           <!-- View 2: Codes -->
           <div id="pantallaCodigos" class="hidden">
+            <!-- Top Bar with Navigation and Print -->
+            <div class="top-bar">
+              <button id="btnVolver" onclick="volver()" title="Volver">
+                <i class="fas fa-undo"></i>
+              </button>
+              <button id="btnImprimir" onclick="imprimirTodos()">
+                <i class="fas fa-print"></i> Print
+              </button>
+            </div>
+
             <h2>Códigos Generados</h2>
 
             <!-- Controls for Codes -->
@@ -103,12 +120,6 @@
             </div>
 
             <div id="previewArea"></div>
-            <div class="acciones">
-              <button id="btnImprimir" onclick="imprimirTodos()">
-                Imprimir todos
-              </button>
-              <button id="btnVolver" onclick="volver()">Volver</button>
-            </div>
           </div>
         </main>
       </div>
@@ -118,7 +129,7 @@
     <div id="modalExito" class="modal hidden">
       <div class="modal-content">
         <p>Código generado exitosamente</p>
-        <button class="btn-ok" onclick="cerrarModal()">OK</button>
+        <button class="btn-ok" onclick="irACodigos()">OK</button>
       </div>
     </div>
 
