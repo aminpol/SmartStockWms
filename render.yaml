@@ -5,4 +5,4 @@ services:
     plan: free
     rootDirectory: backend
     buildCommand: npm install
-    startCommand: node index.js
+    startCommand: node init-db.js && node index.js
