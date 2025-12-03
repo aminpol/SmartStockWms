@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: smartstock-backend
+    env: node
+    plan: free
+    rootDirectory: backend
+    buildCommand: npm install
+    startCommand: node index.js
