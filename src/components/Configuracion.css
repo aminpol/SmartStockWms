@@ -1,0 +1,146 @@
+.config-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.config-title {
+  font-size: 1.5rem;
+  color: var(--secondary-color);
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border-bottom: 2px solid var(--bg-gradient-mid);
+  padding-bottom: 0.5rem;
+}
+
+.config-group {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--bg-gradient-start);
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.config-subtitle {
+  font-size: 1.1rem;
+  color: var(--secondary-color);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Theme Selector */
+.theme-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.theme-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.theme-btn.active {
+  border-color: var(--primary-color);
+  background: var(--primary-light);
+}
+
+.color-preview {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+}
+
+.color-preview.blue {
+  background: #3b82f6;
+}
+.color-preview.green {
+  background: #10b981;
+}
+.color-preview.red {
+  background: #ef4444;
+}
+.color-preview.yellow {
+  background: #eab308;
+}
+
+/* Form Controls */
+.config-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.config-item {
+  flex: 1;
+}
+
+.config-select,
+.config-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  background: white;
+}
+
+.config-select:focus,
+.config-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.config-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  margin-top: 1rem;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+.config-message.success {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .config-row {
+    flex-direction: column;
+  }
+
+  .theme-selector {
+    grid-template-columns: 1fr 1fr;
+  }
+}

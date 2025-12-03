@@ -1,0 +1,181 @@
+/* Contenedor principal */
+#pantallaAdministrador {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100vh;
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+  background-color: #f0f9ff; /* Fondo suave */
+  overflow: hidden; /* Evitar scroll en el contenedor principal */
+}
+
+/* Título principal */
+.admin-title {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #1e3a8a;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Layout principal: dos columnas */
+.admin-layout {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  min-height: 0; /* Importante para que el scroll interno funcione */
+  overflow: hidden; /* Evitar scroll externo */
+}
+
+/* Paneles comunes */
+.admin-panel {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Permitir que el contenido interno controle el scroll */
+  overflow: hidden; /* Evitar scroll en el panel */
+}
+
+/* Panel izquierdo (Menú) */
+.admin-menu {
+  flex: 0 0 250px; /* Ancho fijo para el menú */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Panel derecho (Contenido) */
+.admin-content {
+  flex: 1; /* Ocupa el resto del espacio */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Submenú de botones */
+.admin-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Botones del submenú */
+.admin-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0; /* #e2e8f0 */
+  border-radius: 0.5rem;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.admin-tab:hover {
+  background: #eff6ff;
+  color: #60a5fa;
+  border-color: #bfdbfe;
+}
+
+.admin-tab.active {
+  background: #60a5fa !important;
+  color: white !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 4px 6px -1px rgba(96, 165, 250, 0.2) !important;
+}
+
+.admin-tab i {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+/* Acciones inferiores (Volver / Salir) */
+.admin-actions {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-action:hover {
+  background: #2563eb;
+}
+
+.btn-logout {
+  background: #ef4444;
+}
+
+.btn-logout:hover {
+  background: #dc2626;
+}
+
+/* Placeholder del contenido */
+.admin-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #94a3b8;
+  gap: 1rem;
+}
+
+.admin-placeholder i {
+  font-size: 3rem;
+}
+
+.admin-placeholder p {
+  font-size: 1.1rem;
+}
+
+/* Footer */
+.app-footer {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* Responsivo: Ocultar en móvil si se requiere, o adaptar */
+@media (max-width: 1023px) {
+  /* El usuario pidió que NO aparezca el botón en móvil,
+     pero si por alguna razón se accede a la ruta, adaptamos el layout */
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-menu {
+    flex: none;
+    width: 100%;
+  }
+}

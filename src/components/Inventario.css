@@ -1,0 +1,85 @@
+#pantallaInventario {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1rem; /* similar a #pantallaFormulario */
+}
+
+.inventory-subtitle {
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #4b5563;
+  text-align: center;
+}
+
+.inventory-layout {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inventory-panel {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0.9rem;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+  border: 1px solid #cbd5e1;
+  padding: 1rem 1.25rem;
+  box-sizing: border-box;
+}
+
+.inventory-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inventory-tab {
+  width: 100%;
+  max-width: none;
+}
+
+.inventory-tab.active {
+  background: #60a5fa !important;
+  color: white !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 4px 6px -1px rgba(96, 165, 250, 0.2) !important;
+}
+
+.inventory-tab.active i {
+  color: white !important;
+}
+
+.inventory-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.inventory-actions .btn-action {
+  max-width: none;
+}
+
+/* Layout Inventario en dos columnas en escritorio */
+@media (min-width: 1024px) {
+  #pantallaInventario .inventory-layout {
+    flex-direction: row;
+  }
+
+  #pantallaInventario .inventory-panel {
+    flex: 1;
+    padding: 1.25rem 1.5rem; /* panel un poco más ancho por dentro */
+  }
+
+  /* Botones del submenú algo más grandes y separados en escritorio */
+  .inventory-submenu {
+    gap: 0.75rem;
+  }
+
+  .inventory-tab {
+    padding: 1.1rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}

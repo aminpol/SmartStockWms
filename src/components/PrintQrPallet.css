@@ -1,0 +1,572 @@
+/* Estilos para PrintQrPallet */
+.pallet-container {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pallet-container h2 {
+  text-align: center;
+  margin-bottom: 0.8rem;
+  margin-top: 0;
+  font-size: 1.4rem;
+  color: #1e293b;
+}
+
+.pallet-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pallet-form-section.disabled input:not(#quantity),
+.pallet-form-section.disabled select:not(#udm) {
+  background-color: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.form-group-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.4rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: #1e293b;
+  margin-bottom: 0.15rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.35rem 0.4rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.3rem;
+  font-size: 0.8rem;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos para input con botón (Search) */
+.input-with-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%; /* Asegurar que el contenedor ocupe todo el ancho */
+}
+
+.input-with-button input {
+  flex: 1; /* El input debe ocupar el espacio restante */
+  width: auto !important; /* Sobrescribir el width: 100% global */
+  min-width: 0; /* Permitir que se encoja si es necesario */
+}
+
+.btn-search-code {
+  background: #dcfce7;
+  color: #000000;
+  border: 1px solid #86efac;
+  border-radius: 0.3rem;
+  padding: 0.35rem 0.8rem; /* Un poco más de padding horizontal */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  height: 30px;
+  width: auto; /* No ocupar ancho completo */
+  flex: 0 0 auto; /* No crecer ni encoger */
+}
+
+.btn-search-code:hover {
+  background: #bbf7d0;
+  transform: scale(1.05);
+}
+
+.btn-search-code:disabled {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-create-qr {
+  width: 100%;
+  padding: 0.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-top: 0;
+  transition: all 0.2s;
+}
+
+.btn-create-qr:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-create-qr:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.btn-create-qr i {
+  font-size: 1rem;
+}
+
+/* Fila de botones superior (Create QR y Volver) */
+.top-button-row {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 0.3rem;
+}
+
+.top-button-row button {
+  padding: 0 1.5rem;
+  border: none;
+  border-radius: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  height: 45px;
+  width: auto;
+  min-width: 120px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.btn-create-qr {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-create-qr:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-create-qr:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.btn-create-qr i {
+  font-size: 1rem;
+}
+
+.btn-volver-top {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.btn-volver-top:hover {
+  background: #2563eb;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Línea separadora punteada */
+.dotted-separator {
+  width: 100%;
+  height: 2px;
+  border-top: 2px dashed #cbd5e1;
+  margin: 0.8rem 0;
+}
+
+/* Sección inferior */
+.pallet-bottom-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Contenedor de inputs y botón reset */
+.inputs-with-reset {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.inputs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+/* Inputs en línea con label al lado */
+.form-group-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-group-inline label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #1e293b;
+  white-space: nowrap;
+  text-transform: capitalize;
+  min-width: 110px;
+  text-align: left;
+}
+
+.input-small {
+  width: 120px;
+  padding: 0.35rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.3rem;
+  font-size: 0.75rem;
+}
+
+.input-small:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Botón de reset */
+.btn-reset {
+  background: #86efac;
+  color: #000000;
+  border: 2px solid #4ade80;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-reset:hover {
+  background: #4ade80;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(74, 222, 128, 0.3);
+}
+
+.pallet-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-top: 0.4rem;
+}
+
+.pallet-buttons button {
+  padding: 0.5rem 0.3rem;
+  border: 2px solid;
+  border-radius: 0.5rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  transition: all 0.2s;
+}
+
+.pallet-buttons button i {
+  font-size: 0.7rem;
+}
+
+.btn-agregar {
+  background: #3b82f6;
+  color: #000000;
+  border-color: #2563eb;
+}
+
+.btn-agregar:hover {
+  background: #2563eb;
+  color: #000000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-visualizar {
+  background: #a78bfa;
+  color: #000000;
+  border-color: #8b5cf6;
+}
+
+.btn-visualizar:hover {
+  background: #8b5cf6;
+  color: #000000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(168, 139, 250, 0.3);
+}
+
+.btn-print-labels {
+  background: #10b981;
+  color: #000000;
+  border-color: #059669;
+}
+
+.btn-print-labels:hover {
+  background: #059669;
+  color: #000000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-go-back {
+  background: #64748b;
+  color: #ffffff;
+  border-color: #475569;
+}
+
+.btn-go-back:hover {
+  background: #475569;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(100, 116, 139, 0.3);
+}
+
+/* Modal de Error */
+.error-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.error-modal-content {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.8rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.error-modal-content h3 {
+  margin: 0 0 0.8rem 0;
+  color: #dc2626;
+  font-size: 1.1rem;
+}
+
+.error-modal-content p {
+  margin: 0 0 1.2rem 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.btn-modal-ok {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.6rem 2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-modal-ok:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive para móvil */
+@media (max-width: 768px) {
+  .pallet-container {
+    padding: 0.8rem;
+  }
+
+  .form-group-row {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .pallet-buttons {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-group-inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .form-group-inline label {
+    min-width: 85px;
+    font-size: 0.65rem;
+  }
+
+  .input-small {
+    max-width: 85px;
+    font-size: 0.7rem;
+  }
+}
+
+/* ESTILOS DE IMPRESIÓN */
+@media print {
+  /* Ocultar todo lo que no sea el área de impresión */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Hacer visible solo el área de impresión y sus hijos */
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  /* Posicionar el área de impresión en la esquina superior izquierda */
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Configuración de la página para Zebra ZT421 */
+  @page {
+    size: 3.8in 7.06in; /* Tamaño exacto de la etiqueta */
+    margin: 0; /* Sin márgenes para aprovechar todo el papel */
+  }
+
+  /* Estilo de cada etiqueta individual */
+  .print-label {
+    width: 3.8in;
+    height: 7.06in;
+    page-break-after: always; /* Una etiqueta por página */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 0.25in 0.3in; /* Padding lateral y superior */
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    position: relative;
+  }
+
+  /* Contenedor del QR en la impresión - Posicionado arriba a la derecha */
+  .print-qr-container {
+    position: absolute;
+    top: 0.25in;
+    right: 0.3in;
+    width: auto;
+  }
+
+  .print-qr-container canvas {
+    width: 1.4in !important; /* Tamaño del QR similar al ZPL */
+    height: 1.4in !important;
+    display: block;
+  }
+
+  /* Detalles de texto - Comienzan después del QR */
+  .print-details {
+    width: 100%;
+    margin-top: 1.8in; /* Espacio para el QR arriba */
+    font-size: 12pt; /* Tamaño de fuente reducido */
+    line-height: 1.2;
+  }
+
+  .print-row {
+    display: grid;
+    grid-template-columns: 38% 62%; /* Ajuste de columnas */
+    gap: 0.1in;
+    margin-bottom: 0.28in; /* Espaciado entre filas reducido */
+    width: 100%;
+    align-items: start; /* Alineación superior para evitar superposición */
+  }
+
+  .print-row strong {
+    font-weight: bold;
+    text-align: left;
+    font-size: 12pt;
+    white-space: nowrap;
+  }
+
+  .print-row span {
+    text-align: left;
+    font-weight: normal;
+    font-size: 12pt;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}
+
+/* Ocultar el área de impresión en la pantalla normal */
+.print-area {
+  display: none;
+}
+
+@media print {
+  .print-area {
+    display: block;
+  }
+}
