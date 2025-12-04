@@ -1,8 +1,11 @@
 services:
   - type: web
-    name: smartstock-backend
-    env: node
+    name: smartstockwms
+    runtime: node
     plan: free
     rootDirectory: backend
     buildCommand: npm install
-    startCommand: node init-db.js && node index.js
+    startCommand: node init-db.js && node import-data.js && node index.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false
