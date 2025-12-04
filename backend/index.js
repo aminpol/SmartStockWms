@@ -137,7 +137,16 @@ app.get("/api/historial/:codigo", async (req, res) => {
     }
 
     let query = `
-      SELECT Id_codigo, Descripcion, Movimiento, Unit, T_movimi, Estado, Usuario, Turno, Fecha
+      SELECT 
+        Id_codigo AS "Id_codigo", 
+        Descripcion AS "Descripcion", 
+        Movimiento AS "Movimiento", 
+        Unit AS "Unit", 
+        T_movimi AS "T_movimi", 
+        Estado AS "Estado", 
+        Usuario AS "Usuario", 
+        Turno AS "Turno", 
+        Fecha AS "Fecha"
       FROM historial_movimientos
       WHERE Id_codigo = $1
     `;
