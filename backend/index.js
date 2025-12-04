@@ -139,14 +139,14 @@ app.get("/api/historial/:codigo", async (req, res) => {
     let query = `
       SELECT Id_codigo, Descripcion, Movimiento, Unit, T_movimi, Estado, Usuario, Turno, Fecha
       FROM historial_movimientos
-      WHERE Id_codigo = ?
+      WHERE Id_codigo = $1
     `;
 
     const params = [codigo];
 
     // Agregar filtro por tipo si se proporciona
     if (tipo && ["Entro", "Salio", "Movimiento"].includes(tipo)) {
-      query += " AND T_movimi = ?";
+      query += " AND T_movimi = $2";
       params.push(tipo);
     }
 
