@@ -92,18 +92,24 @@ const Movimientos = ({ onBack, onLogout, user }) => {
       setMessage(null);
 
       // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
-      const userName = typeof user === 'object' && user !== null ? user.usuario : (user || "Usuario Desconocido");
+      const userName =
+        typeof user === "object" && user !== null
+          ? user.usuario
+          : user || "Usuario Desconocido";
 
-      const response = await fetch("http://localhost:3000/api/stock/mover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fromPosition: fromPosition.trim(),
-          toPosition: toPosition.trim(),
-          quantity: qty,
-          user: userName,
-        }),
-      });
+      const response = await fetch(
+        "https://smartstockwms-a8p6.onrender.com/api/stock/mover",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fromPosition: fromPosition.trim(),
+            toPosition: toPosition.trim(),
+            quantity: qty,
+            user: userName,
+          }),
+        }
+      );
 
       const data = await response.json().catch(() => ({}));
 

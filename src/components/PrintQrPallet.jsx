@@ -123,7 +123,7 @@ const PrintQrPallet = ({ onBack }) => {
     try {
       // Asumiendo que el backend corre en localhost:3000
       const response = await fetch(
-        `http://localhost:3000/api/materials/${formData.code}`
+        `https://smartstockwms-a8p6.onrender.com/api/materials/${formData.code}`
       );
 
       if (response.ok) {
@@ -242,17 +242,20 @@ const PrintQrPallet = ({ onBack }) => {
 
     try {
       // Llamada al backend para generar IDs únicos
-      const response = await fetch("http://localhost:3000/api/pallets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          numberLabels: numLabels,
-          quantity: labelQty, // Enviamos la cantidad individual de cada etiqueta
-        }),
-      });
+      const response = await fetch(
+        "https://smartstockwms-a8p6.onrender.com/api/pallets",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...formData,
+            numberLabels: numLabels,
+            quantity: labelQty, // Enviamos la cantidad individual de cada etiqueta
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Error generando etiquetas en el servidor");

@@ -36,7 +36,9 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
       setStockData(null);
 
       const response = await fetch(
-        `http://localhost:3000/api/stock/ubicacion/${encodeURIComponent(loc)}`
+        `https://smartstockwms-a8p6.onrender.com/api/stock/ubicacion/${encodeURIComponent(
+          loc
+        )}`
       );
       const data = await response.json();
 
@@ -109,18 +111,24 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
     try {
       setLoading(true);
       // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
-      const userName = typeof user === 'object' && user !== null ? user.usuario : (user || "Usuario Desconocido");
+      const userName =
+        typeof user === "object" && user !== null
+          ? user.usuario
+          : user || "Usuario Desconocido";
 
-      const response = await fetch("http://localhost:3000/api/stock/retirar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: stockData.id,
-          position: stockData.posicion,
-          quantity: qty,
-          user: userName,
-        }),
-      });
+      const response = await fetch(
+        "https://smartstockwms-a8p6.onrender.com/api/stock/retirar",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: stockData.id,
+            position: stockData.posicion,
+            quantity: qty,
+            user: userName,
+          }),
+        }
+      );
 
       const data = await response.json();
 

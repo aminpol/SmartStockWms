@@ -26,7 +26,7 @@ const EditarCrearProd = ({ onBack, user }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:3000/api/materiales/${searchCode.trim()}`
+        `https://smartstockwms-a8p6.onrender.com/api/materiales/${searchCode.trim()}`
       );
 
       if (!response.ok) {
@@ -63,8 +63,8 @@ const EditarCrearProd = ({ onBack, user }) => {
     try {
       setLoading(true);
       const url = isEditing
-        ? `http://localhost:3000/api/materiales/${code.trim()}`
-        : `http://localhost:3000/api/materiales`;
+        ? `https://smartstockwms-a8p6.onrender.com/api/materiales/${code.trim()}`
+        : `https://smartstockwms-a8p6.onrender.com/api/materiales`;
 
       const method = isEditing ? "PUT" : "POST";
 

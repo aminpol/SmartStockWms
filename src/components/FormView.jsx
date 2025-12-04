@@ -15,9 +15,17 @@ const FormView = ({ onMenuOption, onLogout, user }) => {
             style={{
               marginBottom: "1rem",
               paddingRight: "0.5rem",
-              textAlign: "right",
+              textAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
             }}
           >
+            <i
+              className="fas fa-user"
+              style={{ color: "#1e293b", fontSize: "1rem" }}
+            ></i>
             <span
               style={{ fontWeight: "bold", fontSize: "1rem", color: "#1e293b" }}
             >

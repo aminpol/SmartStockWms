@@ -44,19 +44,25 @@ const Ingresa = ({ onBack, onLogout, user }) => {
     try {
       setLoading(true);
       // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
-      const userName = typeof user === 'object' && user !== null ? user.usuario : (user || "Usuario Desconocido");
+      const userName =
+        typeof user === "object" && user !== null
+          ? user.usuario
+          : user || "Usuario Desconocido";
 
-      const response = await fetch("http://localhost:3000/api/stock/ingresa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: code.trim(),
-          quantity: qty,
-          position: position.trim(),
-          lote: lote.trim(), // Agregar lote
-          user: userName,
-        }),
-      });
+      const response = await fetch(
+        "https://smartstockwms-a8p6.onrender.com/api/stock/ingresa",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: code.trim(),
+            quantity: qty,
+            position: position.trim(),
+            lote: lote.trim(), // Agregar lote
+            user: userName,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -89,7 +95,19 @@ const Ingresa = ({ onBack, onLogout, user }) => {
 
   return (
     <div className="ingresa-container">
-      <h3 className="ingresa-title">{t("ingTitle")}</h3>
+      <div className="ingresa-header">
+        <h3 className="ingresa-title">{t("ingTitle")}</h3>
+        {isDesktop && (
+          <button
+            className="ingresa-save-btn"
+            onClick={handleSave}
+            disabled={loading}
+          >
+            <i className="fas fa-save"></i>
+            <span>{loading ? t("loading") : t("save")}</span>
+          </button>
+        )}
+      </div>
 
       <div className="ingresa-form-col">
         <label className="ingresa-label">{t("ingCode")}</label>
@@ -139,32 +157,32 @@ const Ingresa = ({ onBack, onLogout, user }) => {
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter" && position.trim()) {
-                // Guardar automáticamente al presionar Enter
                 handleSave();
               }
             }}
           />
         </div>
 
-        <div className="ingresa-actions-row">
-          <button
-            className="ingresa-save-btn"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            <i className="fas fa-save"></i>
-            <span>{loading ? t("loading") : t("save")}</span>
-          </button>
-        </div>
+        {/* Botón Guardar solo en móvil */}
+        {!isDesktop && (
+          <div className="ingresa-actions-row">
+            <button
+              className="ingresa-save-btn"
+              onClick={handleSave}
+              disabled={loading}
+            >
+              <i className="fas fa-save"></i>
+              <span>{loading ? t("loading") : t("save")}</span>
+            </button>
+          </div>
+        )}
 
         {(onBack || onLogout) && (
           <div className="ingresa-back-row">
-            {/* En móvil mostrar ambos botones, en desktop ocultar cerrar sesión */}
             {!isDesktop && onBack && (
               <button
                 className="btn-action"
                 onClick={() => {
-                  // Limpiar todos los campos al volver
                   setCode("");
                   setQuantity("");
                   setPosition("");

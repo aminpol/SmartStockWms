@@ -125,7 +125,7 @@
 
 .login-input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 1rem 1.25rem; /* Aumentado padding para más altura */
   border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid #000;
@@ -143,6 +143,35 @@
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+
+/* Estilos para el wrapper del input con icono */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1.25rem;
+  color: #6b7280;
+  font-size: 1.1rem;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.login-input.with-icon {
+  padding-left: 3rem; /* Espacio para el icono */
+}
+
+.login-input.centered-text {
+  text-align: center;
+  padding-left: 1.25rem; /* Reset padding left si está centrado */
+  padding-right: 1.25rem;
+}
+
+/* Ajuste específico para cuando tiene icono Y está centrado */
+/* .input-wrapper .input-icon { } */
 
 .error-message {
   color: #dc2626;

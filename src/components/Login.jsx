@@ -26,13 +26,16 @@ export default function Login({ onLogin }) {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ usuario, contraseña }),
-      });
+      const response = await fetch(
+        "https://smartstockwms-a8p6.onrender.com/api/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ usuario, contraseña }),
+        }
+      );
 
       const data = await response.json();
 

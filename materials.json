@@ -1,0 +1,38 @@
+[
+  {
+    "id_code": "0",
+    "description": "Material de Prueba",
+    "unit": "UND",
+    "type": null
+  },
+  {
+    "id_code": "120123",
+    "description": "RHODAPON LZS94/RP",
+    "unit": "KG",
+    "type": "MTP"
+  },
+  {
+    "id_code": "120142",
+    "description": "RHODOPOL-23 25KG BAG",
+    "unit": "KG",
+    "type": "MTP"
+  },
+  {
+    "id_code": "120155",
+    "description": "CALCIUM LIGNO SULPHONATE",
+    "unit": "KG",
+    "type": "MTP"
+  },
+  {
+    "id_code": "120197",
+    "description": "SAG 1572",
+    "unit": "KG",
+    "type": "MTP"
+  },
+  {
+    "id_code": "150182",
+    "description": "AZOXYSTROBIN 98% TECH",
+    "unit": "KG",
+    "type": "MTP"
+  }
+]

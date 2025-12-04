@@ -21,7 +21,7 @@ const VerMovimientos = () => {
       setMessage(null);
       setMovimientos([]);
 
-      let url = `http://localhost:3000/api/historial/${encodeURIComponent(
+      let url = `https://smartstockwms-a8p6.onrender.com/api/historial/${encodeURIComponent(
         codigo.trim()
       )}`;
 
@@ -119,14 +119,14 @@ const VerMovimientos = () => {
                   <td>{mov.Descripcion}</td>
                   <td
                     className={
-                      mov.Movimiento.startsWith("-")
+                      (mov.Movimiento || "").startsWith("-")
                         ? "movimiento-negativo"
-                        : mov.Movimiento.startsWith("+")
+                        : (mov.Movimiento || "").startsWith("+")
                         ? "movimiento-positivo"
                         : ""
                     }
                   >
-                    {mov.Movimiento}
+                    {mov.Movimiento || "N/A"}
                   </td>
                   <td>{mov.Unit}</td>
                   <td

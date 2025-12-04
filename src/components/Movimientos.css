@@ -49,6 +49,8 @@
   color: #ffffff;
   font-size: 0.8rem;
   cursor: pointer;
+  max-width: 80px; /* Reducir ancho del botón Enter */
+  flex-shrink: 0;
 }
 
 .movimientos-actions-row {
@@ -100,4 +102,3 @@
     gap: 0.4rem;
   }
 }
-

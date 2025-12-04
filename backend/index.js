@@ -666,12 +666,27 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
       return res.status(400).json({ error: "Ubicación no proporcionada" });
     }
 
-    const [rows] = await db.query(
-      `SELECT id, descrip, cantidad, posicion
-       FROM stock_ubicaciones
-       WHERE posicion = $1`,
-      [posicion]
+    // Verificar si la columna lote existe
+    const [columns] = await db.query(
+      `SELECT column_name 
+       FROM information_schema.columns 
+       WHERE table_name = 'stock_ubicaciones' 
+       AND column_name = 'lote'`
     );
+    const hasLoteColumn = columns.length > 0;
+
+    let query;
+    if (hasLoteColumn) {
+      query = `SELECT id, descrip, cantidad, posicion, lote
+               FROM stock_ubicaciones
+               WHERE posicion = $1`;
+    } else {
+      query = `SELECT id, descrip, cantidad, posicion
+               FROM stock_ubicaciones
+               WHERE posicion = $1`;
+    }
+
+    const [rows] = await db.query(query, [posicion]);
 
     if (rows.length === 0) {
       return res.status(404).json({ error: "No hay stock en esta ubicación" });
@@ -681,6 +696,39 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
   } catch (error) {
     console.error("Error consultando ubicación:", error);
     res.status(500).json({ error: "Error interno al consultar ubicación" });
+  }
+});
+
+// Endpoint para consultar TODO el stock positivo
+app.get("/api/stock/all", async (req, res) => {
+  try {
+    // Verificar si la columna lote existe
+    const [columns] = await db.query(
+      `SELECT column_name 
+       FROM information_schema.columns 
+       WHERE table_name = 'stock_ubicaciones' 
+       AND column_name = 'lote'`
+    );
+    const hasLoteColumn = columns.length > 0;
+
+    let query;
+    if (hasLoteColumn) {
+      query = `SELECT id, descrip, cantidad, posicion, lote
+               FROM stock_ubicaciones
+               WHERE cantidad > 0
+               ORDER BY id, posicion`;
+    } else {
+      query = `SELECT id, descrip, cantidad, posicion
+               FROM stock_ubicaciones
+               WHERE cantidad > 0
+               ORDER BY id, posicion`;
+    }
+
+    const [rows] = await db.query(query);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error consultando todo el stock:", error);
+    res.status(500).json({ error: "Error interno al consultar stock" });
   }
 });
 

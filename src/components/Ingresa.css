@@ -4,10 +4,17 @@
   gap: 0.75rem;
 }
 
+.ingresa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .ingresa-title {
   font-size: 1.1rem;
   font-weight: 600;
   color: #111827;
+  margin: 0;
 }
 
 .ingresa-form-col {
@@ -58,6 +65,8 @@
   color: #ffffff;
   cursor: pointer;
   font-size: 0.9rem;
+  max-width: 120px; /* Reducir ancho a menos de la mitad */
+  flex-shrink: 0; /* Evitar que se encoja demasiado */
 }
 
 .ingresa-save-btn i {

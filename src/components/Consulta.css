@@ -72,6 +72,7 @@
 .consulta-input {
   flex: 1 1 auto;
   min-width: 0; /* permite que se encoja en pantallas pequeñas */
+  max-width: 300px; /* Limitar ancho máximo */
   padding: 0.6rem 0.75rem;
   border-radius: 0.5rem;
   border: 1px solid #cbd5e1;
@@ -96,6 +97,8 @@
   color: #ffffff;
   cursor: pointer;
   font-size: 0.9rem;
+  max-width: 120px; /* Reducir ancho a menos de la mitad */
+  flex-shrink: 0; /* Evitar que se encoja demasiado */
 }
 
 .consulta-search-btn i {
@@ -190,16 +193,16 @@
   padding-right: 0.2rem;
 }
 
-  /* Datos de Posición (ahora es la segunda columna) */
-  .consulta-table td:nth-child(2) {
-    text-align: center !important;
-    font-weight: 400;
-    font-size: 0.85rem;
-    padding-left: 0.2rem;
-    padding-right: 0.2rem;
-    white-space: nowrap;
-    min-width: 70px;
-  }
+/* Datos de Posición (ahora es la segunda columna) */
+.consulta-table td:nth-child(2) {
+  text-align: center !important;
+  font-weight: 400;
+  font-size: 0.85rem;
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
+  white-space: nowrap;
+  min-width: 70px;
+}
 
 .consulta-table th {
   background: #eff6ff;
