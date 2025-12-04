@@ -10,6 +10,7 @@ async function initDb() {
         documento TEXT PRIMARY KEY,
         nombre TEXT NOT NULL,
         apellido TEXT NOT NULL,
+        email TEXT,
         edad INTEGER,
         empresa_contratista TEXT,
         usuario TEXT UNIQUE NOT NULL,
@@ -19,6 +20,18 @@ async function initDb() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Verificar si existe la columna email (migración)
+    try {
+      // En SQLite no es tan fácil chequear columnas individualmente como en MySQL con INFORMATION_SCHEMA
+      // Intentamos seleccionar la columna, si falla, la agregamos
+      await db.query("SELECT email FROM usuarios LIMIT 1");
+    } catch (error) {
+      console.log("Columna 'email' no detectada en usuarios. Agregando...");
+      await db.query("ALTER TABLE usuarios ADD COLUMN email TEXT");
+      console.log("✓ Columna 'email' agregada exitosamente.");
+    }
+
     console.log("✓ Tabla 'usuarios' verificada.");
 
     // Tabla Posiciones
@@ -81,12 +94,27 @@ async function initDb() {
     console.log("✓ Tabla 'historial_movimientos' verificada.");
 
     // Crear usuario administrador por defecto si no existe
-    const [existingAdmin] = await db.query("SELECT * FROM usuarios WHERE usuario = ?", ["admin"]);
+    const [existingAdmin] = await db.query(
+      "SELECT * FROM usuarios WHERE usuario = ?",
+      ["admin"]
+    );
     if (existingAdmin.length === 0) {
-      await db.query(`
+      await db.query(
+        `
         INSERT INTO usuarios (documento, nombre, apellido, edad, empresa_contratista, usuario, contraseña, tipo_usuario)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, ["00000000", "Administrador", "Sistema", 30, "Interno", "admin", "admin123", "administrador"]);
+      `,
+        [
+          "00000000",
+          "Administrador",
+          "Sistema",
+          30,
+          "Interno",
+          "admin",
+          "admin123",
+          "administrador",
+        ]
+      );
       console.log("✓ Usuario 'admin' creado por defecto.");
     }
 
