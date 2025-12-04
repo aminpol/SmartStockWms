@@ -171,7 +171,7 @@ app.get("/api/historial/:codigo", async (req, res) => {
 app.get("/api/materiales/:code", async (req, res) => {
   try {
     const { code } = req.params;
-    
+
     if (!code) {
       return res.status(400).json({ error: "Código no proporcionado" });
     }
@@ -199,7 +199,9 @@ app.post("/api/materiales", async (req, res) => {
     const { id_code, description, unit, type, user } = req.body;
 
     if (!id_code || !description) {
-      return res.status(400).json({ error: "Código y descripción son requeridos" });
+      return res
+        .status(400)
+        .json({ error: "Código y descripción son requeridos" });
     }
 
     // Verificar si ya existe
@@ -209,13 +211,15 @@ app.post("/api/materiales", async (req, res) => {
     );
 
     if (existing.length > 0) {
-      return res.status(400).json({ error: "Ya existe un material con ese código" });
+      return res
+        .status(400)
+        .json({ error: "Ya existe un material con ese código" });
     }
 
     // Insertar nuevo material
     const [result] = await db.query(
       "INSERT INTO materiales (id_code, description, unit, type) VALUES (?, ?, ?, ?)",
-      [id_code, description, unit || 'UNIDADES', type || 'PRODUCTO']
+      [id_code, description, unit || "UNIDADES", type || "PRODUCTO"]
     );
 
     res.status(201).json({
@@ -224,7 +228,7 @@ app.post("/api/materiales", async (req, res) => {
       id_code,
       description,
       unit,
-      type
+      type,
     });
   } catch (error) {
     console.error("Error creando material:", error);
@@ -255,7 +259,7 @@ app.put("/api/materiales/:code", async (req, res) => {
     // Actualizar material
     await db.query(
       "UPDATE materiales SET description = ?, unit = ?, type = ? WHERE id_code = ?",
-      [description, unit || 'UNIDADES', type || 'PRODUCTO', code]
+      [description, unit || "UNIDADES", type || "PRODUCTO", code]
     );
 
     res.json({
@@ -263,7 +267,7 @@ app.put("/api/materiales/:code", async (req, res) => {
       id_code: code,
       description,
       unit,
-      type
+      type,
     });
   } catch (error) {
     console.error("Error actualizando material:", error);
@@ -293,8 +297,8 @@ app.delete("/api/materiales/:code", async (req, res) => {
     );
 
     if (stockCheck[0].count > 0) {
-      return res.status(400).json({ 
-        error: "No se puede eliminar el material porque tiene stock asociado" 
+      return res.status(400).json({
+        error: "No se puede eliminar el material porque tiene stock asociado",
       });
     }
 
@@ -357,7 +361,8 @@ app.post("/api/stock/mover", async (req, res) => {
     const { fromPosition, toPosition, quantity, user } = req.body;
 
     // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
-    const userName = typeof user === 'object' && user !== null ? user.usuario : user;
+    const userName =
+      typeof user === "object" && user !== null ? user.usuario : user;
 
     if (!fromPosition || !toPosition || !userName || quantity == null) {
       return res.status(400).json({ error: "Datos incompletos" });
@@ -416,7 +421,10 @@ app.post("/api/stock/mover", async (req, res) => {
       }
     } catch (posError) {
       // Si la tabla no existe o hay un error, registrar pero continuar (para compatibilidad)
-      console.warn("Error validando posiciones (tabla puede no existir aún):", posError.message);
+      console.warn(
+        "Error validando posiciones (tabla puede no existir aún):",
+        posError.message
+      );
       // Continuar sin validación si la tabla no existe
     }
 
@@ -506,7 +514,8 @@ app.post("/api/stock/ingresa", async (req, res) => {
     const { code, quantity, position, user, lote } = req.body;
 
     // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
-    const userName = typeof user === 'object' && user !== null ? user.usuario : user;
+    const userName =
+      typeof user === "object" && user !== null ? user.usuario : user;
 
     if (!code || !position || !userName || quantity == null) {
       return res.status(400).json({ error: "Datos incompletos" });
@@ -518,41 +527,29 @@ app.post("/api/stock/ingresa", async (req, res) => {
     }
 
     // Validar que la posición existe en el sistema
+    // Validar que la posición existe en el sistema (Tabla posiciones)
     try {
-      // Verificar si la columna 'activa' existe en la tabla ubicaciones
-      const [columns] = await db.query(
-        `SELECT COLUMN_NAME 
-         FROM INFORMATION_SCHEMA.COLUMNS 
-         WHERE TABLE_SCHEMA = DATABASE() 
-         AND TABLE_NAME = 'ubicaciones' 
-         AND COLUMN_NAME = 'activa'`
+      const [posiciones] = await db.query(
+        "SELECT Posiciones_Eti FROM posiciones WHERE Posiciones_Eti = ?",
+        [position]
       );
-      const hasActivaColumn = columns.length > 0;
 
-      let ubicaciones;
-      if (hasActivaColumn) {
-        // Si tiene columna activa, validar con ella
-        [ubicaciones] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ? AND activa = TRUE",
-          [position]
-        );
-      } else {
-        // Si no tiene columna activa, solo validar que existe
-        [ubicaciones] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
-          [position]
-        );
-      }
-
-      if (ubicaciones.length === 0) {
+      if (posiciones.length === 0) {
         return res.status(400).json({
-          error: `La posición "${position}" no existe en el sistema. Por favor, ingrese una posición válida.`,
+          error: `Error: La posición "${position}" no existe en el sistema.`,
         });
       }
     } catch (posError) {
-      // Si la tabla no existe o hay un error, registrar pero continuar (para compatibilidad)
-      console.warn("Error validando posición (tabla puede no existir aún):", posError.message);
-      // Continuar sin validación si la tabla no existe
+      console.warn("Error validando posición:", posError.message);
+      // Si la tabla no existe, podríamos optar por fallar o dejar pasar.
+      // Dado el requerimiento estricto, es mejor informar si hay un error de DB (ej. tabla no existe)
+      if (posError.code === "ER_NO_SUCH_TABLE") {
+        return res
+          .status(500)
+          .json({
+            error: "Error de configuración: La tabla 'posiciones' no existe.",
+          });
+      }
     }
 
     // Traer descripción desde materiales
@@ -646,9 +643,10 @@ app.post("/api/stock/ingresa", async (req, res) => {
     console.error("Stack trace:", error.stack);
     console.error("Request body:", req.body);
     // Enviar mensaje de error más descriptivo en desarrollo
-    const errorMessage = process.env.NODE_ENV === 'development' 
-      ? `Error interno al ingresar stock: ${error.message}` 
-      : "Error interno al ingresar stock";
+    const errorMessage =
+      process.env.NODE_ENV === "development"
+        ? `Error interno al ingresar stock: ${error.message}`
+        : "Error interno al ingresar stock";
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -686,7 +684,8 @@ app.post("/api/stock/retirar", async (req, res) => {
     const { code, position, quantity, user } = req.body;
 
     // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
-    const userName = typeof user === 'object' && user !== null ? user.usuario : user;
+    const userName =
+      typeof user === "object" && user !== null ? user.usuario : user;
 
     if (!code || !position || !userName || quantity == null) {
       return res.status(400).json({ error: "Datos incompletos" });
@@ -731,7 +730,10 @@ app.post("/api/stock/retirar", async (req, res) => {
       }
     } catch (posError) {
       // Si la tabla no existe o hay un error, registrar pero continuar (para compatibilidad)
-      console.warn("Error validando posición (tabla puede no existir aún):", posError.message);
+      console.warn(
+        "Error validando posición (tabla puede no existir aún):",
+        posError.message
+      );
       // Continuar sin validación si la tabla no existe
     }
 
@@ -785,8 +787,7 @@ app.post("/api/stock/retirar", async (req, res) => {
       "Despachado",
       userName
     );
-  } catch (error) {
-  }
+  } catch (error) {}
 });
 
 // Endpoint para buscar material por código
@@ -866,14 +867,16 @@ const initDB = async () => {
          WHERE type='table' 
          AND name='ubicaciones'`
       );
-      
+
       if (tables.length > 0) {
         console.log('Tabla "ubicaciones" encontrada');
       } else {
-        console.log('⚠️  Tabla "ubicaciones" no encontrada. Asegúrate de crearla con la columna "ubicaciones"');
+        console.log(
+          '⚠️  Tabla "ubicaciones" no encontrada. Asegúrate de crearla con la columna "ubicaciones"'
+        );
       }
     } catch (error) {
-      console.warn('No se pudo verificar la tabla ubicaciones:', error.message);
+      console.warn("No se pudo verificar la tabla ubicaciones:", error.message);
     }
   } catch (error) {
     console.error("Error inicializando DB:", error);
@@ -923,7 +926,9 @@ app.post("/api/ubicaciones", async (req, res) => {
     const { ubicaciones, descripcion, activa } = req.body;
 
     if (!ubicaciones || !ubicaciones.trim()) {
-      return res.status(400).json({ error: "El código de ubicación es requerido" });
+      return res
+        .status(400)
+        .json({ error: "El código de ubicación es requerido" });
     }
 
     // Verificar si ya existe
@@ -949,7 +954,11 @@ app.post("/api/ubicaciones", async (req, res) => {
     if (hasActivaColumn) {
       await db.query(
         "INSERT INTO ubicaciones (ubicaciones, descripcion, activa) VALUES (?, ?, ?)",
-        [ubicaciones.trim(), descripcion || null, activa !== undefined ? activa : true]
+        [
+          ubicaciones.trim(),
+          descripcion || null,
+          activa !== undefined ? activa : true,
+        ]
       );
     } else {
       await db.query(
@@ -1059,7 +1068,9 @@ app.delete("/api/ubicaciones/:ubicacion", async (req, res) => {
       });
     } else {
       // Si no hay stock o no tiene columna activa, eliminar completamente
-      await db.query("DELETE FROM ubicaciones WHERE ubicaciones = ?", [ubicacion]);
+      await db.query("DELETE FROM ubicaciones WHERE ubicaciones = ?", [
+        ubicacion,
+      ]);
       res.json({
         message: "Ubicación eliminada exitosamente",
         ubicaciones: ubicacion,

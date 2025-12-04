@@ -1,7 +1,7 @@
 const db = require("./db");
 
 async function initDb() {
-  console.log("Iniciando configuración de base de datos SQLite...");
+  console.log("Iniciando configuración de base de datos PostgreSQL...");
 
   try {
     // Tabla Usuarios
@@ -16,22 +16,10 @@ async function initDb() {
         usuario TEXT UNIQUE NOT NULL,
         contraseña TEXT NOT NULL,
         tipo_usuario TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
-    // Verificar si existe la columna email (migración)
-    try {
-      // En SQLite no es tan fácil chequear columnas individualmente como en MySQL con INFORMATION_SCHEMA
-      // Intentamos seleccionar la columna, si falla, la agregamos
-      await db.query("SELECT email FROM usuarios LIMIT 1");
-    } catch (error) {
-      console.log("Columna 'email' no detectada en usuarios. Agregando...");
-      await db.query("ALTER TABLE usuarios ADD COLUMN email TEXT");
-      console.log("✓ Columna 'email' agregada exitosamente.");
-    }
-
     console.log("✓ Tabla 'usuarios' verificada.");
 
     // Tabla Posiciones
@@ -39,9 +27,9 @@ async function initDb() {
       CREATE TABLE IF NOT EXISTS posiciones (
         Posiciones_Eti TEXT PRIMARY KEY,
         descripcion TEXT,
-        activa BOOLEAN DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        activa BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log("✓ Tabla 'posiciones' verificada.");
@@ -53,8 +41,8 @@ async function initDb() {
         description TEXT NOT NULL,
         unit TEXT DEFAULT 'UNIDADES',
         type TEXT DEFAULT 'PRODUCTO',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log("✓ Tabla 'materiales' verificada.");
@@ -68,8 +56,8 @@ async function initDb() {
         posicion TEXT NOT NULL,
         Usuario TEXT,
         lote TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id, posicion)
       )
     `);
@@ -78,7 +66,7 @@ async function initDb() {
     // Tabla Historial Movimientos
     await db.query(`
       CREATE TABLE IF NOT EXISTS historial_movimientos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         Id_codigo TEXT,
         Descripcion TEXT,
         Movimiento TEXT,
@@ -88,21 +76,21 @@ async function initDb() {
         Usuario TEXT,
         Turno TEXT,
         Fecha TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log("✓ Tabla 'historial_movimientos' verificada.");
 
     // Crear usuario administrador por defecto si no existe
     const [existingAdmin] = await db.query(
-      "SELECT * FROM usuarios WHERE usuario = ?",
+      "SELECT * FROM usuarios WHERE usuario = $1",
       ["admin"]
     );
     if (existingAdmin.length === 0) {
       await db.query(
         `
         INSERT INTO usuarios (documento, nombre, apellido, edad, empresa_contratista, usuario, contraseña, tipo_usuario)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       `,
         [
           "00000000",
@@ -116,78 +104,6 @@ async function initDb() {
         ]
       );
       console.log("✓ Usuario 'admin' creado por defecto.");
-    }
-
-    // Insertar materiales de ejemplo si no existen
-    const materialesEjemplo = [
-      {
-        id_code: "MAT001",
-        description: "Material de Ejemplo 1",
-        unit: "UNIDADES",
-        type: "PRODUCTO",
-      },
-      {
-        id_code: "MAT002",
-        description: "Material de Ejemplo 2",
-        unit: "CAJAS",
-        type: "PRODUCTO",
-      },
-      {
-        id_code: "MAT003",
-        description: "Material de Ejemplo 3",
-        unit: "UNIDADES",
-        type: "MATERIA PRIMA",
-      },
-    ];
-
-    for (const mat of materialesEjemplo) {
-      const [existing] = await db.query(
-        "SELECT * FROM materiales WHERE id_code = ?",
-        [mat.id_code]
-      );
-      if (existing.length === 0) {
-        await db.query(
-          `
-          INSERT INTO materiales (id_code, description, unit, type)
-          VALUES (?, ?, ?, ?)
-        `,
-          [mat.id_code, mat.description, mat.unit, mat.type]
-        );
-        console.log(`✓ Material '${mat.id_code}' creado.`);
-      }
-    }
-
-    // Insertar posiciones de ejemplo si no existen
-    const posicionesEjemplo = [
-      {
-        Posiciones_Eti: "A-01-01",
-        descripcion: "Almacén A - Pasillo 01 - Posición 01",
-      },
-      {
-        Posiciones_Eti: "A-01-02",
-        descripcion: "Almacén A - Pasillo 01 - Posición 02",
-      },
-      {
-        Posiciones_Eti: "B-01-01",
-        descripcion: "Almacén B - Pasillo 01 - Posición 01",
-      },
-    ];
-
-    for (const pos of posicionesEjemplo) {
-      const [existing] = await db.query(
-        "SELECT * FROM posiciones WHERE Posiciones_Eti = ?",
-        [pos.Posiciones_Eti]
-      );
-      if (existing.length === 0) {
-        await db.query(
-          `
-          INSERT INTO posiciones (Posiciones_Eti, descripcion, activa)
-          VALUES (?, ?, ?)
-        `,
-          [pos.Posiciones_Eti, pos.descripcion, 1]
-        );
-        console.log(`✓ Posición '${pos.Posiciones_Eti}' creada.`);
-      }
     }
 
     console.log("Base de datos inicializada correctamente.");

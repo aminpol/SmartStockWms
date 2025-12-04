@@ -1,49 +1,49 @@
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
+const { Pool } = require("pg");
+require("dotenv").config();
 
-// Crear conexión a la base de datos (archivo local)
-const dbPath = path.resolve(__dirname, "database.sqlite");
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error("Error conectando a SQLite:", err.message);
-  } else {
-    console.log("Conectado a la base de datos SQLite.");
-  }
+// Crear pool de conexiones a PostgreSQL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 
-// Wrapper para soportar promesas y mantener compatibilidad con la sintaxis de mysql2
-// mysql2 retorna [rows, fields], aquí simulamos eso retornando [rows, null]
-const promiseDb = {
-  query: (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      // Determinar si es una consulta de lectura (SELECT) o escritura (INSERT, UPDATE, DELETE)
-      const isSelect = sql.trim().toUpperCase().startsWith("SELECT");
-
-      if (isSelect) {
-        db.all(sql, params, (err, rows) => {
-          if (err) reject(err);
-          else resolve([rows, null]); // Formato compatible con mysql2
-        });
-      } else {
-        db.run(sql, params, function (err) {
-          if (err) reject(err);
-          else {
-            // En SQLite 'this' contiene lastID y changes
-            resolve([{ insertId: this.lastID, affectedRows: this.changes }, null]);
-          }
-        });
-      }
-    });
+// Wrapper para mantener compatibilidad con el código existente
+const db = {
+  query: async (text, params) => {
+    const client = await pool.connect();
+    try {
+      const result = await client.query(text, params);
+      // Retornar en formato [rows, fields] similar a mysql2
+      return [result.rows, result.fields];
+    } finally {
+      client.release();
+    }
   },
-  // Método para cerrar la conexión si es necesario
-  end: () => {
-    return new Promise((resolve, reject) => {
-      db.close((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
-  }
+
+  getConnection: async () => {
+    const client = await pool.connect();
+    return {
+      query: async (text, params) => {
+        const result = await client.query(text, params);
+        return [result.rows, result.fields];
+      },
+      beginTransaction: async () => {
+        await client.query("BEGIN");
+      },
+      commit: async () => {
+        await client.query("COMMIT");
+      },
+      rollback: async () => {
+        await client.query("ROLLBACK");
+      },
+      release: () => {
+        client.release();
+      },
+    };
+  },
 };
 
-module.exports = promiseDb;
+module.exports = db;
