@@ -583,13 +583,12 @@ app.post("/api/stock/ingresa", async (req, res) => {
 
     let newQuantity = qty;
 
-    // Verificar si la columna lote existe en la tabla
+    // Verificar si la columna lote existe en la tabla (PostgreSQL syntax)
     const [columns] = await db.query(
-      `SELECT COLUMN_NAME 
-       FROM INFORMATION_SCHEMA.COLUMNS 
-       WHERE TABLE_SCHEMA = DATABASE() 
-       AND TABLE_NAME = 'stock_ubicaciones' 
-       AND COLUMN_NAME = 'lote'`
+      `SELECT column_name 
+       FROM information_schema.columns 
+       WHERE table_name = 'stock_ubicaciones' 
+       AND column_name = 'lote'`
     );
     const hasLoteColumn = columns.length > 0;
 
