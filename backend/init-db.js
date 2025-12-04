@@ -118,6 +118,78 @@ async function initDb() {
       console.log("✓ Usuario 'admin' creado por defecto.");
     }
 
+    // Insertar materiales de ejemplo si no existen
+    const materialesEjemplo = [
+      {
+        id_code: "MAT001",
+        description: "Material de Ejemplo 1",
+        unit: "UNIDADES",
+        type: "PRODUCTO",
+      },
+      {
+        id_code: "MAT002",
+        description: "Material de Ejemplo 2",
+        unit: "CAJAS",
+        type: "PRODUCTO",
+      },
+      {
+        id_code: "MAT003",
+        description: "Material de Ejemplo 3",
+        unit: "UNIDADES",
+        type: "MATERIA PRIMA",
+      },
+    ];
+
+    for (const mat of materialesEjemplo) {
+      const [existing] = await db.query(
+        "SELECT * FROM materiales WHERE id_code = ?",
+        [mat.id_code]
+      );
+      if (existing.length === 0) {
+        await db.query(
+          `
+          INSERT INTO materiales (id_code, description, unit, type)
+          VALUES (?, ?, ?, ?)
+        `,
+          [mat.id_code, mat.description, mat.unit, mat.type]
+        );
+        console.log(`✓ Material '${mat.id_code}' creado.`);
+      }
+    }
+
+    // Insertar posiciones de ejemplo si no existen
+    const posicionesEjemplo = [
+      {
+        Posiciones_Eti: "A-01-01",
+        descripcion: "Almacén A - Pasillo 01 - Posición 01",
+      },
+      {
+        Posiciones_Eti: "A-01-02",
+        descripcion: "Almacén A - Pasillo 01 - Posición 02",
+      },
+      {
+        Posiciones_Eti: "B-01-01",
+        descripcion: "Almacén B - Pasillo 01 - Posición 01",
+      },
+    ];
+
+    for (const pos of posicionesEjemplo) {
+      const [existing] = await db.query(
+        "SELECT * FROM posiciones WHERE Posiciones_Eti = ?",
+        [pos.Posiciones_Eti]
+      );
+      if (existing.length === 0) {
+        await db.query(
+          `
+          INSERT INTO posiciones (Posiciones_Eti, descripcion, activa)
+          VALUES (?, ?, ?)
+        `,
+          [pos.Posiciones_Eti, pos.descripcion, 1]
+        );
+        console.log(`✓ Posición '${pos.Posiciones_Eti}' creada.`);
+      }
+    }
+
     console.log("Base de datos inicializada correctamente.");
     process.exit(0);
   } catch (error) {
