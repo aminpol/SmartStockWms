@@ -704,13 +704,12 @@ app.post("/api/stock/retirar", async (req, res) => {
 
     // Validar que la posición existe en el sistema
     try {
-      // Verificar si la columna 'activa' existe en la tabla ubicaciones
+      // Verificar si la columna 'activa' existe en la tabla ubicaciones (PostgreSQL syntax)
       const [columns] = await db.query(
-        `SELECT COLUMN_NAME 
-         FROM INFORMATION_SCHEMA.COLUMNS 
-         WHERE TABLE_SCHEMA = DATABASE() 
-         AND TABLE_NAME = 'ubicaciones' 
-         AND COLUMN_NAME = 'activa'`
+        `SELECT column_name 
+         FROM information_schema.columns 
+         WHERE table_name = 'ubicaciones' 
+         AND column_name = 'activa'`
       );
       const hasActivaColumn = columns.length > 0;
 
@@ -743,9 +742,9 @@ app.post("/api/stock/retirar", async (req, res) => {
       // Continuar sin validación si la tabla no existe
     }
 
-    // Verificar stock actual
+    // Verificar stock actual y obtener descripción
     const [rows] = await db.query(
-      "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
+      "SELECT cantidad, descrip FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
       [code, position]
     );
 
@@ -777,22 +776,37 @@ app.post("/api/stock/retirar", async (req, res) => {
       );
     }
 
-    res.json({
-      message: "Retiro exitoso",
-      cantidadRestante: nuevaCantidad,
-    });
-
     // Registrar movimiento en historial
-    const descrip = rows[0].descrip || "Sin descripción";
+    // Intentar obtener descripción de la tabla materiales si no está en stock_ubicaciones
+    let descrip = rows[0].descrip;
+
+    if (!descrip || descrip === "Sin descripción") {
+      try {
+        const [matRows] = await db.query(
+          "SELECT description FROM materiales WHERE id_code = $1",
+          [code]
+        );
+        if (matRows.length > 0) {
+          descrip = matRows[0].description;
+        }
+      } catch (err) {
+        console.error("Error buscando descripción en materiales:", err);
+      }
+    }
 
     await registrarMovimiento(
       code,
-      descrip,
+      descrip || "Sin descripción",
       `-${qty}`,
       "Salio",
       "Despachado",
       userName
     );
+
+    res.json({
+      message: "Retiro exitoso",
+      cantidadRestante: nuevaCantidad,
+    });
   } catch (error) {}
 });
 
