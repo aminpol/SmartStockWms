@@ -25,7 +25,7 @@ app.post("/api/login", async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      "SELECT * FROM usuarios WHERE usuario = ? AND contraseña = ?",
+      "SELECT * FROM usuarios WHERE usuario = $1 AND contraseña = $2",
       [usuario, contraseña]
     );
 
@@ -544,11 +544,9 @@ app.post("/api/stock/ingresa", async (req, res) => {
       // Si la tabla no existe, podríamos optar por fallar o dejar pasar.
       // Dado el requerimiento estricto, es mejor informar si hay un error de DB (ej. tabla no existe)
       if (posError.code === "ER_NO_SUCH_TABLE") {
-        return res
-          .status(500)
-          .json({
-            error: "Error de configuración: La tabla 'posiciones' no existe.",
-          });
+        return res.status(500).json({
+          error: "Error de configuración: La tabla 'posiciones' no existe.",
+        });
       }
     }
 
