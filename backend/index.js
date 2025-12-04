@@ -100,7 +100,7 @@ const registrarMovimiento = async (
 
     // Obtener unidad desde materiales
     const [rows] = await db.query(
-      "SELECT unit FROM materiales WHERE id_code = ?",
+      "SELECT unit FROM materiales WHERE id_code = $1",
       [code]
     );
     const unit = rows.length > 0 ? rows[0].unit : "UND";
@@ -108,7 +108,7 @@ const registrarMovimiento = async (
     await db.query(
       `INSERT INTO historial_movimientos 
       (Id_codigo, Descripcion, Movimiento, Unit, T_movimi, Estado, Usuario, Turno, Fecha) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         code,
         descripcion,
@@ -178,7 +178,7 @@ app.get("/api/materiales/:code", async (req, res) => {
 
     // La tabla se llama 'materiales' y las columnas son 'id_code', 'description', 'unit', 'type'
     const [rows] = await db.query(
-      "SELECT * FROM materiales WHERE id_code = ?",
+      "SELECT * FROM materiales WHERE id_code = $1",
       [code]
     );
 
@@ -206,7 +206,7 @@ app.post("/api/materiales", async (req, res) => {
 
     // Verificar si ya existe
     const [existing] = await db.query(
-      "SELECT id_code FROM materiales WHERE id_code = ?",
+      "SELECT id_code FROM materiales WHERE id_code = $1",
       [id_code]
     );
 
@@ -218,7 +218,7 @@ app.post("/api/materiales", async (req, res) => {
 
     // Insertar nuevo material
     const [result] = await db.query(
-      "INSERT INTO materiales (id_code, description, unit, type) VALUES (?, ?, ?, ?)",
+      "INSERT INTO materiales (id_code, description, unit, type) VALUES ($1, $2, $3, $4)",
       [id_code, description, unit || "UNIDADES", type || "PRODUCTO"]
     );
 
@@ -248,7 +248,7 @@ app.put("/api/materiales/:code", async (req, res) => {
 
     // Verificar si existe
     const [existing] = await db.query(
-      "SELECT id_code FROM materiales WHERE id_code = ?",
+      "SELECT id_code FROM materiales WHERE id_code = $1",
       [code]
     );
 
@@ -258,7 +258,7 @@ app.put("/api/materiales/:code", async (req, res) => {
 
     // Actualizar material
     await db.query(
-      "UPDATE materiales SET description = ?, unit = ?, type = ? WHERE id_code = ?",
+      "UPDATE materiales SET description = $1, unit = $2, type = $3 WHERE id_code = $4",
       [description, unit || "UNIDADES", type || "PRODUCTO", code]
     );
 
@@ -282,7 +282,7 @@ app.delete("/api/materiales/:code", async (req, res) => {
 
     // Verificar si existe
     const [existing] = await db.query(
-      "SELECT id_code FROM materiales WHERE id_code = ?",
+      "SELECT id_code FROM materiales WHERE id_code = $1",
       [code]
     );
 
@@ -292,7 +292,7 @@ app.delete("/api/materiales/:code", async (req, res) => {
 
     // Verificar si tiene stock asociado
     const [stockCheck] = await db.query(
-      "SELECT COUNT(*) as count FROM stock_ubicaciones WHERE id = ?",
+      "SELECT COUNT(*) as count FROM stock_ubicaciones WHERE id = $1",
       [code]
     );
 
@@ -303,7 +303,7 @@ app.delete("/api/materiales/:code", async (req, res) => {
     }
 
     // Eliminar material
-    await db.query("DELETE FROM materiales WHERE id_code = ?", [code]);
+    await db.query("DELETE FROM materiales WHERE id_code = $1", [code]);
 
     res.json({ message: "Material eliminado exitosamente" });
   } catch (error) {
@@ -337,7 +337,7 @@ app.get("/api/stock/consulta/:code", async (req, res) => {
     const [rows] = await db.query(
       `SELECT id, descrip, cantidad, posicion, updated_at
        FROM stock_ubicaciones
-       WHERE id = ?
+       WHERE id = $1
        ORDER BY updated_at ASC`,
       [code]
     );
@@ -389,21 +389,21 @@ app.post("/api/stock/mover", async (req, res) => {
       if (hasActivaColumn) {
         // Si tiene columna activa, validar con ella
         [posicionOrigen] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ? AND activa = TRUE",
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
           [fromPosition]
         );
         [posicionDestino] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ? AND activa = TRUE",
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
           [toPosition]
         );
       } else {
         // Si no tiene columna activa, solo validar que existen
         [posicionOrigen] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
           [fromPosition]
         );
         [posicionDestino] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
           [toPosition]
         );
       }
@@ -430,7 +430,7 @@ app.post("/api/stock/mover", async (req, res) => {
 
     // Obtener registro de origen (asumimos un producto por ubicación)
     const [origenRows] = await db.query(
-      "SELECT id, descrip, cantidad FROM stock_ubicaciones WHERE posicion = ?",
+      "SELECT id, descrip, cantidad FROM stock_ubicaciones WHERE posicion = $1",
       [fromPosition]
     );
 
@@ -455,19 +455,19 @@ app.post("/api/stock/mover", async (req, res) => {
     // Actualizar/borrar origen
     if (nuevaCantidadOrigen > 0) {
       await db.query(
-        "UPDATE stock_ubicaciones SET cantidad = ?, Usuario = ? WHERE id = ? AND posicion = ?",
+        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
         [nuevaCantidadOrigen, userName, origen.id, fromPosition]
       );
     } else {
       await db.query(
-        "DELETE FROM stock_ubicaciones WHERE id = ? AND posicion = ?",
+        "DELETE FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
         [origen.id, fromPosition]
       );
     }
 
     // Actualizar/crear destino
     const [destRows] = await db.query(
-      "SELECT cantidad FROM stock_ubicaciones WHERE id = ? AND posicion = ?",
+      "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
       [origen.id, toPosition]
     );
 
@@ -477,12 +477,12 @@ app.post("/api/stock/mover", async (req, res) => {
       const actualDest = parseFloat(destRows[0].cantidad) || 0;
       totalDestino = actualDest + qty;
       await db.query(
-        "UPDATE stock_ubicaciones SET cantidad = ?, Usuario = ? WHERE id = ? AND posicion = ?",
+        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
         [totalDestino, userName, origen.id, toPosition]
       );
     } else {
       await db.query(
-        "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES ($1, $2, $3, $4, $5)",
         [origen.id, origen.descrip, totalDestino, toPosition, userName]
       );
     }
@@ -530,7 +530,7 @@ app.post("/api/stock/ingresa", async (req, res) => {
     // Validar que la posición existe en el sistema (Tabla posiciones)
     try {
       const [posiciones] = await db.query(
-        "SELECT Posiciones_Eti FROM posiciones WHERE Posiciones_Eti = ?",
+        "SELECT Posiciones_Eti FROM posiciones WHERE Posiciones_Eti = $1",
         [position]
       );
 
@@ -552,7 +552,7 @@ app.post("/api/stock/ingresa", async (req, res) => {
 
     // Traer descripción desde materiales
     const [materials] = await db.query(
-      "SELECT description FROM materiales WHERE id_code = ?",
+      "SELECT description FROM materiales WHERE id_code = $1",
       [code]
     );
 
@@ -564,7 +564,7 @@ app.post("/api/stock/ingresa", async (req, res) => {
 
     // Ver si ya existe algún registro en esa posición con OTRO código
     const [otrosEnPosicion] = await db.query(
-      "SELECT id FROM stock_ubicaciones WHERE posicion = ? AND id <> ?",
+      "SELECT id FROM stock_ubicaciones WHERE posicion = $1 AND id <> $2",
       [position, code]
     );
 
@@ -577,7 +577,7 @@ app.post("/api/stock/ingresa", async (req, res) => {
 
     // Ver si ya existe registro para ese código y posición
     const [rows] = await db.query(
-      "SELECT cantidad FROM stock_ubicaciones WHERE id = ? AND posicion = ?",
+      "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
       [code, position]
     );
 
@@ -599,24 +599,24 @@ app.post("/api/stock/ingresa", async (req, res) => {
 
       if (hasLoteColumn && lote) {
         await db.query(
-          "UPDATE stock_ubicaciones SET cantidad = ?, Usuario = ?, lote = ? WHERE id = ? AND posicion = ?",
+          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
           [newQuantity, userName, lote || null, code, position]
         );
       } else {
         await db.query(
-          "UPDATE stock_ubicaciones SET cantidad = ?, Usuario = ? WHERE id = ? AND posicion = ?",
+          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
           [newQuantity, userName, code, position]
         );
       }
     } else {
       if (hasLoteColumn) {
         await db.query(
-          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES (?, ?, ?, ?, ?, ?)",
+          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
           [code, descrip, newQuantity, position, userName, lote || null]
         );
       } else {
         await db.query(
-          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES (?, ?, ?, ?, ?)",
+          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES ($1, $2, $3, $4, $5)",
           [code, descrip, newQuantity, position, userName]
         );
       }
@@ -661,7 +661,7 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
     const [rows] = await db.query(
       `SELECT id, descrip, cantidad, posicion
        FROM stock_ubicaciones
-       WHERE posicion = ?`,
+       WHERE posicion = $1`,
       [posicion]
     );
 
@@ -710,13 +710,13 @@ app.post("/api/stock/retirar", async (req, res) => {
       if (hasActivaColumn) {
         // Si tiene columna activa, validar con ella
         [ubicaciones] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ? AND activa = TRUE",
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
           [position]
         );
       } else {
         // Si no tiene columna activa, solo validar que existe
         [ubicaciones] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
           [position]
         );
       }
@@ -737,7 +737,7 @@ app.post("/api/stock/retirar", async (req, res) => {
 
     // Verificar stock actual
     const [rows] = await db.query(
-      "SELECT cantidad FROM stock_ubicaciones WHERE id = ? AND posicion = ?",
+      "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
       [code, position]
     );
 
@@ -759,12 +759,12 @@ app.post("/api/stock/retirar", async (req, res) => {
 
     if (nuevaCantidad > 0) {
       await db.query(
-        "UPDATE stock_ubicaciones SET cantidad = ?, Usuario = ? WHERE id = ? AND posicion = ?",
+        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
         [nuevaCantidad, userName, code, position]
       );
     } else {
       await db.query(
-        "DELETE FROM stock_ubicaciones WHERE id = ? AND posicion = ?",
+        "DELETE FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
         [code, position]
       );
     }
@@ -794,7 +794,7 @@ app.get("/api/materials/:code", async (req, res) => {
     const { code } = req.params;
     // La tabla se llama 'materiales' y las columnas son 'id_code', 'description', 'unit', 'type'
     const [rows] = await db.query(
-      "SELECT * FROM materiales WHERE id_code = ?",
+      "SELECT * FROM materiales WHERE id_code = $1",
       [code]
     );
 
@@ -903,7 +903,7 @@ app.get("/api/ubicaciones/:ubicacion", async (req, res) => {
   try {
     const { ubicacion } = req.params;
     const [rows] = await db.query(
-      "SELECT * FROM ubicaciones WHERE ubicaciones = ?",
+      "SELECT * FROM ubicaciones WHERE ubicaciones = $1",
       [ubicacion]
     );
 
@@ -931,7 +931,7 @@ app.post("/api/ubicaciones", async (req, res) => {
 
     // Verificar si ya existe
     const [existing] = await db.query(
-      "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
+      "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
       [ubicaciones.trim()]
     );
 
@@ -951,7 +951,7 @@ app.post("/api/ubicaciones", async (req, res) => {
 
     if (hasActivaColumn) {
       await db.query(
-        "INSERT INTO ubicaciones (ubicaciones, descripcion, activa) VALUES (?, ?, ?)",
+        "INSERT INTO ubicaciones (ubicaciones, descripcion, activa) VALUES ($1, $2, $3)",
         [
           ubicaciones.trim(),
           descripcion || null,
@@ -960,7 +960,7 @@ app.post("/api/ubicaciones", async (req, res) => {
       );
     } else {
       await db.query(
-        "INSERT INTO ubicaciones (ubicaciones, descripcion) VALUES (?, ?)",
+        "INSERT INTO ubicaciones (ubicaciones, descripcion) VALUES ($1, $2)",
         [ubicaciones.trim(), descripcion || null]
       );
     }
@@ -983,7 +983,7 @@ app.put("/api/ubicaciones/:ubicacion", async (req, res) => {
 
     // Verificar si existe
     const [existing] = await db.query(
-      "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
+      "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
       [ubicacion]
     );
 
@@ -1003,12 +1003,12 @@ app.put("/api/ubicaciones/:ubicacion", async (req, res) => {
 
     if (hasActivaColumn) {
       await db.query(
-        "UPDATE ubicaciones SET descripcion = ?, activa = ? WHERE ubicaciones = ?",
+        "UPDATE ubicaciones SET descripcion = $1, activa = $2 WHERE ubicaciones = $3",
         [descripcion || null, activa !== undefined ? activa : true, ubicacion]
       );
     } else {
       await db.query(
-        "UPDATE ubicaciones SET descripcion = ? WHERE ubicaciones = ?",
+        "UPDATE ubicaciones SET descripcion = $1 WHERE ubicaciones = $2",
         [descripcion || null, ubicacion]
       );
     }
@@ -1030,7 +1030,7 @@ app.delete("/api/ubicaciones/:ubicacion", async (req, res) => {
 
     // Verificar si existe
     const [existing] = await db.query(
-      "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
+      "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
       [ubicacion]
     );
 
@@ -1040,7 +1040,7 @@ app.delete("/api/ubicaciones/:ubicacion", async (req, res) => {
 
     // Verificar si hay stock en esta ubicación
     const [stock] = await db.query(
-      "SELECT COUNT(*) as count FROM stock_ubicaciones WHERE posicion = ?",
+      "SELECT COUNT(*) as count FROM stock_ubicaciones WHERE posicion = $1",
       [ubicacion]
     );
 
@@ -1057,7 +1057,7 @@ app.delete("/api/ubicaciones/:ubicacion", async (req, res) => {
     if (stock[0].count > 0 && hasActivaColumn) {
       // Si hay stock y tiene columna activa, solo desactivar
       await db.query(
-        "UPDATE ubicaciones SET activa = FALSE WHERE ubicaciones = ?",
+        "UPDATE ubicaciones SET activa = FALSE WHERE ubicaciones = $1",
         [ubicacion]
       );
       res.json({
@@ -1066,7 +1066,7 @@ app.delete("/api/ubicaciones/:ubicacion", async (req, res) => {
       });
     } else {
       // Si no hay stock o no tiene columna activa, eliminar completamente
-      await db.query("DELETE FROM ubicaciones WHERE ubicaciones = ?", [
+      await db.query("DELETE FROM ubicaciones WHERE ubicaciones = $1", [
         ubicacion,
       ]);
       res.json({

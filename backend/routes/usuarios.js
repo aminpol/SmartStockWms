@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
   try {
     const [result] = await db.query(
       `INSERT INTO usuarios (documento, nombre, apellido, email, empresa_contratista, usuario, contraseña, tipo_usuario)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [
         documento,
         nombre,
@@ -63,7 +63,7 @@ router.get("/:documento", async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      "SELECT * FROM usuarios WHERE documento = ?",
+      "SELECT * FROM usuarios WHERE documento = $1",
       [documento]
     );
 
@@ -177,7 +177,7 @@ router.delete("/:documento", async (req, res) => {
 
   try {
     const [result] = await db.query(
-      "DELETE FROM usuarios WHERE documento = ?",
+      "DELETE FROM usuarios WHERE documento = $1",
       [documento]
     );
 
