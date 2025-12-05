@@ -884,7 +884,7 @@ const initDB = async () => {
   try {
     await db.query(`
       CREATE TABLE IF NOT EXISTS pallets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         unique_id VARCHAR(20) UNIQUE,
         code VARCHAR(50),
         description VARCHAR(255),
@@ -913,7 +913,7 @@ const initDB = async () => {
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS historial_movimientos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         Id_codigo VARCHAR(50),
         Descripcion VARCHAR(255),
         Movimiento VARCHAR(50),
@@ -930,10 +930,10 @@ const initDB = async () => {
     // Verificar que la tabla ubicaciones existe (el usuario la crea manualmente)
     try {
       const [tables] = await db.query(
-        `SELECT name 
-         FROM sqlite_master 
-         WHERE type='table' 
-         AND name='ubicaciones'`
+        `SELECT table_name 
+         FROM information_schema.tables 
+         WHERE table_schema = 'public' 
+         AND table_name = 'ubicaciones'`
       );
 
       if (tables.length > 0) {
