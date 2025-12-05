@@ -10,6 +10,7 @@ export default function Login({ onLogin }) {
   const [contraseña, setContraseña] = useState("");
   const [error, setError] = useState("");
   const [currentImage, setCurrentImage] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const { t } = useConfig();
 
   // Alternar entre las dos imágenes cada 4 segundos
@@ -23,7 +24,12 @@ export default function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Prevenir múltiples envíos
+    if (isLoading) return;
+
     setError("");
+    setIsLoading(true);
 
     try {
       const response = await fetch(
@@ -50,10 +56,12 @@ export default function Login({ onLogin }) {
         setError(data.error || t("loginError"));
         setUsuario("");
         setContraseña("");
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error de conexión:", error);
       setError("Error de conexión con el servidor");
+      setIsLoading(false);
     }
   };
 
@@ -112,8 +120,10 @@ export default function Login({ onLogin }) {
             />
           )}
 
-          <button type="submit" className="login-button">
-            <span className="button-text">{t("loginTitle")}</span>
+          <button type="submit" className="login-button" disabled={isLoading}>
+            <span className="button-text">
+              {isLoading ? "Iniciando sesión..." : t("loginTitle")}
+            </span>
             <span className="button-glow"></span>
           </button>
         </form>

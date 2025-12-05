@@ -48,6 +48,7 @@ const PrintQrPallet = ({ onBack }) => {
   // Estado para la lista de items y visualización
   const [addedItems, setAddedItems] = useState([]);
   const [showVisualizar, setShowVisualizar] = useState(false);
+  const [isAddingItems, setIsAddingItems] = useState(false);
 
   // Ref para el input de labelQuantity
   const labelQtyRef = React.useRef(null);
@@ -202,6 +203,9 @@ const PrintQrPallet = ({ onBack }) => {
 
   // Manejadores para VisualizarQr
   const handleAddItem = async () => {
+    // Prevenir múltiples envíos
+    if (isAddingItems) return;
+
     const currentQty = parseFloat(formData.quantity);
     const labelQty = parseFloat(labelQuantity);
     const numLabels = parseInt(numberLabels, 10);
@@ -240,6 +244,8 @@ const PrintQrPallet = ({ onBack }) => {
       return;
     }
 
+    setIsAddingItems(true);
+
     try {
       // Llamada al backend para generar IDs únicos
       const response = await fetch(
@@ -258,7 +264,10 @@ const PrintQrPallet = ({ onBack }) => {
       );
 
       if (!response.ok) {
-        throw new Error("Error generando etiquetas en el servidor");
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || "Error generando etiquetas en el servidor"
+        );
       }
 
       const data = await response.json();
@@ -287,9 +296,12 @@ const PrintQrPallet = ({ onBack }) => {
     } catch (error) {
       console.error("Error adding items:", error);
       setErrorMessage(
-        "Error al conectar con el servidor para generar etiquetas"
+        error.message ||
+          "Error al conectar con el servidor para generar etiquetas"
       );
       setShowErrorModal(true);
+    } finally {
+      setIsAddingItems(false);
     }
   };
 
@@ -505,8 +517,13 @@ const PrintQrPallet = ({ onBack }) => {
           </div>
 
           <div className="pallet-buttons">
-            <button className="btn-agregar" onClick={handleAddItem}>
-              <i className="fas fa-plus"></i> Agregar
+            <button
+              className="btn-agregar"
+              onClick={handleAddItem}
+              disabled={isAddingItems}
+            >
+              <i className="fas fa-plus"></i>{" "}
+              {isAddingItems ? "Agregando..." : "Agregar"}
             </button>
             <button className="btn-visualizar" onClick={handleVisualizar}>
               Visualizar

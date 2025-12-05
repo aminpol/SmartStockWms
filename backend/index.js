@@ -1150,10 +1150,6 @@ app.delete("/api/ubicaciones/:ubicacion", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
-
 // Endpoint para crear pallets (generar IDs únicos) SIN guardar en BD
 app.post("/api/pallets", async (req, res) => {
   try {
@@ -1167,6 +1163,12 @@ app.post("/api/pallets", async (req, res) => {
       udm,
       numberLabels,
     } = req.body;
+
+    if (!numberLabels || parseInt(numberLabels) <= 0) {
+      return res
+        .status(400)
+        .json({ error: "numberLabels debe ser un número válido mayor a 0" });
+    }
 
     const count = parseInt(numberLabels);
     const createdUniqueIds = [];
@@ -1193,9 +1195,16 @@ app.post("/api/pallets", async (req, res) => {
       nextNumber++;
     }
 
+    console.log(
+      `Generados ${createdUniqueIds.length} IDs únicos para código ${code}`
+    );
     res.json({ ids: createdUniqueIds });
   } catch (error) {
     console.error("Error generando IDs únicos:", error);
     res.status(500).json({ error: "Error generando etiquetas" });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
