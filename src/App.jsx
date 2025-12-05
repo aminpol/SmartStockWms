@@ -16,6 +16,7 @@ import Ingresa from "./components/Ingrsa";
 import Movimientos from "./components/Movimientos";
 import Picking from "./components/Picking";
 import Administrador from "./components/Administrador";
+import BarcodeScannerListener from "./components/BarcodeScannerListener";
 
 import { printCodes } from "./utils/print";
 import "./index.css";
@@ -363,6 +364,7 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
+      <BarcodeScannerListener />
       <AppContent />
     </Router>
   );

@@ -5,12 +5,9 @@ const VisualizarQr = ({ items, onBack, onDelete }) => {
   return (
     <div className="visualizar-container">
       <div className="visualizar-header">
-        <button
-          className="btn-go-back-visualizar"
-          onClick={onBack}
-          title="Go back"
-        >
-          <i className="fas fa-undo"></i>
+        <button className="btn-action" onClick={onBack} title="Volver">
+          <i className="fas fa-arrow-left"></i>
+          <span className="btn-text">Volver</span>
         </button>
       </div>
 
