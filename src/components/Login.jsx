@@ -22,6 +22,13 @@ export default function Login({ onLogin }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Efecto para despertar al backend (Render Cold Start) al iniciar
+  useEffect(() => {
+    fetch("https://smartstockwms-a8p6.onrender.com/")
+      .then(() => console.log("Backend despierto"))
+      .catch((err) => console.log("Despertando backend...", err));
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
