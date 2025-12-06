@@ -67,15 +67,27 @@ const BarcodeScannerListener = () => {
             const inputEvent = new Event("input", { bubbles: true });
             targetInput.dispatchEvent(inputEvent);
 
-            // Disparar Enter para activar búsqueda si existe el handler
-            const enterEvent = new KeyboardEvent("keydown", {
-              key: "Enter",
-              code: "Enter",
-              keyCode: 13,
-              which: 13,
-              bubbles: true,
-            });
-            targetInput.dispatchEvent(enterEvent);
+            // Esperar un momento para que React actualice el estado antes de enviar Enter
+            setTimeout(() => {
+              const enterOptions = {
+                key: "Enter",
+                code: "Enter",
+                keyCode: 13,
+                which: 13,
+                bubbles: true,
+                cancelable: true,
+                view: window,
+              };
+
+              const enterDown = new KeyboardEvent("keydown", enterOptions);
+              targetInput.dispatchEvent(enterDown);
+
+              const enterPress = new KeyboardEvent("keypress", enterOptions);
+              targetInput.dispatchEvent(enterPress);
+
+              const enterUp = new KeyboardEvent("keyup", enterOptions);
+              targetInput.dispatchEvent(enterUp);
+            }, 100);
 
             // Enfocar el input
             targetInput.focus();
