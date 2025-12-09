@@ -1046,40 +1046,19 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
 
     const ubicacionTrim = ubicacion.trim();
     
-    // Intentar validar directamente (método simple y compatible)
-    try {
-      const [ubicacionRows] = await db.query(
-        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
-        [ubicacionTrim]
-      );
+    // Usar la misma estructura que las otras consultas PostgreSQL
+    const [ubicacionRows] = await db.query(
+      "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
+      [ubicacionTrim]
+    );
 
-      if (ubicacionRows.length > 0) {
-        res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
-      } else {
-        res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
-      }
-    } catch (queryError) {
-      console.error("Error en consulta principal, intentando con sintaxis alternativa:", queryError.message);
-      
-      // Intentar con sintaxis alternativa si falla
-      try {
-        const [ubicacionRows] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
-          [ubicacionTrim]
-        );
-
-        if (ubicacionRows.length > 0) {
-          res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
-        } else {
-          res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
-        }
-      } catch (fallbackError) {
-        console.error("Error en consulta fallback:", fallbackError.message);
-        res.status(500).json({ error: "Error al consultar la base de datos" });
-      }
+    if (ubicacionRows.length > 0) {
+      res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+    } else {
+      res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
     }
   } catch (error) {
-    console.error("Error general validando ubicación:", error);
+    console.error("Error validando ubicación:", error);
     res.status(500).json({ error: "Error interno al validar ubicación" });
   }
 });
