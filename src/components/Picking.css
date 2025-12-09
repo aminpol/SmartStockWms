@@ -8,16 +8,8 @@
   padding: 1rem;
   gap: 1rem;
   box-sizing: border-box;
-  min-height: 60vh; /* Ensure some height for centering */
-}
-
-.picking-content-wrapper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 0.75rem;
-  max-height: 70vh; /* Limitar altura del contenido */
-  overflow-y: auto; /* Agregar scroll vertical */
+  max-height: 90vh; /* Limitar altura del contenedor principal */
+  overflow-y: auto; /* Agregar scroll vertical en el contenedor principal */
 }
 
 .picking-form {
