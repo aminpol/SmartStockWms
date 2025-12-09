@@ -155,8 +155,8 @@ const Ingresa = ({ onBack, onLogout, user }) => {
               const newPosition = e.target.value.toUpperCase();
               setPosition(newPosition);
               
-              // Detectar si se escaneó una posición válida y guardar automáticamente
-              if (newPosition.trim() && newPosition.length > 2) {
+              // Solo auto-guardar si parece un código de escaneo (más de 8 caracteres o formato específico)
+              if (newPosition.trim() && (newPosition.length > 8 || /^LR-\d{2}-\d{2}$/i.test(newPosition))) {
                 setTimeout(() => {
                   handleSave();
                 }, 100);

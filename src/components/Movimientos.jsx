@@ -35,8 +35,8 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     const value = e.target.value.toUpperCase();
     setFromPosition(value);
     
-    // Si se escanea una ubicación válida, pasar automáticamente al input de cantidad
-    if (value.trim() && value.length > 2) {
+    // Solo auto-avanzar si parece un código de escaneo (más de 8 caracteres o formato específico)
+    if (value.trim() && (value.length > 8 || /^LR-\d{2}-\d{2}$/i.test(value))) {
       setTimeout(() => {
         if (qtyRef.current) {
           qtyRef.current.focus();
@@ -79,8 +79,8 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     const value = e.target.value.toUpperCase();
     setToPosition(value);
     
-    // Si se escanea una ubicación válida, guardar automáticamente
-    if (value.trim() && value.length > 2) {
+    // Solo auto-guardar si parece un código de escaneo (más de 8 caracteres o formato específico)
+    if (value.trim() && (value.length > 8 || /^LR-\d{2}-\d{2}$/i.test(value))) {
       setTimeout(() => {
         handleMove();
       }, 100);
