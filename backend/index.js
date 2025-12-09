@@ -737,6 +737,41 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
   }
 });
 
+// Endpoint para depurar stock_ubicaciones
+app.get("/api/debug-stock", async (req, res) => {
+  try {
+    console.log("Depurando tabla stock_ubicaciones...");
+    
+    // Contar total de registros
+    const [count] = await db.query("SELECT COUNT(*) as total FROM stock_ubicaciones");
+    console.log("Total registros:", count[0].total);
+    
+    // Mostrar todos los registros
+    const [all] = await db.query("SELECT * FROM stock_ubicaciones ORDER BY posicion");
+    console.log("Registros encontrados:", all.length);
+    
+    // Mostrar posiciones únicas
+    const [positions] = await db.query(`
+      SELECT DISTINCT posicion, COUNT(*) as count 
+      FROM stock_ubicaciones 
+      WHERE posicion IS NOT NULL 
+      GROUP BY posicion 
+      ORDER BY posicion
+    `);
+    console.log("Posiciones únicas:", positions.length);
+    
+    res.json({ 
+      total_registros: count[0].total,
+      posiciones_unicas: positions.length,
+      detalles_posiciones: positions,
+      todos_los_registros: all
+    });
+  } catch (error) {
+    console.error("Error al depurar stock:", error);
+    res.status(500).json({ error: "Error al depurar stock" });
+  }
+});
+
 // Endpoint para sincronizar ubicaciones desde stock_ubicaciones
 app.get("/api/sync-ubicaciones", async (req, res) => {
   try {
@@ -897,12 +932,22 @@ app.post("/api/stock/retirar", async (req, res) => {
       }
 
       console.log("Ubicaciones encontradas para", position, ":", ubicaciones.length);
-
+      
+      // Si no hay ubicaciones en la tabla, desactivar validación
       if (ubicaciones.length === 0) {
-        console.log("Error: Posición no encontrada en tabla ubicaciones");
-        return res.status(400).json({
-          error: `La posición "${position}" no existe en el sistema. Por favor, ingrese una posición válida.`,
-        });
+        // Verificar si la tabla está completamente vacía
+        const [totalCount] = await db.query("SELECT COUNT(*) as count FROM ubicaciones");
+        console.log("Total ubicaciones en tabla:", totalCount[0].count);
+        
+        if (totalCount[0].count === 0) {
+          console.log("Tabla ubicaciones vacía - desactivando validación");
+          // Continuar sin validación si la tabla está vacía
+        } else {
+          console.log("Error: Posición no encontrada en tabla ubicaciones");
+          return res.status(400).json({
+            error: `La posición "${position}" no existe en el sistema. Por favor, ingrese una posición válida.`,
+          });
+        }
       }
     } catch (posError) {
       // Si la tabla no existe o hay un error, registrar pero continuar (para compatibilidad)
