@@ -2,14 +2,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center vertically if height allows */
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
   padding: 1rem;
   gap: 1rem;
   box-sizing: border-box;
-  min-height: 60vh; /* Ensure some height for centering */
+  max-height: 90vh; /* Limitar altura para que quepa en pantalla */
+  overflow-y: auto; /* Agregar scroll vertical */
 }
 
 .picking-title {
