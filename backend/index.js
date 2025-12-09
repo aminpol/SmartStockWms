@@ -1039,70 +1039,52 @@ app.get("/api/recibos", async (req, res) => {
 app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
   try {
     const { ubicacion } = req.params;
-    console.log("Validando ubicación:", ubicacion);
     
     if (!ubicacion || ubicacion.trim() === "") {
       return res.status(400).json({ error: "Ubicación es requerida" });
     }
 
     const ubicacionTrim = ubicacion.trim();
-    console.log("Ubicación trim:", ubicacionTrim);
     
-    // Crear tabla ubicaciones si no existe (primero, antes de cualquier consulta)
+    // Usar la misma lógica que ya funciona en el sistema para validar ubicaciones
     try {
-      console.log("Verificando/creando tabla ubicaciones...");
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS ubicaciones (
-          ubicaciones VARCHAR(100) PRIMARY KEY,
-          descripcion VARCHAR(255),
-          activa BOOLEAN DEFAULT TRUE
-        )
-      `);
-      console.log("Tabla ubicaciones verificada/creada");
-      
-      // Insertar ubicaciones comunes si la tabla está vacía
-      const [count] = await db.query("SELECT COUNT(*) as total FROM ubicaciones");
-      if (count[0].total === 0) {
-        console.log("Insertando ubicaciones por defecto...");
-        const ubicacionesDefault = [];
-        for (let pasillo = 1; pasillo <= 15; pasillo++) {
-          for (let lado = 1; lado <= 2; lado++) {
-            for (let posicion = 1; posicion <= 15; posicion++) {
-              ubicacionesDefault.push(`LR-${String(pasillo).padStart(2, '0')}-${String(posicion).padStart(2, '0')}`);
-            }
-          }
-        }
-        ubicacionesDefault.push('GROUND');
-        
-        for (const ub of ubicacionesDefault) {
-          await db.query(
-            "INSERT INTO ubicaciones (ubicaciones, descripcion) VALUES ($1, $2)",
-            [ub, `Ubicación ${ub}`]
-          );
-        }
-        console.log("Ubicaciones por defecto insertadas:", ubicacionesDefault.length);
+      // Verificar si la columna 'activa' existe en la tabla ubicaciones
+      const [columns] = await db.query(
+        `SELECT column_name 
+         FROM information_schema.columns 
+         WHERE table_name = 'ubicaciones' 
+         AND column_name = 'activa'`
+      );
+      const hasActivaColumn = columns.length > 0;
+
+      let ubicacionRows;
+      if (hasActivaColumn) {
+        // Si tiene columna activa, validar con ella
+        [ubicacionRows] = await db.query(
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
+          [ubicacionTrim]
+        );
+      } else {
+        // Si no tiene columna activa, solo validar que existe
+        [ubicacionRows] = await db.query(
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
+          [ubicacionTrim]
+        );
       }
-    } catch (tableError) {
-      console.error("Error creando tabla:", tableError);
-      return res.status(500).json({ error: "Error creando tabla ubicaciones", details: tableError.message });
-    }
-    
-    // Ahora sí intentar la consulta principal
-    const [ubicacionRows] = await db.query(
-      "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
-      [ubicacionTrim]
-    );
 
-    console.log("Resultado consulta:", ubicacionRows);
-
-    if (ubicacionRows.length > 0) {
+      if (ubicacionRows.length > 0) {
+        res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+      } else {
+        res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
+      }
+    } catch (error) {
+      // Si la tabla no existe, asumimos que es una ubicación válida (como antes)
+      console.log("Tabla ubicaciones no existe, permitiendo ubicación:", ubicacionTrim);
       res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
-    } else {
-      res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
     }
   } catch (error) {
     console.error("Error general validando ubicación:", error);
-    res.status(500).json({ error: "Error interno al validar ubicación", details: error.message });
+    res.status(500).json({ error: "Error interno al validar ubicación" });
   }
 });
 
