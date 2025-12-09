@@ -8,7 +8,7 @@
   padding: 1rem;
   gap: 1rem;
   box-sizing: border-box;
-  max-height: 90vh; /* Limitar altura del contenedor principal */
+  max-height: 60vh; /* Reducir altura para forzar scroll más temprano */
   overflow-y: auto; /* Agregar scroll vertical en el contenedor principal */
 }
 
