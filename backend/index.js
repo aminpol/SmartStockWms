@@ -951,56 +951,27 @@ app.post("/api/stock/retirar", async (req, res) => {
 
     // Validar que la posición existe en el sistema
     try {
-      // Verificar si la columna 'activa' existe en la tabla ubicaciones (PostgreSQL syntax)
-      const [columns] = await db.query(
-        `SELECT column_name 
-         FROM information_schema.columns 
-         WHERE table_name = 'ubicaciones' 
-         AND column_name = 'activa'`
+      // Usar la tabla posiciones en lugar de ubicaciones
+      const [posiciones] = await db.query(
+        "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
+        [position]
       );
-      const hasActivaColumn = columns.length > 0;
-      console.log("¿Tabla ubicaciones tiene columna activa?", hasActivaColumn);
-
-      let ubicaciones;
-      if (hasActivaColumn) {
-        // Si tiene columna activa, validar con ella
-        [ubicaciones] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
-          [position]
-        );
-      } else {
-        // Si no tiene columna activa, solo validar que existe
-        [ubicaciones] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
-          [position]
-        );
-      }
-
-      console.log("Ubicaciones encontradas para", position, ":", ubicaciones.length);
       
-      // Si no hay ubicaciones en la tabla, desactivar validación
-      if (ubicaciones.length === 0) {
-        // Verificar si la tabla está completamente vacía
-        const [totalCount] = await db.query("SELECT COUNT(*) as count FROM ubicaciones");
-        console.log("Total ubicaciones en tabla:", totalCount[0].count);
-        
-        if (totalCount[0].count === 0) {
-          console.log("Tabla ubicaciones vacía - desactivando validación");
-          // Continuar sin validación si la tabla está vacía
-        } else {
-          console.log("Error: Posición no encontrada en tabla ubicaciones");
-          return res.status(400).json({
-            error: `La posición "${position}" no existe en el sistema. Por favor, ingrese una posición válida.`,
-          });
-        }
+      console.log("Posiciones encontradas para", position, ":", posiciones.length);
+
+      if (posiciones.length === 0) {
+        console.log("Error: Posición no encontrada en tabla posiciones");
+        return res.status(400).json({
+          error: `La posición "${position}" no existe en el sistema. Por favor, ingrese una posición válida.`,
+        });
       }
     } catch (posError) {
-      // Si la tabla no existe o hay un error, registrar pero continuar (para compatibilidad)
+      // Si hay un error, registrar pero continuar (para compatibilidad)
       console.warn(
-        "Error validando posición (tabla puede no existir aún):",
+        "Error validando posición:",
         posError.message
       );
-      // Continuar sin validación si la tabla no existe
+      // Continuar sin validación si hay error
     }
 
     // Verificar stock actual y obtener descripción
