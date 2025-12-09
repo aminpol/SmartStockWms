@@ -1046,43 +1046,10 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
 
     const ubicacionTrim = ubicacion.trim();
     
-    // Crear tabla posiciones si no existe (con la estructura de tu archivo SQL)
+    // Usar la misma lógica que las otras partes del sistema
     try {
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS posiciones (
-          "Posiciones_Eti" VARCHAR(50) PRIMARY KEY,
-          descripcion VARCHAR(255),
-          activa BOOLEAN DEFAULT TRUE
-        )
-      `);
-      console.log("Tabla posiciones creada/verificada");
-      
-      // Insertar ubicaciones por defecto si está vacía (usando datos de tu archivo SQL)
-      const [count] = await db.query('SELECT COUNT(*) as total FROM posiciones');
-      if (count[0].total === 0) {
-        console.log("Insertando ubicaciones por defecto...");
-        const ubicacionesDefault = [];
-        for (let pasillo = 1; pasillo <= 15; pasillo++) {
-          for (let posicion = 1; posicion <= 6; posicion++) {
-            ubicacionesDefault.push({
-              codigo: `LR-${String(pasillo).padStart(2, '0')}-${String(posicion).padStart(2, '0')}`,
-              descripcion: `Almacén LR - Pasillo ${String(pasillo).padStart(2, '0')} - Posición ${String(posicion).padStart(2, '0')}`
-            });
-          }
-        }
-        
-        for (const ub of ubicacionesDefault) {
-          await db.query(
-            'INSERT INTO posiciones ("Posiciones_Eti", descripcion, activa) VALUES ($1, $2, $3)',
-            [ub.codigo, ub.descripcion, true]
-          );
-        }
-        console.log("Ubicaciones por defecto insertadas:", ubicacionesDefault.length);
-      }
-      
-      // Ahora validar la ubicación (usando la columna correcta Posiciones_Eti)
       const [ubicacionRows] = await db.query(
-        'SELECT "Posiciones_Eti" FROM posiciones WHERE "Posiciones_Eti" = $1 AND activa = TRUE',
+        "SELECT Posiciones_Eti FROM posiciones WHERE Posiciones_Eti = $1",
         [ubicacionTrim]
       );
 
@@ -1091,13 +1058,15 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
       } else {
         res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
       }
-      
-    } catch (tableError) {
-      // Si hay error con la tabla, permitir la ubicación (fallback)
-      console.warn("Error con tabla posiciones, permitiendo:", tableError.message);
+    } catch (posError) {
+      // Si la tabla no existe o hay un error, permitir la ubicación (como el resto del sistema)
+      console.warn(
+        "Error validando ubicación (tabla puede no existir):",
+        posError.message
+      );
+      // Permitir cualquier ubicación si la tabla no existe
       res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
     }
-    
   } catch (error) {
     console.error("Error general validando ubicación:", error);
     res.status(500).json({ error: "Error interno al validar ubicación" });
