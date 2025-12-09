@@ -1046,26 +1046,28 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
 
     const ubicacionTrim = ubicacion.trim();
     
-    // Usar la misma lógica que las otras partes del sistema
+    // Validar que la posición existe en el sistema (igual que otras funciones)
     try {
-      const [ubicacionRows] = await db.query(
+      const [posiciones] = await db.query(
         "SELECT Posiciones_Eti FROM posiciones WHERE Posiciones_Eti = $1",
         [ubicacionTrim]
       );
 
-      if (ubicacionRows.length > 0) {
+      if (posiciones.length > 0) {
         res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
       } else {
         res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
       }
     } catch (posError) {
-      // Si la tabla no existe o hay un error, permitir la ubicación (como el resto del sistema)
-      console.warn(
-        "Error validando ubicación (tabla puede no existir):",
-        posError.message
-      );
-      // Permitir cualquier ubicación si la tabla no existe
-      res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+      console.warn("Error validando posición:", posError.message);
+      // Si la tabla no existe, permitir la ubicación (fallback)
+      if (posError.code === "42P01" || posError.code === "ER_NO_SUCH_TABLE") {
+        console.log("Tabla posiciones no existe, permitiendo ubicación:", ubicacionTrim);
+        res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+      } else {
+        // Otro tipo de error
+        throw posError;
+      }
     }
   } catch (error) {
     console.error("Error general validando ubicación:", error);
