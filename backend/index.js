@@ -439,7 +439,7 @@ app.post("/api/stock/mover", async (req, res) => {
 
     // Obtener registro de origen (asumimos un producto por ubicación)
     const [origenRows] = await db.query(
-      "SELECT id, descrip, cantidad FROM stock_ubicaciones WHERE posicion = $1",
+      "SELECT id, descrip, cantidad, lote FROM stock_ubicaciones WHERE posicion = $1",
       [fromPosition]
     );
 
@@ -464,8 +464,8 @@ app.post("/api/stock/mover", async (req, res) => {
     // Actualizar/borrar origen
     if (nuevaCantidadOrigen > 0) {
       await db.query(
-        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
-        [nuevaCantidadOrigen, userName, origen.id, fromPosition]
+        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
+        [nuevaCantidadOrigen, userName, origen.lote, origen.id, fromPosition]
       );
     } else {
       await db.query(
@@ -486,13 +486,13 @@ app.post("/api/stock/mover", async (req, res) => {
       const actualDest = parseFloat(destRows[0].cantidad) || 0;
       totalDestino = actualDest + qty;
       await db.query(
-        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
-        [totalDestino, userName, origen.id, toPosition]
+        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
+        [totalDestino, userName, origen.lote, origen.id, toPosition]
       );
     } else {
       await db.query(
-        "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES ($1, $2, $3, $4, $5)",
-        [origen.id, origen.descrip, totalDestino, toPosition, userName]
+        "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
+        [origen.id, origen.descrip, totalDestino, toPosition, userName, origen.lote]
       );
     }
 
