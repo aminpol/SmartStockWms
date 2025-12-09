@@ -23,9 +23,9 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
     const value = e.target.value.toUpperCase();
     setCode(value);
     
-    // Detectar si es una ubicación escaneada (formato LR-XX-XX) y buscar automáticamente
+    // Detectar si es una ubicación escaneada (formato LR-XX-XX exacto y 8 caracteres) y buscar automáticamente
     const trimmed = value.trim();
-    if (/^LR-\d{2}-\d{2}$/i.test(trimmed)) {
+    if (trimmed.length === 8 && /^LR-\d{2}-\d{2}$/i.test(trimmed)) {
       setTimeout(() => {
         handleSearch();
       }, 100);
