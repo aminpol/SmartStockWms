@@ -805,17 +805,21 @@ app.get("/api/stock/all", async (req, res) => {
 app.post("/api/stock/retirar", async (req, res) => {
   try {
     const { code, position, quantity, user } = req.body;
+    console.log("=== RETIRO DE STOCK ===");
+    console.log("Datos recibidos:", { code, position, quantity, user });
 
     // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
     const userName =
       typeof user === "object" && user !== null ? user.usuario : user;
 
     if (!code || !position || !userName || quantity == null) {
+      console.log("Error: Datos incompletos");
       return res.status(400).json({ error: "Datos incompletos" });
     }
 
     const qty = parseFloat(quantity);
     if (isNaN(qty) || qty <= 0) {
+      console.log("Error: Cantidad inválida:", quantity);
       return res.status(400).json({ error: "Cantidad inválida" });
     }
 
@@ -829,6 +833,7 @@ app.post("/api/stock/retirar", async (req, res) => {
          AND column_name = 'activa'`
       );
       const hasActivaColumn = columns.length > 0;
+      console.log("¿Tabla ubicaciones tiene columna activa?", hasActivaColumn);
 
       let ubicaciones;
       if (hasActivaColumn) {
@@ -845,7 +850,10 @@ app.post("/api/stock/retirar", async (req, res) => {
         );
       }
 
+      console.log("Ubicaciones encontradas para", position, ":", ubicaciones.length);
+
       if (ubicaciones.length === 0) {
+        console.log("Error: Posición no encontrada en tabla ubicaciones");
         return res.status(400).json({
           error: `La posición "${position}" no existe en el sistema. Por favor, ingrese una posición válida.`,
         });
