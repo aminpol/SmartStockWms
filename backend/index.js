@@ -735,6 +735,37 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
   }
 });
 
+// Endpoint temporal para limpiar ubicaciones "mochas"
+app.get("/api/cleanup-mocha-locations", async (req, res) => {
+  try {
+    console.log('Limpiando ubicaciones "mochas" de stock_ubicaciones...');
+    
+    // Eliminar registros con posicion que no tenga formato LR-XX-XX exacto
+    const [result] = await db.query(`
+      DELETE FROM stock_ubicaciones 
+      WHERE posicion !~ '^LR-\d{2}-\d{2}$'
+    `);
+    
+    console.log(`Eliminados ${result.rowCount} registros con ubicaciones inválidas`);
+    
+    // Mostrar las ubicaciones que quedan
+    const [remaining] = await db.query(`
+      SELECT DISTINCT posicion FROM stock_ubicaciones 
+      ORDER BY posicion
+    `);
+    
+    console.log('Ubicaciones restantes:', remaining.map(r => r.posicion));
+    
+    res.json({ 
+      message: `Limpieza completada. Eliminados ${result.rowCount} registros inválidos.`,
+      remaining: remaining.map(r => r.posicion)
+    });
+  } catch (error) {
+    console.error("Error al limpiar ubicaciones:", error);
+    res.status(500).json({ error: "Error al limpiar ubicaciones" });
+  }
+});
+
 // Endpoint para consultar TODO el stock positivo
 app.get("/api/stock/all", async (req, res) => {
   try {
