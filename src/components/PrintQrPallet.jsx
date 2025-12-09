@@ -364,7 +364,127 @@ const PrintQrPallet = ({ onBack, onLogout }) => {
       setShowErrorModal(true);
       return;
     }
-    window.print();
+    
+    // Usar el método del backup con iframe para mejor compatibilidad
+    imprimirConIframe();
+  };
+
+  const imprimirConIframe = () => {
+    // Crear contenedor temporal para armar las páginas
+    const printContainer = document.createElement("div");
+    
+    // Configurar para 4 códigos por etiqueta (página)
+    const codigosPorPagina = 4;
+    
+    // Obtener todos los elementos de códigos visibles
+    const visibleCodes = Array.from(
+      document.querySelectorAll(".print-area .qr-label-item")
+    );
+
+    for (let i = 0; i < visibleCodes.length; i += codigosPorPagina) {
+      const pagina = document.createElement("div");
+      pagina.className = "print-page";
+      
+      const grupo = visibleCodes.slice(i, i + codigosPorPagina);
+      
+      // Si la página no está llena (menos de 4 códigos), añadir clase especial
+      if (grupo.length < 4) {
+        pagina.classList.add("partial-page");
+      }
+      
+      grupo.forEach((codigoOriginal) => {
+        // Clonar código
+        const clon = codigoOriginal.cloneNode(true);
+        pagina.appendChild(clon);
+      });
+      
+      printContainer.appendChild(pagina);
+    }
+
+    // Crear iframe oculto
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    
+    document.body.appendChild(iframe);
+    
+    // Escribir contenido en el iframe
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`<!DOCTYPE html>
+<html>
+<head>
+<title>Impresión de códigos</title>
+<style>
+@media print {
+  @page {
+    size: 11cm 19cm; /* Tamaño exacto de la etiqueta */
+    margin: 0;
+  }
+  body { 
+    margin: 0; 
+    padding: 0; 
+  }
+  .print-page {
+    width: 11cm;
+    height: 19cm;
+    display: grid;
+    grid-template-rows: repeat(4, 1fr); /* Dividir en 4 filas iguales */
+    align-items: center;
+    justify-items: center;
+    page-break-after: always;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 0.5cm; /* Pequeño margen interno */
+  }
+
+  .print-page:last-child { 
+    page-break-after: avoid; 
+  }
+  
+  .qr-label-item { 
+    width: 100%;
+    height: 100%; /* Ocupar toda la celda del grid */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    break-inside: avoid; /* Evitar que se corte el código */
+    page-break-inside: avoid;
+  }
+  
+  .qr-label-item canvas,
+  .qr-label-item svg {
+    max-width: 80%;
+    max-height: 60%;
+  }
+  
+  .qr-label-item .qr-text {
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 5px;
+  }
+}
+</style>
+</head>
+<body>${printContainer.innerHTML}</body>
+</html>`);
+    doc.close();
+
+    // Imprimir después de un breve retardo
+    setTimeout(() => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      // Limpiar iframe
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 500);
+    }, 500);
   };
 
   const handleVisualizar = () => {
