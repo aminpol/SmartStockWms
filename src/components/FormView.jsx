@@ -55,15 +55,13 @@ const FormView = ({ onMenuOption, onLogout, user }) => {
               <i className="fas fa-pallet"></i>
               <span>{t("optionQrPallet")}</span>
             </button>
-            {user?.tipo_usuario === "administrador" && (
-              <button
-                className="type-btn"
-                onClick={() => onMenuOption("recibir-planta")}
-              >
-                <i className="fas fa-industry"></i>
-                <span>{t("optionReciboPlanta")}</span>
-              </button>
-            )}
+            <button
+              className="type-btn"
+              onClick={() => onMenuOption("recibir-planta")}
+            >
+              <i className="fas fa-industry"></i>
+              <span>{t("optionReciboPlanta")}</span>
+            </button>
             {/* Botón extra para Stock de Inventario dentro del mismo grid */}
             <button
               className={`type-btn inventory-btn ${
