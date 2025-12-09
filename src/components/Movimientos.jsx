@@ -45,15 +45,6 @@ const Movimientos = ({ onBack, onLogout, user }) => {
   const handleFromChange = (e) => {
     const value = e.target.value.toUpperCase();
     setFromPosition(value);
-    
-    // Auto-avanzar solo si parece un código de escaneo completo (formato LR-XX-XX exacto y 8 caracteres)
-    if (value.trim() && value.length === 8 && /^LR-\d{2}-\d{2}$/i.test(value)) {
-      setTimeout(() => {
-        if (qtyRef.current) {
-          qtyRef.current.focus();
-        }
-      }, 300);
-    }
   };
 
   const goToDestination = () => {
@@ -89,13 +80,6 @@ const Movimientos = ({ onBack, onLogout, user }) => {
   const handleToChange = (e) => {
     const value = e.target.value.toUpperCase();
     setToPosition(value);
-    
-    // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX exacto y 8 caracteres)
-    if (value.trim() && value.length === 8 && /^LR-\d{2}-\d{2}$/i.test(value)) {
-      setTimeout(() => {
-        handleMove();
-      }, 300);
-    }
   };
 
   const handleMove = async () => {

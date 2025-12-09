@@ -184,13 +184,6 @@ const Ingresa = ({ onBack, onLogout, user }) => {
             onChange={(e) => {
               const newPosition = e.target.value.toUpperCase();
               setPosition(newPosition);
-              
-              // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX exacto y 8 caracteres)
-              if (newPosition.trim() && newPosition.length === 8 && /^LR-\d{2}-\d{2}$/i.test(newPosition)) {
-                setTimeout(() => {
-                  handleSave();
-                }, 300);
-              }
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter" && position.trim()) {
