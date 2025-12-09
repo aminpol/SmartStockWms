@@ -1046,32 +1046,12 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
 
     const ubicacionTrim = ubicacion.trim();
     
-    // Usar la misma lógica que el resto del sistema para validar ubicaciones
+    // Intentar validar directamente como hacen las otras funciones del sistema
     try {
-      // Verificar si la columna 'activa' existe en la tabla ubicaciones
-      const [columns] = await db.query(
-        `SELECT COLUMN_NAME 
-         FROM INFORMATION_SCHEMA.COLUMNS 
-         WHERE TABLE_SCHEMA = DATABASE() 
-         AND TABLE_NAME = 'ubicaciones' 
-         AND COLUMN_NAME = 'activa'`
+      const [ubicacionRows] = await db.query(
+        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
+        [ubicacionTrim]
       );
-      const hasActivaColumn = columns.length > 0;
-
-      let ubicacionRows;
-      if (hasActivaColumn) {
-        // Si tiene columna activa, validar con ella
-        [ubicacionRows] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
-          [ubicacionTrim]
-        );
-      } else {
-        // Si no tiene columna activa, solo validar que existe
-        [ubicacionRows] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
-          [ubicacionTrim]
-        );
-      }
 
       if (ubicacionRows.length > 0) {
         res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
