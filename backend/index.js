@@ -1046,10 +1046,57 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
 
     const ubicacionTrim = ubicacion.trim();
     
-    // Por ahora, permitir cualquier ubicación (comportamiento original del sistema)
-    // La validación estricta se puede implementar más adelante cuando la tabla exista
-    console.log("Permitiendo ubicación:", ubicacionTrim);
-    res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+    // Crear tabla ubicaciones si no existe (con la estructura de tu BD local)
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS ubicaciones (
+          ubicaciones VARCHAR(50) PRIMARY KEY,
+          descripcion VARCHAR(255),
+          activa BOOLEAN DEFAULT TRUE
+        )
+      `);
+      console.log("Tabla ubicaciones creada/verificada");
+      
+      // Insertar ubicaciones por defecto si está vacía
+      const [count] = await db.query("SELECT COUNT(*) as total FROM ubicaciones");
+      if (count[0].total === 0) {
+        console.log("Insertando ubicaciones por defecto...");
+        const ubicacionesDefault = [];
+        for (let pasillo = 1; pasillo <= 15; pasillo++) {
+          for (let lado = 1; lado <= 2; lado++) {
+            for (let posicion = 1; posicion <= 15; posicion++) {
+              ubicacionesDefault.push(`LR-${String(pasillo).padStart(2, '0')}-${String(posicion).padStart(2, '0')}`);
+            }
+          }
+        }
+        ubicacionesDefault.push('GROUND');
+        
+        for (const ub of ubicacionesDefault) {
+          await db.query(
+            "INSERT INTO ubicaciones (ubicaciones, descripcion) VALUES ($1, $2)",
+            [ub, `Ubicación ${ub}`]
+          );
+        }
+        console.log("Ubicaciones por defecto insertadas:", ubicacionesDefault.length);
+      }
+      
+      // Ahora validar la ubicación
+      const [ubicacionRows] = await db.query(
+        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
+        [ubicacionTrim]
+      );
+
+      if (ubicacionRows.length > 0) {
+        res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+      } else {
+        res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
+      }
+      
+    } catch (tableError) {
+      // Si hay error con la tabla, permitir la ubicación (fallback)
+      console.warn("Error con tabla ubicaciones, permitiendo:", tableError.message);
+      res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+    }
     
   } catch (error) {
     console.error("Error general validando ubicación:", error);
