@@ -1046,43 +1046,43 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
 
     const ubicacionTrim = ubicacion.trim();
     
-    // Crear tabla ubicaciones si no existe (con la estructura de tu BD local)
+    // Crear tabla posiciones si no existe (con la estructura de tu archivo SQL)
     try {
       await db.query(`
-        CREATE TABLE IF NOT EXISTS ubicaciones (
-          ubicaciones VARCHAR(50) PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS posiciones (
+          "Posiciones_Eti" VARCHAR(50) PRIMARY KEY,
           descripcion VARCHAR(255),
           activa BOOLEAN DEFAULT TRUE
         )
       `);
-      console.log("Tabla ubicaciones creada/verificada");
+      console.log("Tabla posiciones creada/verificada");
       
-      // Insertar ubicaciones por defecto si está vacía
-      const [count] = await db.query("SELECT COUNT(*) as total FROM ubicaciones");
+      // Insertar ubicaciones por defecto si está vacía (usando datos de tu archivo SQL)
+      const [count] = await db.query('SELECT COUNT(*) as total FROM posiciones');
       if (count[0].total === 0) {
         console.log("Insertando ubicaciones por defecto...");
         const ubicacionesDefault = [];
         for (let pasillo = 1; pasillo <= 15; pasillo++) {
-          for (let lado = 1; lado <= 2; lado++) {
-            for (let posicion = 1; posicion <= 15; posicion++) {
-              ubicacionesDefault.push(`LR-${String(pasillo).padStart(2, '0')}-${String(posicion).padStart(2, '0')}`);
-            }
+          for (let posicion = 1; posicion <= 6; posicion++) {
+            ubicacionesDefault.push({
+              codigo: `LR-${String(pasillo).padStart(2, '0')}-${String(posicion).padStart(2, '0')}`,
+              descripcion: `Almacén LR - Pasillo ${String(pasillo).padStart(2, '0')} - Posición ${String(posicion).padStart(2, '0')}`
+            });
           }
         }
-        ubicacionesDefault.push('GROUND');
         
         for (const ub of ubicacionesDefault) {
           await db.query(
-            "INSERT INTO ubicaciones (ubicaciones, descripcion) VALUES ($1, $2)",
-            [ub, `Ubicación ${ub}`]
+            'INSERT INTO posiciones ("Posiciones_Eti", descripcion, activa) VALUES ($1, $2, $3)',
+            [ub.codigo, ub.descripcion, true]
           );
         }
         console.log("Ubicaciones por defecto insertadas:", ubicacionesDefault.length);
       }
       
-      // Ahora validar la ubicación
+      // Ahora validar la ubicación (usando la columna correcta Posiciones_Eti)
       const [ubicacionRows] = await db.query(
-        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
+        'SELECT "Posiciones_Eti" FROM posiciones WHERE "Posiciones_Eti" = $1 AND activa = TRUE',
         [ubicacionTrim]
       );
 
@@ -1094,7 +1094,7 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
       
     } catch (tableError) {
       // Si hay error con la tabla, permitir la ubicación (fallback)
-      console.warn("Error con tabla ubicaciones, permitiendo:", tableError.message);
+      console.warn("Error con tabla posiciones, permitiendo:", tableError.message);
       res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
     }
     
