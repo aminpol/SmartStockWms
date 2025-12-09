@@ -387,10 +387,10 @@ app.post("/api/stock/mover", async (req, res) => {
       // Verificar si la columna 'activa' existe en la tabla ubicaciones
       const [columns] = await db.query(
         `SELECT COLUMN_NAME 
-         FROM INFORMATION_SCHEMA.COLUMNS 
-         WHERE TABLE_SCHEMA = DATABASE() 
-         AND TABLE_NAME = 'ubicaciones' 
-         AND COLUMN_NAME = 'activa'`
+         FROM information_schema.columns 
+         WHERE table_schema = 'public' 
+         AND table_name = 'ubicaciones' 
+         AND column_name = 'activa'`
       );
       const hasActivaColumn = columns.length > 0;
 
@@ -1128,7 +1128,7 @@ app.post("/api/ubicaciones", async (req, res) => {
     const [columns] = await db.query(
       `SELECT COLUMN_NAME 
        FROM INFORMATION_SCHEMA.COLUMNS 
-       WHERE TABLE_SCHEMA = DATABASE() 
+       WHERE TABLE_SCHEMA = 'public' 
        AND TABLE_NAME = 'ubicaciones' 
        AND COLUMN_NAME = 'activa'`
     );
@@ -1180,7 +1180,7 @@ app.put("/api/ubicaciones/:ubicacion", async (req, res) => {
     const [columns] = await db.query(
       `SELECT COLUMN_NAME 
        FROM INFORMATION_SCHEMA.COLUMNS 
-       WHERE TABLE_SCHEMA = DATABASE() 
+       WHERE TABLE_SCHEMA = 'public' 
        AND TABLE_NAME = 'ubicaciones' 
        AND COLUMN_NAME = 'activa'`
     );
@@ -1233,7 +1233,7 @@ app.delete("/api/ubicaciones/:ubicacion", async (req, res) => {
     const [columns] = await db.query(
       `SELECT COLUMN_NAME 
        FROM INFORMATION_SCHEMA.COLUMNS 
-       WHERE TABLE_SCHEMA = DATABASE() 
+       WHERE TABLE_SCHEMA = 'public' 
        AND TABLE_NAME = 'ubicaciones' 
        AND COLUMN_NAME = 'activa'`
     );
