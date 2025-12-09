@@ -184,11 +184,13 @@ const Ingresa = ({ onBack, onLogout, user }) => {
             onChange={(e) => {
               const newPosition = e.target.value.toUpperCase();
               setPosition(newPosition);
-              console.log("Cambiando posición:", newPosition);
               
-              // Temporalmente desactivado auto-guardado para evitar ubicaciones mochas
-              // Solo se guarda con botón o Enter
-              console.log("Auto-guardado desactivado");
+              // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX con 2+ dígitos al final)
+              if (newPosition.trim() && /^LR-\d{2}-\d{2,}$/i.test(newPosition)) {
+                setTimeout(() => {
+                  handleSave();
+                }, 200);
+              }
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter" && position.trim()) {
