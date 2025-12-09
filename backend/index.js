@@ -722,6 +722,10 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
     console.log("Query:", query);
     const [rows] = await db.query(query, [posicion]);
     console.log("Resultados encontrados:", rows.length);
+    
+    // Para depuración: mostrar todos los datos en la tabla
+    const [allRows] = await db.query("SELECT * FROM stock_ubicaciones LIMIT 5");
+    console.log("Primeros 5 registros en stock_ubicaciones:", allRows);
 
     // Devolver 200 con array vacío si no hay resultados, en lugar de 404
     res.json(rows);
