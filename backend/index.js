@@ -384,38 +384,15 @@ app.post("/api/stock/mover", async (req, res) => {
 
     // Validar que ambas posiciones existen en el sistema
     try {
-      // Verificar si la columna 'activa' existe en la tabla ubicaciones
-      const [columns] = await db.query(
-        `SELECT COLUMN_NAME 
-         FROM information_schema.columns 
-         WHERE table_schema = 'public' 
-         AND table_name = 'ubicaciones' 
-         AND column_name = 'activa'`
+      // Validar contra la tabla posiciones
+      const [posicionOrigen] = await db.query(
+        "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
+        [fromPosition]
       );
-      const hasActivaColumn = columns.length > 0;
-
-      let posicionOrigen, posicionDestino;
-      if (hasActivaColumn) {
-        // Si tiene columna activa, validar con ella
-        [posicionOrigen] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
-          [fromPosition]
-        );
-        [posicionDestino] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
-          [toPosition]
-        );
-      } else {
-        // Si no tiene columna activa, solo validar que existen
-        [posicionOrigen] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
-          [fromPosition]
-        );
-        [posicionDestino] = await db.query(
-          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
-          [toPosition]
-        );
-      }
+      const [posicionDestino] = await db.query(
+        "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
+        [toPosition]
+      );
 
       if (posicionOrigen.length === 0) {
         return res.status(400).json({
