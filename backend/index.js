@@ -737,6 +737,52 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
   }
 });
 
+// Endpoint para sincronizar ubicaciones desde stock_ubicaciones
+app.get("/api/sync-ubicaciones", async (req, res) => {
+  try {
+    console.log("Sincronizando ubicaciones desde stock_ubicaciones...");
+    
+    // Obtener todas las posiciones únicas de stock_ubicaciones
+    const [positions] = await db.query(`
+      SELECT DISTINCT posicion 
+      FROM stock_ubicaciones 
+      WHERE posicion IS NOT NULL 
+      AND posicion ~ '^LR-\d{2}-\d{2}$'
+      ORDER BY posicion
+    `);
+    
+    console.log("Posiciones encontradas en stock_ubicaciones:", positions.length);
+    
+    let synced = 0;
+    for (const pos of positions) {
+      // Verificar si ya existe en ubicaciones
+      const [exists] = await db.query(
+        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
+        [pos.posicion]
+      );
+      
+      if (exists.length === 0) {
+        // Insertar si no existe
+        await db.query(
+          "INSERT INTO ubicaciones (ubicaciones, descripcion, activa) VALUES ($1, $2, TRUE)",
+          [pos.posicion, `Ubicación ${pos.posicion}`]
+        );
+        synced++;
+        console.log(`Insertada ubicación: ${pos.posicion}`);
+      }
+    }
+    
+    res.json({ 
+      message: `Sincronización completada. ${synced} nuevas ubicaciones agregadas.`,
+      total_positions: positions.length,
+      new_positions: synced
+    });
+  } catch (error) {
+    console.error("Error al sincronizar ubicaciones:", error);
+    res.status(500).json({ error: "Error al sincronizar ubicaciones" });
+  }
+});
+
 // Endpoint temporal para limpiar ubicaciones "mochas"
 app.get("/api/cleanup-mocha-locations", async (req, res) => {
   try {
