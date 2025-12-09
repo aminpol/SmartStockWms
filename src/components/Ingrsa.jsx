@@ -14,6 +14,19 @@ const Ingresa = ({ onBack, onLogout, user }) => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
+  // Función para validar si una ubicación existe en la base de datos
+  const validateUbicacion = async (ubicacion) => {
+    try {
+      const response = await fetch(
+        `https://smartstockwms-a8p6.onrender.com/api/ubicaciones/validar/${encodeURIComponent(ubicacion)}`
+      );
+      return response.ok;
+    } catch (error) {
+      console.error("Error validando ubicación:", error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 1024);
@@ -35,9 +48,26 @@ const Ingresa = ({ onBack, onLogout, user }) => {
       return;
     }
 
+    // Validar que la ubicación exista en la base de datos
+    setLoading(true);
+    try {
+      const ubicacionValida = await validateUbicacion(position.trim());
+      
+      if (!ubicacionValida) {
+        setErrorMsg(`La ubicación "${position}" no existe en la base de datos`);
+        setLoading(false);
+        return;
+      }
+    } catch (error) {
+      setErrorMsg("Error al validar ubicación. Intente nuevamente.");
+      setLoading(false);
+      return;
+    }
+
     const qty = parseFloat(quantity);
     if (isNaN(qty) || qty <= 0) {
       setErrorMsg("La cantidad debe ser un número mayor a cero");
+      setLoading(false);
       return;
     }
 

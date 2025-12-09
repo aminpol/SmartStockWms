@@ -5,16 +5,27 @@ import { useConfig } from "../context/ConfigContext";
 
 const Movimientos = ({ onBack, onLogout, user }) => {
   const { t } = useConfig();
-  // Cargar estado inicial (sin persistencia)
   const [fromPosition, setFromPosition] = useState("");
-  const [quantity, setQuantity] = useState("");
   const [toPosition, setToPosition] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
-
   const fromRef = useRef(null);
   const qtyRef = useRef(null);
   const toRef = useRef(null);
+
+  // Función para validar si una ubicación existe en la base de datos
+  const validateUbicacion = async (ubicacion) => {
+    try {
+      const response = await fetch(
+        `https://smartstockwms-a8p6.onrender.com/api/ubicaciones/validar/${encodeURIComponent(ubicacion)}`
+      );
+      return response.ok;
+    } catch (error) {
+      console.error("Error validando ubicación:", error);
+      return false;
+    }
+  };
 
   const focusFrom = () => {
     if (fromRef.current) {
@@ -102,12 +113,47 @@ const Movimientos = ({ onBack, onLogout, user }) => {
       return;
     }
 
+    // Validar que las ubicaciones existan en la base de datos
+    setLoading(true);
+    try {
+      const [fromValid, toValid] = await Promise.all([
+        validateUbicacion(fromPosition.trim()),
+        validateUbicacion(toPosition.trim())
+      ]);
+
+      if (!fromValid) {
+        setMessage({
+          type: "error",
+          text: `La ubicación de origen "${fromPosition}" no existe en la base de datos`,
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!toValid) {
+        setMessage({
+          type: "error",
+          text: `La ubicación de destino "${toPosition}" no existe en la base de datos`,
+        });
+        setLoading(false);
+        return;
+      }
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: "Error al validar ubicaciones. Intente nuevamente.",
+      });
+      setLoading(false);
+      return;
+    }
+
     const qty = parseFloat(quantity);
     if (isNaN(qty) || qty <= 0) {
       setMessage({
         type: "error",
         text: "La cantidad debe ser un número mayor a cero",
       });
+      setLoading(false);
       return;
     }
 

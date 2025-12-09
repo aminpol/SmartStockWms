@@ -1035,6 +1035,50 @@ app.get("/api/recibos", async (req, res) => {
 
 // ==================== ENDPOINTS DE GESTIÓN DE UBICACIONES ====================
 
+// Validar si una ubicación existe
+app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
+  try {
+    const { ubicacion } = req.params;
+    
+    if (!ubicacion || ubicacion.trim() === "") {
+      return res.status(400).json({ error: "Ubicación es requerida" });
+    }
+
+    // Verificar si la columna 'activa' existe en la tabla ubicaciones
+    const [columns] = await db.query(
+      `SELECT column_name 
+       FROM information_schema.columns 
+       WHERE table_name = 'ubicaciones' 
+       AND column_name = 'activa'`
+    );
+    const hasActivaColumn = columns.length > 0;
+
+    let ubicacionRows;
+    if (hasActivaColumn) {
+      // Si tiene columna activa, validar con ella
+      [ubicacionRows] = await db.query(
+        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
+        [ubicacion.trim()]
+      );
+    } else {
+      // Si no tiene columna activa, solo validar que existe
+      [ubicacionRows] = await db.query(
+        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
+        [ubicacion.trim()]
+      );
+    }
+
+    if (ubicacionRows.length > 0) {
+      res.status(200).json({ exists: true, ubicacion: ubicacion.trim() });
+    } else {
+      res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
+    }
+  } catch (error) {
+    console.error("Error validando ubicación:", error);
+    res.status(500).json({ error: "Error interno al validar ubicación" });
+  }
+});
+
 // Listar todas las ubicaciones
 app.get("/api/ubicaciones", async (req, res) => {
   try {
