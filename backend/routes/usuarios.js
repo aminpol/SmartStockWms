@@ -149,7 +149,7 @@ router.put("/:documento", async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error("Error al actualizar usuario:", error);
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "23505") { // PostgreSQL unique violation
       return res.status(409).json({ error: "El usuario ya existe" });
     }
     res.status(500).json({ error: "Error al actualizar usuario" });
