@@ -119,9 +119,9 @@ router.put("/:documento", async (req, res) => {
     // 2. Actualizar la tabla de usuarios
     const [result] = await connection.query(
       `UPDATE usuarios 
-       SET nombre = ?, apellido = ?, email = ?, empresa_contratista = ?, 
-           usuario = ?, contraseña = COALESCE(?, contraseña), tipo_usuario = ?
-       WHERE documento = ?`,
+       SET nombre = $1, apellido = $2, email = $3, empresa_contratista = $4, 
+           usuario = $5, contraseña = COALESCE($6, contraseña), tipo_usuario = $7
+       WHERE documento = $8`,
       [
         nombre,
         apellido,
