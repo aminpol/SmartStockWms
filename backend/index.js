@@ -438,10 +438,20 @@ app.post("/api/stock/mover", async (req, res) => {
     }
 
     // Obtener registro de origen (asumimos un producto por ubicación)
-    const [origenRows] = await db.query(
-      "SELECT id, descrip, cantidad, lote FROM stock_ubicaciones WHERE posicion = $1",
-      [fromPosition]
+    // Verificar si la columna lote existe
+    const [columns] = await db.query(
+      `SELECT COLUMN_NAME 
+       FROM information_schema.columns 
+       WHERE table_name = 'stock_ubicaciones' 
+       AND column_name = 'lote'`
     );
+    const hasLoteColumn = columns.length > 0;
+
+    let query = hasLoteColumn 
+      ? "SELECT id, descrip, cantidad, lote FROM stock_ubicaciones WHERE posicion = $1"
+      : "SELECT id, descrip, cantidad FROM stock_ubicaciones WHERE posicion = $1";
+    
+    const [origenRows] = await db.query(query, [fromPosition]);
 
     if (origenRows.length === 0) {
       return res
@@ -463,10 +473,17 @@ app.post("/api/stock/mover", async (req, res) => {
 
     // Actualizar/borrar origen
     if (nuevaCantidadOrigen > 0) {
-      await db.query(
-        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
-        [nuevaCantidadOrigen, userName, origen.lote, origen.id, fromPosition]
-      );
+      if (hasLoteColumn) {
+        await db.query(
+          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
+          [nuevaCantidadOrigen, userName, origen.lote, origen.id, fromPosition]
+        );
+      } else {
+        await db.query(
+          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
+          [nuevaCantidadOrigen, userName, origen.id, fromPosition]
+        );
+      }
     } else {
       await db.query(
         "DELETE FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
@@ -485,15 +502,29 @@ app.post("/api/stock/mover", async (req, res) => {
     if (destRows.length > 0) {
       const actualDest = parseFloat(destRows[0].cantidad) || 0;
       totalDestino = actualDest + qty;
-      await db.query(
-        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
-        [totalDestino, userName, origen.lote, origen.id, toPosition]
-      );
+      if (hasLoteColumn) {
+        await db.query(
+          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
+          [totalDestino, userName, origen.lote, origen.id, toPosition]
+        );
+      } else {
+        await db.query(
+          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
+          [totalDestino, userName, origen.id, toPosition]
+        );
+      }
     } else {
-      await db.query(
-        "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
-        [origen.id, origen.descrip, totalDestino, toPosition, userName, origen.lote]
-      );
+      if (hasLoteColumn) {
+        await db.query(
+          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
+          [origen.id, origen.descrip, totalDestino, toPosition, userName, origen.lote]
+        );
+      } else {
+        await db.query(
+          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES ($1, $2, $3, $4, $5)",
+          [origen.id, origen.descrip, totalDestino, toPosition, userName]
+        );
+      }
     }
 
     res.json({
