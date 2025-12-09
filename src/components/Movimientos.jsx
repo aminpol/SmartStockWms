@@ -46,8 +46,8 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     const value = e.target.value.toUpperCase();
     setFromPosition(value);
     
-    // Auto-avanzar solo si parece un código de escaneo completo (formato LR-XX-XX con 2+ dígitos al final)
-    if (value.trim() && /^LR-\d{2}-\d{2,}$/i.test(value)) {
+    // Auto-avanzar solo si parece un código de escaneo completo (formato LR-XX-XX exacto)
+    if (value.trim() && /^LR-\d{2}-\d{2}$/i.test(value)) {
       setTimeout(() => {
         if (qtyRef.current) {
           qtyRef.current.focus();
@@ -90,8 +90,8 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     const value = e.target.value.toUpperCase();
     setToPosition(value);
     
-    // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX con 2+ dígitos al final)
-    if (value.trim() && /^LR-\d{2}-\d{2,}$/i.test(value)) {
+    // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX exacto)
+    if (value.trim() && /^LR-\d{2}-\d{2}$/i.test(value)) {
       setTimeout(() => {
         handleMove();
       }, 200);
