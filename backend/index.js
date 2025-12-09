@@ -692,6 +692,7 @@ app.post("/api/stock/ingresa", async (req, res) => {
 app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
   try {
     const { posicion } = req.params;
+    console.log("Consultando ubicación:", posicion);
 
     if (!posicion) {
       return res.status(400).json({ error: "Ubicación no proporcionada" });
@@ -705,6 +706,7 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
        AND column_name = 'lote'`
     );
     const hasLoteColumn = columns.length > 0;
+    console.log("¿Tiene columna lote?", hasLoteColumn);
 
     let query;
     if (hasLoteColumn) {
@@ -717,7 +719,9 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
                WHERE posicion = $1`;
     }
 
+    console.log("Query:", query);
     const [rows] = await db.query(query, [posicion]);
+    console.log("Resultados encontrados:", rows.length);
 
     // Devolver 200 con array vacío si no hay resultados, en lugar de 404
     res.json(rows);
