@@ -60,17 +60,20 @@ router.post("/", async (req, res) => {
 // Obtener usuario por documento
 router.get("/:documento", async (req, res) => {
   const { documento } = req.params;
+  console.log("Buscando usuario con documento:", documento);
 
   try {
     const [rows] = await db.query(
       "SELECT * FROM usuarios WHERE documento = $1",
       [documento]
     );
+    console.log("Resultados encontrados:", rows.length);
 
     if (rows.length === 0) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
+    console.log("Usuario encontrado:", rows[0].documento);
     res.json(rows[0]);
   } catch (error) {
     console.error("Error al obtener usuario:", error);

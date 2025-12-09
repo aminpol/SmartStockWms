@@ -53,14 +53,14 @@ const Usuarios = () => {
 
       const data = await response.json();
       setFormData({
-        documento: data.documento,
-        nombre: data.nombre,
-        apellido: data.apellido,
+        documento: data.documento || "",
+        nombre: data.nombre || "",
+        apellido: data.apellido || "",
         email: data.email || "",
         empresa_contratista: data.empresa_contratista || "",
-        usuario: data.usuario,
-        contraseña: data.contraseña,
-        tipo_usuario: data.tipo_usuario,
+        usuario: data.usuario || "",
+        contraseña: data.contraseña || "",
+        tipo_usuario: data.tipo_usuario || "bodega",
       });
       setIsEditing(true);
       setShowAllUsers(false);
