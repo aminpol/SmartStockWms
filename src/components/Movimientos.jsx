@@ -46,14 +46,8 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     const value = e.target.value.toUpperCase();
     setFromPosition(value);
     
-    // Solo auto-avanzar si parece un código de escaneo (más de 8 caracteres o formato específico)
-    if (value.trim() && (value.length > 8 || /^LR-\d{2}-\d{2}$/i.test(value))) {
-      setTimeout(() => {
-        if (qtyRef.current) {
-          qtyRef.current.focus();
-        }
-      }, 100);
-    }
+    // Temporalmente desactivado auto-avance para evitar ubicaciones mochas
+    // Solo se avanza con botón o Enter
   };
 
   const goToDestination = () => {
@@ -90,12 +84,8 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     const value = e.target.value.toUpperCase();
     setToPosition(value);
     
-    // Solo auto-guardar si parece un código de escaneo (más de 8 caracteres o formato específico)
-    if (value.trim() && (value.length > 8 || /^LR-\d{2}-\d{2}$/i.test(value))) {
-      setTimeout(() => {
-        handleMove();
-      }, 100);
-    }
+    // Temporalmente desactivado auto-guardado para evitar ubicaciones mochas
+    // Solo se guarda con botón o Enter
   };
 
   const handleMove = async () => {
