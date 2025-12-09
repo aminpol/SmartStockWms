@@ -184,9 +184,11 @@ const Ingresa = ({ onBack, onLogout, user }) => {
             onChange={(e) => {
               const newPosition = e.target.value.toUpperCase();
               setPosition(newPosition);
+              console.log("Cambiando posición:", newPosition);
               
               // Temporalmente desactivado auto-guardado para evitar ubicaciones mochas
               // Solo se guarda con botón o Enter
+              console.log("Auto-guardado desactivado");
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter" && position.trim()) {
