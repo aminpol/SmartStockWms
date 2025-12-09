@@ -368,33 +368,42 @@ app.get("/api/stock/consulta/:code", async (req, res) => {
 app.post("/api/stock/mover", async (req, res) => {
   try {
     const { fromPosition, toPosition, quantity, user } = req.body;
+    console.log("=== MOVIMIENTO DE STOCK ===");
+    console.log("Datos recibidos:", { fromPosition, toPosition, quantity, user });
 
     // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
     const userName =
       typeof user === "object" && user !== null ? user.usuario : user;
 
     if (!fromPosition || !toPosition || !userName || quantity == null) {
+      console.log("Error: Datos incompletos");
       return res.status(400).json({ error: "Datos incompletos" });
     }
 
     const qty = parseFloat(quantity);
     if (isNaN(qty) || qty <= 0) {
+      console.log("Error: Cantidad inválida:", quantity);
       return res.status(400).json({ error: "Cantidad inválida" });
     }
 
     // Validar que ambas posiciones existen en el sistema
     try {
-      // Validar contra la tabla posiciones
+      console.log("Validando posición origen:", fromPosition);
       const [posicionOrigen] = await db.query(
         "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
         [fromPosition]
       );
+      console.log("Posición origen encontrada:", posicionOrigen.length);
+      
+      console.log("Validando posición destino:", toPosition);
       const [posicionDestino] = await db.query(
         "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
         [toPosition]
       );
+      console.log("Posición destino encontrada:", posicionDestino.length);
 
       if (posicionOrigen.length === 0) {
+        console.log("Error: Posición origen no encontrada");
         return res.status(400).json({
           error: `La posición de origen "${fromPosition}" no existe en el sistema. Por favor, ingrese una posición válida.`,
         });
