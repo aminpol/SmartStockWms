@@ -185,8 +185,8 @@ const Ingresa = ({ onBack, onLogout, user }) => {
               const newPosition = e.target.value.toUpperCase();
               setPosition(newPosition);
               
-              // Solo auto-guardar si parece un código de escaneo (más de 8 caracteres o formato específico)
-              if (newPosition.trim() && (newPosition.length > 8 || /^LR-\d{2}-\d{2}$/i.test(newPosition))) {
+              // Solo auto-guardar si parece un código de escaneo completo (más de 10 caracteres o formato LR-XX-XX completo)
+              if (newPosition.trim() && (newPosition.length > 10 || /^LR-\d{2}-\d{2,}$/i.test(newPosition))) {
                 setTimeout(() => {
                   handleSave();
                 }, 100);
