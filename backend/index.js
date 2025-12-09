@@ -737,6 +737,51 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
   }
 });
 
+// Endpoint para verificar tablas en la base de datos
+app.get("/api/check-tables", async (req, res) => {
+  try {
+    console.log("Verificando tablas en la base de datos...");
+    
+    // Obtener todas las tablas
+    const [tables] = await db.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_type = 'BASE TABLE'
+      ORDER BY table_name
+    `);
+    
+    console.log("Tablas encontradas:", tables.map(t => t.table_name));
+    
+    // Verificar si existe tabla con nombre similar a ubicaciones
+    const ubicacionesTables = tables.filter(t => 
+      t.table_name.toLowerCase().includes('ubicacion') || 
+      t.table_name.toLowerCase().includes('posicion')
+    );
+    
+    // Si encontramos una tabla similar, mostrar su contenido
+    let tableData = {};
+    for (const table of ubicacionesTables) {
+      try {
+        const [data] = await db.query(`SELECT * FROM ${table.table_name} LIMIT 5`);
+        tableData[table.table_name] = data;
+      } catch (err) {
+        tableData[table.table_name] = { error: err.message };
+      }
+    }
+    
+    res.json({ 
+      total_tables: tables.length,
+      all_tables: tables.map(t => t.table_name),
+      ubicaciones_related_tables: ubicacionesTables.map(t => t.table_name),
+      table_data: tableData
+    });
+  } catch (error) {
+    console.error("Error al verificar tablas:", error);
+    res.status(500).json({ error: "Error al verificar tablas" });
+  }
+});
+
 // Endpoint para depurar stock_ubicaciones
 app.get("/api/debug-stock", async (req, res) => {
   try {
