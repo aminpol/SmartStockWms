@@ -189,79 +189,81 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
     <div className="picking-container">
       <h3 className="picking-title">{t("pickTitle")}</h3>
 
-      <div className="picking-form">
-        <label className="picking-label">{t("pickLocation")}</label>
-        <input
-          ref={locationRef}
-          type="text"
-          className="picking-input"
-          placeholder={t("pickLocation")}
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          onKeyDown={handleLocationKeyDown}
-        />
+      <div className="picking-content-wrapper">
+        <div className="picking-form">
+          <label className="picking-label">{t("pickLocation")}</label>
+          <input
+            ref={locationRef}
+            type="text"
+            className="picking-input"
+            placeholder={t("pickLocation")}
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            onKeyDown={handleLocationKeyDown}
+          />
 
-        {stockData && (
-          <div className="picking-info">
-            <div className="info-row">
-              <span className="info-label">{t("pickCode")}:</span>
-              <span className="info-value">{stockData.id}</span>
+          {stockData && (
+            <div className="picking-info">
+              <div className="info-row">
+                <span className="info-label">{t("pickCode")}:</span>
+                <span className="info-value">{stockData.id}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">{t("consTableDesc")}:</span>
+                <span className="info-value">{stockData.descrip}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">{t("pickCurrentStock")}:</span>
+                <span className="info-value">
+                  <strong>{parseFloat(stockData.cantidad)}</strong>
+                </span>
+              </div>
             </div>
-            <div className="info-row">
-              <span className="info-label">{t("consTableDesc")}:</span>
-              <span className="info-value">{stockData.descrip}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">{t("pickCurrentStock")}:</span>
-              <span className="info-value">
-                <strong>{parseFloat(stockData.cantidad)}</strong>
-              </span>
-            </div>
-          </div>
-        )}
+          )}
 
-        <label className="picking-label">{t("pickQtyToPick")}</label>
-        <input
-          ref={quantityRef}
-          type="number"
-          className="picking-input"
-          placeholder={t("pickQtyToPick")}
-          value={quantityToWithdraw}
-          onChange={(e) => setQuantityToWithdraw(e.target.value)}
-          disabled={!stockData}
-        />
+          <label className="picking-label">{t("pickQtyToPick")}</label>
+          <input
+            ref={quantityRef}
+            type="number"
+            className="picking-input"
+            placeholder={t("pickQtyToPick")}
+            value={quantityToWithdraw}
+            onChange={(e) => setQuantityToWithdraw(e.target.value)}
+            disabled={!stockData}
+          />
 
-        <button
-          className="picking-btn-retirar"
-          onClick={handleWithdraw}
-          disabled={!stockData || loading}
-        >
-          {loading ? t("loading") : t("pickBtnConfirm")}
-        </button>
-      </div>
-
-      {message && message.showModal ? (
-        <div className="picking-modal-overlay">
-          <div
-            className={`picking-modal ${
-              message.type === "success" ? "picking-modal-success" : ""
-            }`}
+          <button
+            className="picking-btn-retirar"
+            onClick={handleWithdraw}
+            disabled={!stockData || loading}
           >
-            <p
-              className={`picking-modal-text ${
-                message.type === "success" ? "picking-modal-text-success" : ""
+            {loading ? t("loading") : t("pickBtnConfirm")}
+          </button>
+        </div>
+
+        {message && message.showModal ? (
+          <div className="picking-modal-overlay">
+            <div
+              className={`picking-modal ${
+                message.type === "success" ? "picking-modal-success" : ""
               }`}
             >
-              {message.text}
-            </p>
-            <button className="picking-modal-btn" onClick={handleModalOk}>
-              OK
-            </button>
+              <p
+                className={`picking-modal-text ${
+                  message.type === "success" ? "picking-modal-text-success" : ""
+                }`}
+              >
+                {message.text}
+              </p>
+              <button className="picking-modal-btn" onClick={handleModalOk}>
+                OK
+              </button>
+            </div>
           </div>
-        </div>
-      ) : message ? (
-        <div className={`picking-message ${message.type}`}>{message.text}</div>
-      ) : null}
+        ) : message ? (
+          <div className={`picking-message ${message.type}`}>{message.text}</div>
+        ) : null}
+      </div>
 
       <div className="picking-actions">
         <button className="btn-action" onClick={handleBack}>
