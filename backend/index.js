@@ -1230,10 +1230,21 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
     }
 
     const ubicacionTrim = ubicacion.trim();
+    console.log("Validando ubicación:", ubicacionTrim);
     
-    // Por ahora, permitir cualquier ubicación ya que la tabla posiciones no existe en producción
-    console.log("Permitiendo ubicación (tabla posiciones no existe):", ubicacionTrim);
-    res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+    // Validar contra la tabla posiciones
+    const [posiciones] = await db.query(
+      "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
+      [ubicacionTrim]
+    );
+    
+    if (posiciones.length > 0) {
+      console.log("Ubicación válida:", ubicacionTrim);
+      res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+    } else {
+      console.log("Ubicación no válida:", ubicacionTrim);
+      res.status(404).json({ exists: false, error: "Ubicación no encontrada" });
+    }
     
   } catch (error) {
     console.error("Error general validando ubicación:", error);
