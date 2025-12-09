@@ -692,7 +692,9 @@ app.post("/api/stock/ingresa", async (req, res) => {
 app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
   try {
     const { posicion } = req.params;
+    console.log("=== CONSULTA POR UBICACIÓN ===");
     console.log("Consultando ubicación:", posicion);
+    console.log("Longitud de ubicación:", posicion.length);
 
     if (!posicion) {
       return res.status(400).json({ error: "Ubicación no proporcionada" });
@@ -719,7 +721,7 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
                WHERE posicion = $1`;
     }
 
-    console.log("Query:", query);
+    console.log("Query ejecutada:", query);
     const [rows] = await db.query(query, [posicion]);
     console.log("Resultados encontrados:", rows.length);
     
