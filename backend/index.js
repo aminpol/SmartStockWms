@@ -1046,14 +1046,15 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
 
     const ubicacionTrim = ubicacion.trim();
     
-    // Usar la misma lógica que ya funciona en el sistema para validar ubicaciones
+    // Usar la misma lógica que el resto del sistema para validar ubicaciones
     try {
       // Verificar si la columna 'activa' existe en la tabla ubicaciones
       const [columns] = await db.query(
-        `SELECT column_name 
-         FROM information_schema.columns 
-         WHERE table_name = 'ubicaciones' 
-         AND column_name = 'activa'`
+        `SELECT COLUMN_NAME 
+         FROM INFORMATION_SCHEMA.COLUMNS 
+         WHERE TABLE_SCHEMA = DATABASE() 
+         AND TABLE_NAME = 'ubicaciones' 
+         AND COLUMN_NAME = 'activa'`
       );
       const hasActivaColumn = columns.length > 0;
 
@@ -1077,9 +1078,13 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
       } else {
         res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
       }
-    } catch (error) {
-      // Si la tabla no existe, asumimos que es una ubicación válida (como antes)
-      console.log("Tabla ubicaciones no existe, permitiendo ubicación:", ubicacionTrim);
+    } catch (posError) {
+      // Si la tabla no existe o hay un error, permitir la ubicación (como el resto del sistema)
+      console.warn(
+        "Error validando ubicación (tabla puede no existir):",
+        posError.message
+      );
+      // Permitir cualquier ubicación si la tabla no existe
       res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
     }
   } catch (error) {
