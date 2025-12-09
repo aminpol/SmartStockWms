@@ -255,12 +255,12 @@ h2 {
   margin-bottom: 0;
 }
 
-/* Botón Stock de Inventario usando mismos estilos que type-btn */
+/* Botón Stock de Inventario */
 .inventory-btn {
-  grid-column: 1 / -1; /* Ocupa todo el ancho del grid por defecto */
+  grid-column: auto; /* Dejar que ocupe solo su celda */
 }
 
-/* En escritorio, si está el admin, comparte fila */
+/* En escritorio, comportamiento igual */
 @media (min-width: 1024px) {
   .inventory-btn.with-admin {
     grid-column: auto;

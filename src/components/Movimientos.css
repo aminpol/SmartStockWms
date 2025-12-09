@@ -102,3 +102,18 @@
     gap: 0.4rem;
   }
 }
+
+.btn-save {
+  background-color: #16a34a !important;
+  color: white !important;
+  border: 1px solid #15803d !important;
+}
+
+.btn-save:hover:not(:disabled) {
+  background-color: #15803d !important;
+}
+
+.btn-save:disabled {
+  background-color: #9ca3af !important;
+  cursor: not-allowed;
+}

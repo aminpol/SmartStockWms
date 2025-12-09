@@ -154,6 +154,13 @@ const Ingresa = ({ onBack, onLogout, user }) => {
             onChange={(e) => {
               const newPosition = e.target.value.toUpperCase();
               setPosition(newPosition);
+              
+              // Detectar si se escaneó una posición válida y guardar automáticamente
+              if (newPosition.trim() && newPosition.length > 2) {
+                setTimeout(() => {
+                  handleSave();
+                }, 100);
+              }
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter" && position.trim()) {

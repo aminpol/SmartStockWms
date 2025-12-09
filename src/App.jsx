@@ -16,6 +16,8 @@ import Ingresa from "./components/Ingrsa";
 import Movimientos from "./components/Movimientos";
 import Picking from "./components/Picking";
 import Administrador from "./components/Administrador";
+import RecibirDePlanta from "./components/RecibirDePlanta";
+import PalletsRecibidos from "./components/PalletsRecibidos";
 import BarcodeScannerListener from "./components/BarcodeScannerListener";
 
 import { printCodes } from "./utils/print";
@@ -132,6 +134,9 @@ const AppContent = () => {
     } else if (type === "inventory") {
       console.log("Navegando a /inventario");
       navigate("/inventario");
+    } else if (type === "recibir-planta") {
+      console.log("Navegando a /recibir-planta");
+      navigate("/recibir-planta");
     } else if (type === "admin") {
       console.log("Navegando a /admin");
       navigate("/admin");
@@ -335,10 +340,56 @@ const AppContent = () => {
         path="/qr-pallet"
         element={
           isAuthenticated ? (
+            <div
+              className="pantalla"
+              style={{ alignItems: "flex-start", paddingTop: "2rem" }}
+            >
+              <div className="app-container">
+                <main className="contenedor">
+                  <PrintQrPallet
+                    onBack={() => navigate("/menu")}
+                    onLogout={handleLogout}
+                  />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/recibir-planta"
+        element={
+          isAuthenticated ? (
             <div className="pantalla">
               <div className="app-container">
                 <main className="contenedor">
-                  <PrintQrPallet onBack={() => navigate("/menu")} />
+                  <RecibirDePlanta
+                    onBack={() => navigate("/menu")}
+                    onLogout={handleLogout}
+                    user={user}
+                  />
+                </main>
+              </div>
+            </div>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/pallets-recibidos"
+        element={
+          isAuthenticated ? (
+            <div className="pantalla">
+              <div className="app-container">
+                <main className="contenedor">
+                  <PalletsRecibidos
+                    onBack={() => navigate("/recibir-planta")}
+                    onLogout={handleLogout}
+                    user={user}
+                  />
                 </main>
               </div>
             </div>

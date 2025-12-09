@@ -1,18 +1,38 @@
 import React, { useState } from "react";
 import "./VerMovimientos.css";
 import { useConfig } from "../context/ConfigContext";
+import AlertModal from "./AlertModal";
 
 const VerMovimientos = () => {
   const { t } = useConfig();
   const [codigo, setCodigo] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("Todos");
+  const [plantaFiltro, setPlantaFiltro] = useState("Todos");
   const [movimientos, setMovimientos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [tieneIngresosPlanta, setTieneIngresosPlanta] = useState(false);
+
+  const handleModalClose = () => {
+    setMessage(null);
+    setCodigo("");
+    setMovimientos([]);
+    setTieneIngresosPlanta(false);
+    // Enfocar el input después de limpiar
+    setTimeout(() => {
+      document.querySelector('.ver-movimientos-input')?.focus();
+    }, 100);
+  };
 
   const handleBuscar = async () => {
     if (!codigo.trim()) {
-      setMessage({ type: "error", text: t("error") });
+      setMessage({ type: "error", text: "Ingrese un código" });
+      return;
+    }
+
+    // Validar que el código sea numérico
+    if (!/^\d+$/.test(codigo.trim())) {
+      setMessage({ type: "error", text: `${codigo.trim()} no es un código válido` });
       return;
     }
 
@@ -20,28 +40,50 @@ const VerMovimientos = () => {
       setLoading(true);
       setMessage(null);
       setMovimientos([]);
+      setTieneIngresosPlanta(false);
 
       let url = `https://smartstockwms-a8p6.onrender.com/api/historial/${encodeURIComponent(
         codigo.trim()
       )}`;
 
-      // Agregar filtro si no es "Todos"
+      // Agregar filtros a la URL
+      const params = [];
       if (tipoFiltro !== "Todos") {
-        url += `?tipo=${tipoFiltro}`;
+        params.push(`tipo=${tipoFiltro}`);
+      }
+      // Solo agregar filtro de planta si es "Todos" o "Entro"
+      if (plantaFiltro !== "Todos" && (tipoFiltro === "Todos" || tipoFiltro === "Entro")) {
+        params.push(`planta=${plantaFiltro}`);
+      }
+      
+      if (params.length > 0) {
+        url += `?${params.join("&")}`;
       }
 
       const response = await fetch(url);
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage({ type: "error", text: data.error || t("error") });
+        setMessage({ type: "error", text: data.error || "Producto no ingresado" });
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        setMessage({ type: "error", text: "Producto no ingresado" });
         return;
       }
 
       setMovimientos(data);
+      
+      // Verificar si hay ingresos de planta en los resultados
+      const hayIngresosPlanta = data.some(mov => 
+        mov.T_movimi === "Entro" && 
+        (mov.planta === "UPF-22" || mov.planta === "UPF-30")
+      );
+      setTieneIngresosPlanta(hayIngresosPlanta);
     } catch (error) {
       console.error("Error:", error);
-      setMessage({ type: "error", text: t("error") });
+      setMessage({ type: "error", text: "Producto no ingresado" });
     } finally {
       setLoading(false);
     }
@@ -69,14 +111,24 @@ const VerMovimientos = () => {
           />
 
           <select
-            className="ver-movimientos-select"
+            className="ver-movimientos-select tipo-select"
             value={tipoFiltro}
             onChange={(e) => setTipoFiltro(e.target.value)}
           >
             <option value="Todos">Todos</option>
             <option value="Entro">Entro</option>
-            <option value="Salio">Salio</option>
-            <option value="Movimiento">Movimiento</option>
+            <option value="Salio" disabled={tieneIngresosPlanta}>Salio</option>
+            <option value="Movimiento" disabled={tieneIngresosPlanta}>Movimiento</option>
+          </select>
+
+          <select
+            className="ver-movimientos-select planta-select"
+            value={plantaFiltro}
+            onChange={(e) => setPlantaFiltro(e.target.value)}
+          >
+            <option value="Todos">Todos</option>
+            <option value="UPF-22">UPF-22</option>
+            <option value="UPF-30">UPF-30</option>
           </select>
 
           <button
@@ -91,9 +143,11 @@ const VerMovimientos = () => {
       </div>
 
       {message && (
-        <div className={`ver-movimientos-message ${message.type}`}>
-          {message.text}
-        </div>
+        <AlertModal
+          type={message.type}
+          message={message.text}
+          onClose={handleModalClose}
+        />
       )}
 
       {movimientos.length > 0 && (

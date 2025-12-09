@@ -927,6 +927,46 @@ const initDB = async () => {
     `);
     console.log('Tabla "historial_movimientos" verificada/creada');
 
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS recibos_planta (
+        id SERIAL PRIMARY KEY,
+        planta VARCHAR(100),
+        codigo VARCHAR(50),
+        descripcion VARCHAR(255),
+        lote VARCHAR(50),
+        n_pallet VARCHAR(20),
+        ubicacion VARCHAR(100),
+        usuario VARCHAR(100),
+        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Tabla "recibos_planta" verificada/creada');
+
+    // Verificar e insertar ubicación GROUND
+    try {
+      const [ground] = await db.query(
+        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = 'GROUND'"
+      );
+      if (ground.length === 0) {
+        // Verificar si existe columna activa
+        const [columns] = await db.query(
+          `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'ubicaciones' AND COLUMN_NAME = 'activa'`
+        );
+        if (columns.length > 0) {
+          await db.query(
+            "INSERT INTO ubicaciones (ubicaciones, descripcion, activa) VALUES ('GROUND', 'Ubicación de Recepción', TRUE)"
+          );
+        } else {
+          await db.query(
+            "INSERT INTO ubicaciones (ubicaciones, descripcion) VALUES ('GROUND', 'Ubicación de Recepción')"
+          );
+        }
+        console.log("Ubicación 'GROUND' creada automáticamente");
+      }
+    } catch (err) {
+      console.warn("No se pudo verificar/crear ubicación GROUND:", err.message);
+    }
+
     // Verificar que la tabla ubicaciones existe (el usuario la crea manualmente)
     try {
       const [tables] = await db.query(
@@ -952,6 +992,46 @@ const initDB = async () => {
 };
 
 initDB();
+
+// ==================== ENDPOINTS RECIBOS PLANTA ====================
+
+// Guardar un nuevo recibo
+app.post("/api/recibos", async (req, res) => {
+  try {
+    const { planta, codigo, descripcion, lote, n_pallet, ubicacion, usuario } =
+      req.body;
+
+    if (!codigo || !ubicacion) {
+      return res
+        .status(400)
+        .json({ error: "Código y ubicación son obligatorios" });
+    }
+
+    await db.query(
+      `INSERT INTO recibos_planta (planta, codigo, descripcion, lote, n_pallet, ubicacion, usuario)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [planta, codigo, descripcion, lote, n_pallet, ubicacion, usuario]
+    );
+
+    res.json({ message: "Recibo guardado correctamente" });
+  } catch (error) {
+    console.error("Error guardando recibo:", error);
+    res.status(500).json({ error: "Error al guardar el recibo" });
+  }
+});
+
+// Obtener historial de recibos
+app.get("/api/recibos", async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM recibos_planta ORDER BY fecha DESC LIMIT 100"
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error("Error obteniendo recibos:", error);
+    res.status(500).json({ error: "Error obteniendo historial de recibos" });
+  }
+});
 
 // ==================== ENDPOINTS DE GESTIÓN DE UBICACIONES ====================
 

@@ -1,0 +1,309 @@
+/* Contenedor principal de la pantalla */
+.recibo-screen {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* Tarjeta contenedora */
+.recibo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  gap: 1.2rem;
+  background-color: white;
+  border-radius: 12px;
+}
+
+.box-shadow-container {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
+/* Título */
+.title {
+  margin-top: 0.2rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.custom-select-container {
+  width: 100%;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.label-text {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: #333;
+  text-align: left;
+  width: 100%;
+}
+
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background-color: transparent;
+  appearance: none;
+  font-weight: 600;
+  color: #000;
+  box-sizing: border-box;
+}
+
+.select-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 1.2rem;
+}
+
+.input-group {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.scanner-input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.scanner-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* Botón Pallets recibidos */
+.btn-received {
+  width: auto;
+  min-width: 150px; /* Reduced min-width */
+  max-width: 220px; /* Reduced max-width */
+  padding: 0.6rem 1rem; /* Slightly reduced padding */
+  border: 2px solid #059669;
+  background-color: #ecfdf5;
+  color: #000;
+  font-weight: 800;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-received i {
+  font-size: 1.2rem;
+}
+
+.btn-received:active {
+  transform: scale(0.98);
+  background-color: #d1fae5;
+}
+
+/* Botones de acción */
+.action-buttons {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: auto;
+  flex-wrap: nowrap;
+}
+
+.btn-action {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 0;
+  font-size: 0.95rem;
+}
+
+.btn-action i {
+  font-size: 1rem;
+}
+
+.btn-back {
+  background-color: #3b82f6;
+  color: white;
+  border: 1px solid #1d4ed8;
+}
+
+.btn-logout-red {
+  background-color: #dc2626 !important; /* Rojo Intenso */
+  color: white !important;
+  border: 1px solid #991b1b !important;
+  flex: 0.9; /* Un poco más estrecho que el botón de volver */
+  min-width: 120px; /* Ancho mínimo reducido */
+}
+
+.btn-logout-red:hover {
+  background-color: #b91c1c !important;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-close-modal {
+  margin-top: 1.5rem;
+  padding: 0.5rem 1.5rem;
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Message Banner */
+.message-banner {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.message-banner.success {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.message-banner.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+}
+
+/* CSS for Split View Layout */
+.recibo-screen-split {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* Default mobile behavior (single column, hidden right panel) */
+.recibo-right-panel {
+  display: none;
+}
+
+.mobile-only-btn {
+  display: flex !important;
+}
+
+/* Media Query for Desktop/Tablet Landscape */
+@media (min-width: 1024px) {
+  .recibo-screen-split {
+    flex-direction: row;
+    gap: 2rem;
+    max-width: 98%;
+    margin: 0 auto;
+    align-items: stretch;
+    height: 100vh;
+    overflow: hidden;
+    padding-bottom: 2rem;
+  }
+
+  .recibo-container {
+    flex: 0 0 400px;
+    margin: 0;
+    max-width: 400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  .recibo-right-panel.desktop-only-panel {
+    display: block;
+    flex: 1;
+    min-width: 500px;
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  /* Ocultar texto de botones de acción "Volver" y "Cerrar sesión" */
+  .btn-action .btn-text {
+    display: none;
+  }
+
+  .btn-action {
+    padding: 0.8rem;
+  }
+
+  .btn-action i {
+    font-size: 1.2rem;
+    margin: 0;
+  }
+}

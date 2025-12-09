@@ -94,6 +94,9 @@ const CodesView = ({
                 max="40"
                 value={settings.textSize}
                 step="1"
+                style={{
+                  '--value': `${((settings.textSize - 10) / (40 - 10)) * 100}%`
+                }}
                 onChange={(e) =>
                   setSettings({ ...settings, textSize: e.target.value })
                 }
@@ -112,6 +115,9 @@ const CodesView = ({
                   max="150"
                   value={settings.codeWidth}
                   step="1"
+                  style={{
+                    '--value': `${((settings.codeWidth - 50) / (150 - 50)) * 100}%`
+                  }}
                   onChange={(e) =>
                     setSettings({ ...settings, codeWidth: e.target.value })
                   }
@@ -129,6 +135,9 @@ const CodesView = ({
                   max="300"
                   value={settings.codeHeight}
                   step="10"
+                  style={{
+                    '--value': `${((settings.codeHeight - 50) / (300 - 50)) * 100}%`
+                  }}
                   onChange={(e) =>
                     setSettings({ ...settings, codeHeight: e.target.value })
                   }

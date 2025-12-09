@@ -55,6 +55,15 @@ const FormView = ({ onMenuOption, onLogout, user }) => {
               <i className="fas fa-pallet"></i>
               <span>{t("optionQrPallet")}</span>
             </button>
+            {user?.tipo_usuario === "administrador" && (
+              <button
+                className="type-btn"
+                onClick={() => onMenuOption("recibir-planta")}
+              >
+                <i className="fas fa-industry"></i>
+                <span>{t("optionReciboPlanta")}</span>
+              </button>
+            )}
             {/* Botón extra para Stock de Inventario dentro del mismo grid */}
             <button
               className={`type-btn inventory-btn ${
@@ -65,16 +74,20 @@ const FormView = ({ onMenuOption, onLogout, user }) => {
               <i className="fas fa-boxes"></i>
               <span>{t("optionInventory")}</span>
             </button>
-            {/* Botón de Administrador (Solo visible para Administrador y en PC) */}
-            {user?.tipo_usuario === "administrador" && (
-              <button
-                className="type-btn admin-btn"
-                onClick={() => onMenuOption("admin")}
-              >
-                <i className="fas fa-user-shield"></i>
-                <span>{t("optionAdmin")}</span>
-              </button>
-            )}
+            {
+              /* Botón de Administrador (Solo visible para Administrador y en PC) */
+              /* Se muestra abajo ocupando todo el ancho */
+              user?.tipo_usuario === "administrador" && (
+                <button
+                  className="type-btn admin-btn"
+                  style={{ gridColumn: "1 / -1" }}
+                  onClick={() => onMenuOption("admin")}
+                >
+                  <i className="fas fa-user-shield"></i>
+                  <span>{t("optionAdmin")}</span>
+                </button>
+              )
+            }
           </div>
         </div>
       </div>

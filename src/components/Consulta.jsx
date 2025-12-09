@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Consulta.css";
 import { useConfig } from "../context/ConfigContext";
+import AlertModal from "./AlertModal";
 
 const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
   const { t } = useConfig();
@@ -9,11 +10,32 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
+  const handleModalClose = () => {
+    setMessage(null);
+    setCode("");
+    // Enfocar el input después de limpiar
+    setTimeout(() => {
+      document.querySelector('.consulta-input')?.focus();
+    }, 100);
+  };
+
+  const handleInputChange = (e) => {
+    const value = e.target.value.toUpperCase();
+    setCode(value);
+    
+    // Detectar si es una ubicación escaneada (formato LR-XX-XX) y buscar automáticamente
+    const trimmed = value.trim();
+    if (/^LR-\d{2}-\d{2}$/i.test(trimmed)) {
+      setTimeout(() => {
+        handleSearch();
+      }, 100);
+    }
+  };
+
   const handleSearch = async () => {
     const trimmed = code.trim();
     if (!trimmed) {
-      setMessage(t("error"));
-      setResults([]);
+      setMessage({ type: "error", text: "Ingrese un código o ubicación" });
       return;
     }
 
@@ -67,9 +89,22 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
       setResults([]);
       setCode("");
 
+      // Agregar timeout de 15 segundos para evitar esperas infinitas
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/stock/all"
+        "https://smartstockwms-a8p6.onrender.com/api/stock/all",
+        {
+          signal: controller.signal,
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        }
       );
+      
+      clearTimeout(timeoutId);
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -87,7 +122,11 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
       setResults(data);
     } catch (error) {
       console.error(error);
-      setMessage(t("error"));
+      if (error.name === 'AbortError') {
+        setMessage("La consulta tardó demasiado. Intente nuevamente.");
+      } else {
+        setMessage(t("error"));
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +148,7 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
             className="consulta-input"
             placeholder="Código o Ubicación (LR-XX-XX)"
             value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
           />
           <button
@@ -144,17 +183,12 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
         </div>
 
         {message && (
-          <div className="consulta-message">
-            <p>{message}</p>
-            <button
-              type="button"
-              className="consulta-ok-btn"
-              onClick={() => setMessage(null)}
-            >
-              OK
-            </button>
-          </div>
-        )}
+        <AlertModal
+          type={message.type || "error"}
+          message={message.text || message}
+          onClose={handleModalClose}
+        />
+      )}
 
         {results.length > 0 && (
           <div className="consulta-results">

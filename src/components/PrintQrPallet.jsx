@@ -21,8 +21,15 @@ const QrCanvas = ({ value, size = 200 }) => {
   return <canvas ref={canvasRef} />;
 };
 
-const PrintQrPallet = ({ onBack }) => {
+const PrintQrPallet = ({ onBack, onLogout }) => {
   console.log("Rendering PrintQrPallet");
+  // Estado para el modo de QR
+  const [qrMode, setQrMode] = useState(""); // "" | "MTE_MTP" | "PLANTAS"
+  const [plantasParams, setPlantasParams] = useState({
+    startPallet: "",
+    endPallet: "",
+  });
+
   // Estado para los campos del formulario superior
   const [formData, setFormData] = useState({
     code: "",
@@ -50,8 +57,9 @@ const PrintQrPallet = ({ onBack }) => {
   const [showVisualizar, setShowVisualizar] = useState(false);
   const [isAddingItems, setIsAddingItems] = useState(false);
 
-  // Ref para el input de labelQuantity
-  const labelQtyRef = React.useRef(null);
+  // Ref para el input
+  const labelQtyRef = useRef(null);
+  const itemsContainerRef = useRef(null);
 
   // Cargar estado desde localStorage al montar
   useEffect(() => {
@@ -59,6 +67,8 @@ const PrintQrPallet = ({ onBack }) => {
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
+        // if (parsed.qrMode) setQrMode(parsed.qrMode); // No restaurar modo automáticamente para forzar selección
+        if (parsed.plantasParams) setPlantasParams(parsed.plantasParams);
         if (parsed.formData) setFormData(parsed.formData);
         if (parsed.qrCreated) setQrCreated(parsed.qrCreated);
         if (parsed.labelQuantity) setLabelQuantity(parsed.labelQuantity);
@@ -74,6 +84,8 @@ const PrintQrPallet = ({ onBack }) => {
   // Guardar estado en localStorage cuando cambie
   useEffect(() => {
     const stateToSave = {
+      qrMode,
+      plantasParams,
       formData,
       qrCreated,
       labelQuantity,
@@ -81,7 +93,15 @@ const PrintQrPallet = ({ onBack }) => {
       addedItems,
     };
     localStorage.setItem("qrPalletState", JSON.stringify(stateToSave));
-  }, [formData, qrCreated, labelQuantity, numberLabels, addedItems]);
+  }, [
+    qrMode,
+    plantasParams,
+    formData,
+    qrCreated,
+    labelQuantity,
+    numberLabels,
+    addedItems,
+  ]);
 
   // Manejar cambios en los campos del formulario
   const handleInputChange = (e) => {
@@ -99,16 +119,31 @@ const PrintQrPallet = ({ onBack }) => {
     }));
   };
 
-  // Validar que todos los campos estén llenos
+  const handlePlantasParamChange = (e) => {
+    const { name, value } = e.target;
+    setPlantasParams((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Validar campos según modo
   const validateForm = () => {
     const emptyFields = [];
 
     if (!formData.code.trim()) emptyFields.push("CODE");
     if (!formData.descrip.trim()) emptyFields.push("DESCRIP");
-    if (!formData.batchCode.trim()) emptyFields.push("BATCH CODE");
-    if (!formData.manufDate) emptyFields.push("MANUF. DATE");
-    if (!formData.expiryDate) emptyFields.push("EXPIRY DATE");
-    if (!formData.quantity.trim()) emptyFields.push("QUANTITY");
+    if (!formData.batchCode.trim()) emptyFields.push("LOTE");
+
+    if (qrMode === "MTE_MTP") {
+      if (!formData.manufDate) emptyFields.push("MANUF. DATE");
+      if (!formData.expiryDate) emptyFields.push("EXPIRY DATE");
+      if (!formData.quantity.trim()) emptyFields.push("QUANTITY");
+    } else {
+      // PLANTAS mode validation
+      if (!plantasParams.startPallet.trim()) emptyFields.push("PALLET INICIAL");
+      if (!plantasParams.endPallet.trim()) emptyFields.push("PALLET FINAL");
+    }
 
     return emptyFields;
   };
@@ -152,34 +187,7 @@ const PrintQrPallet = ({ onBack }) => {
     }
   };
 
-  // Manejar la creación del QR
-  const handleCreateQR = () => {
-    const emptyFields = validateForm();
-
-    if (emptyFields.length > 0) {
-      setErrorMessage(
-        `Por favor complete el siguiente campo: ${emptyFields[0]}`
-      );
-      setShowErrorModal(true);
-      return;
-    }
-
-    // Validar que quantity sea un número válido
-    const quantityValue = parseFloat(formData.quantity);
-    if (isNaN(quantityValue) || quantityValue <= 0) {
-      setErrorMessage("QUANTITY debe ser un número válido mayor a 0");
-      setShowErrorModal(true);
-      return;
-    }
-
-    setQrCreated(true);
-    // Enfocar el input de labelQuantity al crear el QR
-    setTimeout(() => {
-      labelQtyRef.current?.focus();
-    }, 100);
-  };
-
-  // Función para resetear el formulario
+  // Manejar el "Reset"
   const handleReset = () => {
     setFormData({
       code: "",
@@ -190,55 +198,117 @@ const PrintQrPallet = ({ onBack }) => {
       quantity: "",
       udm: "UND",
     });
+    setPlantasParams({ startPallet: "", endPallet: "" });
     setQrCreated(false);
     setLabelQuantity("");
     setNumberLabels("");
-    setAddedItems([]); // Limpiar la lista de items agregados
+    setAddedItems([]);
     localStorage.removeItem("qrPalletState");
-    // Enfocar el primer input
     setTimeout(() => {
       document.getElementById("code")?.focus();
     }, 100);
   };
 
-  // Manejadores para VisualizarQr
-  const handleAddItem = async () => {
-    // Prevenir múltiples envíos
+  // Manejador principal para "Create QR" (MTE) o "Generar Etiquetas" (PLANTAS)
+  const handleCreateAction = async () => {
+    const emptyFields = validateForm();
+
+    if (emptyFields.length > 0) {
+      setErrorMessage(
+        `Por favor complete el siguiente campo: ${emptyFields[0]}`
+      );
+      setShowErrorModal(true);
+      return;
+    }
+
+    if (qrMode === "MTE_MTP") {
+      // Validar quantity MTE
+      const quantityValue = parseFloat(formData.quantity);
+      if (isNaN(quantityValue) || quantityValue <= 0) {
+        setErrorMessage("QUANTITY debe ser un número válido mayor a 0");
+        setShowErrorModal(true);
+        return;
+      }
+      // Modo MTE: Habilita la segunda sección para ingresar # etiquetas
+      setQrCreated(true);
+      setTimeout(() => {
+        labelQtyRef.current?.focus();
+      }, 100);
+    } else {
+      // Modo PLANTAS: Generación directa
+      const start = parseInt(plantasParams.startPallet, 10);
+      const end = parseInt(plantasParams.endPallet, 10);
+
+      if (isNaN(start) || isNaN(end)) {
+        setErrorMessage("Los números de pallet deben ser válidos");
+        setShowErrorModal(true);
+        return;
+      }
+
+      if (start > end) {
+        setErrorMessage("El pallet inicial no puede ser mayor al final");
+        setShowErrorModal(true);
+        return;
+      }
+
+      const count = end - start + 1;
+      if (count > 100) {
+        setErrorMessage("Demasiadas etiquetas a la vez (máx 100)");
+        setShowErrorModal(true);
+        return;
+      }
+
+      // Generar items directamente
+      const newItems = [];
+      for (let i = start; i <= end; i++) {
+        // Formatear número de pallet a 2 dígitos mínimo (01, 02...)
+        const palletNum = String(i).padStart(2, "0");
+        const uniqueContent = `P|${formData.code}|${formData.descrip}|${formData.batchCode}|${palletNum}`;
+
+        newItems.push({
+          ...formData, // code, descrip, batchCode
+          palletNum: palletNum,
+          uniqueId: uniqueContent, // Usamos esto como ID/Contenido QR
+          mode: "PLANTAS",
+        });
+      }
+
+      setAddedItems(newItems);
+      // No seteamos qrCreated=true porque en este modo generamos y mostramos "listo para imprimir"
+      // o podríamos usar addedItems.length > 0 para mostrar botones de imprimir
+    }
+  };
+
+  // MTE_MTP: Agregar items con lógica de resta de cantidad
+  const handleAddItemMTE = async () => {
     if (isAddingItems) return;
 
     const currentQty = parseFloat(formData.quantity);
     const labelQty = parseFloat(labelQuantity);
     const numLabels = parseInt(numberLabels, 10);
 
-    // Validaciones
     if (isNaN(labelQty) || labelQty <= 0) {
-      setErrorMessage("Label quantity debe ser un número válido mayor a 0");
+      setErrorMessage("Label quantity debe ser válido > 0");
       setShowErrorModal(true);
       return;
     }
-
-    // Validación específica solicitada: Label Quantity > Quantity
     if (labelQty > currentQty) {
       setErrorMessage(
-        `La cantidad ingresada (${labelQty}) es mayor que la cantidad disponible en QUANTITY (${currentQty})`
+        `Cantidad (${labelQty}) mayor a disponible (${currentQty})`
       );
       setShowErrorModal(true);
       return;
     }
-
     if (isNaN(numLabels) || numLabels <= 0) {
-      setErrorMessage(
-        "Number labels debe ser un número entero válido mayor a 0"
-      );
+      setErrorMessage("Number labels debe ser entero > 0");
       setShowErrorModal(true);
       return;
     }
 
     const totalToSubtract = labelQty * numLabels;
-
     if (totalToSubtract > currentQty) {
       setErrorMessage(
-        `Cantidad insuficiente para el total de etiquetas. Necesitas ${totalToSubtract} pero solo tienes ${currentQty}`
+        `Insuficiente stock. Req: ${totalToSubtract}, Disp: ${currentQty}`
       );
       setShowErrorModal(true);
       return;
@@ -247,58 +317,41 @@ const PrintQrPallet = ({ onBack }) => {
     setIsAddingItems(true);
 
     try {
-      // Llamada al backend para generar IDs únicos
+      // Backend call for UNIQUE IDs
       const response = await fetch(
         "https://smartstockwms-a8p6.onrender.com/api/pallets",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
             numberLabels: numLabels,
-            quantity: labelQty, // Enviamos la cantidad individual de cada etiqueta
+            quantity: labelQty,
           }),
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || "Error generando etiquetas en el servidor"
-        );
-      }
-
+      if (!response.ok) throw new Error("Error generando etiquetas");
       const data = await response.json();
       const createdIds = data.ids;
 
-      // Restar cantidad
       const newQuantity = currentQty - totalToSubtract;
-      setFormData((prev) => ({
-        ...prev,
-        quantity: newQuantity.toString(),
-      }));
+      setFormData((prev) => ({ ...prev, quantity: newQuantity.toString() }));
 
-      // Agregar items a la lista con sus IDs únicos
       const newItems = createdIds.map((id) => ({
         ...formData,
         quantity: labelQty.toString(),
-        uniqueId: id, // Guardamos el ID único generado por la BD
+        uniqueId: id,
+        mode: "MTE_MTP",
       }));
 
       setAddedItems((prev) => [...prev, ...newItems]);
-
-      // Limpiar campos y enfocar
       setLabelQuantity("");
       setNumberLabels("");
       labelQtyRef.current?.focus();
     } catch (error) {
-      console.error("Error adding items:", error);
-      setErrorMessage(
-        error.message ||
-          "Error al conectar con el servidor para generar etiquetas"
-      );
+      console.error(error);
+      setErrorMessage("Error al conectar con servidor");
       setShowErrorModal(true);
     } finally {
       setIsAddingItems(false);
@@ -311,33 +364,23 @@ const PrintQrPallet = ({ onBack }) => {
       setShowErrorModal(true);
       return;
     }
-    // Disparar la impresión del navegador
     window.print();
-
-    // Opcional: Limpiar después de imprimir (puedes descomentar si lo deseas)
-    // setAddedItems([]);
   };
 
   const handleVisualizar = () => {
     setShowVisualizar(true);
   };
 
-  const handleBackFromVisualizar = () => {
-    setShowVisualizar(false);
-  };
-
   const handleDeleteItem = (index) => {
-    // Obtener el item que se va a eliminar
     const deletedItem = addedItems[index];
-    const deletedQuantity = parseFloat(deletedItem.quantity);
-
-    // Sumar la cantidad del item eliminado de vuelta a la cantidad total
-    setFormData((prev) => ({
-      ...prev,
-      quantity: (parseFloat(prev.quantity) + deletedQuantity).toString(),
-    }));
-
-    // Eliminar el item de la lista
+    // Solo devolvemos cantidad si es MTE
+    if (deletedItem.mode === "MTE_MTP" || !deletedItem.mode) {
+      const deletedQuantity = parseFloat(deletedItem.quantity);
+      setFormData((prev) => ({
+        ...prev,
+        quantity: (parseFloat(prev.quantity) + deletedQuantity).toString(),
+      }));
+    }
     setAddedItems((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -345,253 +388,342 @@ const PrintQrPallet = ({ onBack }) => {
     return (
       <VisualizarQr
         items={addedItems}
-        onBack={handleBackFromVisualizar}
+        onBack={() => setShowVisualizar(false)}
         onDelete={handleDeleteItem}
       />
     );
   }
 
   return (
-    <div id="printQrPallet" className="pallet-container">
-      <h2>Código QR Pallet</h2>
+    <div
+      className="print-screen-wrapper"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        alignItems: "center",
+        flex: 1,
+        minHeight: "100%",
+      }}
+    >
+      <div
+        id="printQrPallet"
+        className="pallet-container"
+        style={{ marginBottom: "auto" }}
+      >
+        <h2>Código QR Pallet</h2>
 
-      {/* Sección Superior - Formulario */}
-      <div className={`pallet-form-section ${qrCreated ? "disabled" : ""}`}>
-        <div className="form-group">
-          <label htmlFor="code">CODE</label>
-          <div className="input-with-button">
-            <input
-              type="text"
-              id="code"
-              name="code"
-              value={formData.code}
-              onChange={handleInputChange}
-              disabled={qrCreated}
-            />
-            <button
-              className="btn-search-code"
-              onClick={handleSearchCode}
-              disabled={qrCreated}
-              title="Buscar código"
-            >
-              <i className="fas fa-search-plus"></i>
-            </button>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="descrip">DESCRIP</label>
-          <input
-            type="text"
-            id="descrip"
-            name="descrip"
-            value={formData.descrip}
-            onChange={handleInputChange}
-            disabled={true}
-            style={{
-              backgroundColor: "#f8fafc",
-              color: "#000000",
-              fontWeight: "500",
+        {/* SELECTOR DE MODO */}
+        <div className="form-group" style={{ marginBottom: "1.5rem" }}>
+          <label style={{ fontSize: "1.1rem", color: "#3b82f6" }}>
+            Tipo de Etiqueta
+          </label>
+          <select
+            value={qrMode}
+            onChange={(e) => {
+              setQrMode(e.target.value);
+              setAddedItems([]); // Limpiar al cambiar modo
+              setQrCreated(false);
             }}
-          />
+            style={{
+              width: "100%",
+              padding: "0.8rem",
+              borderRadius: "8px",
+              border: "2px solid #3b82f6",
+              fontSize: "1rem",
+              fontWeight: "bold",
+            }}
+          >
+            <option value="" disabled>
+              Seleccione una opción
+            </option>
+            <option value="MTE_MTP">QR MTE & MTP</option>
+            <option value="PLANTAS">QR P. Terminado</option>
+          </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="batchCode">BATCH CODE</label>
-          <input
-            type="text"
-            id="batchCode"
-            name="batchCode"
-            value={formData.batchCode}
-            onChange={handleInputChange}
-            disabled={qrCreated}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="manufDate">MANUF. DATE</label>
-          <input
-            type="date"
-            id="manufDate"
-            name="manufDate"
-            value={formData.manufDate}
-            onChange={handleInputChange}
-            disabled={qrCreated}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="expiryDate">EXPIRY DATE</label>
-          <input
-            type="date"
-            id="expiryDate"
-            name="expiryDate"
-            value={formData.expiryDate}
-            onChange={handleInputChange}
-            disabled={qrCreated}
-          />
-        </div>
-
-        <div className="form-group-row">
-          <div className="form-group">
-            <label htmlFor="quantity">QUANTITY</label>
-            <input
-              type="text"
-              id="quantity"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleInputChange}
-              disabled={qrCreated}
-            />
+        {qrMode && (
+          <div
+            className={`pallet-form-section ${
+              qrCreated && qrMode === "MTE_MTP" ? "disabled" : ""
+            }`}
+          >
+            {/* CAMPOS COMUNES */}
+            <div className="form-group">
+              <label htmlFor="code">CODE</label>
+              <div className="input-with-button">
+                <input
+                  type="text"
+                  id="code"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleInputChange}
+                  disabled={qrCreated && qrMode === "MTE_MTP"}
+                />
+                <button
+                  className="btn-search-code"
+                  onClick={handleSearchCode}
+                  disabled={qrCreated && qrMode === "MTE_MTP"}
+                  title="Buscar código"
+                >
+                  <i className="fas fa-search-plus"></i>
+                </button>
+              </div>
+            </div>
+            <div className="form-group">
+              <label htmlFor="descrip">DESCRIPCION</label>
+              <input
+                type="text"
+                id="descrip"
+                name="descrip"
+                value={formData.descrip}
+                onChange={handleInputChange}
+                disabled={true}
+                style={{ backgroundColor: "#f8fafc" }}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="batchCode">LOTE</label>
+              <input
+                type="text"
+                id="batchCode"
+                name="batchCode"
+                value={formData.batchCode}
+                onChange={handleInputChange}
+                disabled={qrCreated && qrMode === "MTE_MTP"}
+              />
+            </div>
+            {/* CAMPOS ESPECÍFICOS MTE_MTP */}
+            {qrMode === "MTE_MTP" && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="manufDate">MANUF. DATE</label>
+                  <input
+                    type="date"
+                    name="manufDate"
+                    value={formData.manufDate}
+                    onChange={handleInputChange}
+                    disabled={qrCreated}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="expiryDate">EXPIRY DATE</label>
+                  <input
+                    type="date"
+                    name="expiryDate"
+                    value={formData.expiryDate}
+                    onChange={handleInputChange}
+                    disabled={qrCreated}
+                  />
+                </div>
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="quantity">QUANTITY</label>
+                    <input
+                      type="text"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={handleInputChange}
+                      disabled={qrCreated}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>UOM</label>
+                    <select
+                      value={formData.udm}
+                      disabled
+                      style={{ backgroundColor: "#f8fafc" }}
+                    >
+                      <option>UND</option>
+                      <option>KG</option>
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
+            {/* CAMPOS ESPECÍFICOS PLANTAS */}
+            {qrMode === "PLANTAS" && (
+              <div
+                className="form-group-row"
+                style={{ gridTemplateColumns: "1fr 1fr" }}
+              >
+                <div className="form-group">
+                  <label>PALLET INICIAL (N°)</label>
+                  <input
+                    type="number"
+                    name="startPallet"
+                    value={plantasParams.startPallet}
+                    onChange={handlePlantasParamChange}
+                    placeholder="Ej: 1"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>PALLET FINAL (N°)</label>
+                  <input
+                    type="number"
+                    name="endPallet"
+                    value={plantasParams.endPallet}
+                    onChange={handlePlantasParamChange}
+                    placeholder="Ej: 5"
+                  />
+                </div>
+              </div>
+            )}
+            {/* BOTONES SUPERIORES */}
+            {(!qrCreated || qrMode === "PLANTAS") && (
+              <div className="top-button-row">
+                <button className="btn-create-qr" onClick={handleCreateAction}>
+                  <i className="fas fa-qrcode"></i>{" "}
+                  {qrMode === "MTE_MTP" ? "Create QR" : "Generar Etiquetas"}
+                </button>
+                <button className="btn-volver-top" onClick={onBack}>
+                  <i className="fas fa-arrow-left"></i> Volver
+                </button>
+              </div>
+            )}
           </div>
+        )}
 
-          <div className="form-group">
-            <label htmlFor="udm">UOM</label>
-            <select
-              id="udm"
-              name="udm"
-              value={formData.udm}
-              onChange={handleInputChange}
-              disabled={true}
-              style={{
-                backgroundColor: "#f8fafc",
-                color: "#000000",
-                fontWeight: "500",
-                cursor: "not-allowed",
-              }}
+        {/* SECCIÓN INFERIOR MTE_MTP (Cantidad Etiquetas) */}
+        {qrCreated && qrMode === "MTE_MTP" && (
+          <>
+            <div className="dotted-separator"></div>
+            <div className="pallet-bottom-section">
+              <div className="inputs-with-reset">
+                <div className="inputs-container">
+                  <div className="form-group-inline">
+                    <label>Label quantity</label>
+                    <input
+                      ref={labelQtyRef}
+                      type="text"
+                      value={labelQuantity}
+                      onChange={(e) => setLabelQuantity(e.target.value)}
+                      className="input-small"
+                    />
+                  </div>
+                  <div className="form-group-inline">
+                    <label>Number labels</label>
+                    <input
+                      type="text"
+                      value={numberLabels}
+                      onChange={(e) => setNumberLabels(e.target.value)}
+                      className="input-small"
+                    />
+                  </div>
+                </div>
+                <button
+                  className="btn-reset"
+                  onClick={handleReset}
+                  title="Reset"
+                >
+                  <i className="fas fa-redo"></i>
+                </button>
+              </div>
+              <div className="pallet-buttons">
+                <button
+                  className="btn-agregar"
+                  onClick={handleAddItemMTE}
+                  disabled={isAddingItems}
+                >
+                  <i className="fas fa-plus"></i> Agregar
+                </button>
+                <button className="btn-visualizar" onClick={handleVisualizar}>
+                  Visualizar
+                </button>
+                <button
+                  className="btn-print-labels"
+                  onClick={handlePrintLabels}
+                >
+                  <i className="fas fa-print"></i> Print labels QR
+                </button>
+                <button className="btn-go-back" onClick={onBack}>
+                  <i className="fas fa-arrow-left"></i> Volver
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* BOTONES INFERIORES PLANTAS (Solo imprimir/visualizar, ya generados) */}
+        {qrMode === "PLANTAS" && addedItems.length > 0 && (
+          <div className="pallet-bottom-section" style={{ marginTop: "1rem" }}>
+            <div className="pallet-buttons-plantas">
+              <button className="btn-visualizar" onClick={handleVisualizar}>
+                <i className="fas fa-eye"></i> Visualizar ({addedItems.length})
+              </button>
+              <button className="btn-reset" onClick={handleReset} title="Reset">
+                <i className="fas fa-redo"></i>
+              </button>
+              <button className="btn-print-labels" onClick={handlePrintLabels}>
+                <i className="fas fa-print"></i> Imprimir Etiquetas
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Error */}
+        {showErrorModal && (
+          <div
+            className="error-modal-overlay"
+            onClick={() => setShowErrorModal(false)}
+          >
+            <div
+              className="error-modal-content"
+              onClick={(e) => e.stopPropagation()}
             >
-              <option value="UND">UND</option>
-              <option value="KG">KG</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Fila de botones superior: Create QR y Volver (solo antes de crear QR) */}
-        {!qrCreated && (
-          <div className="top-button-row">
-            <button className="btn-create-qr" onClick={handleCreateQR}>
-              <i className="fas fa-qrcode"></i> Create QR
-            </button>
-            <button className="btn-volver-top" onClick={onBack}>
-              <i className="fas fa-arrow-left"></i> Volver
-            </button>
+              <h3>⚠️ Atención</h3>
+              <p>{errorMessage}</p>
+              <button
+                className="btn-modal-ok"
+                onClick={() => setShowErrorModal(false)}
+              >
+                OK
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Línea separadora punteada */}
-      {qrCreated && <div className="dotted-separator"></div>}
-
-      {/* Sección Inferior - Aparece después de Create QR */}
-      {qrCreated && (
-        <div className="pallet-bottom-section">
-          <div className="inputs-with-reset">
-            <div className="inputs-container">
-              <div className="form-group-inline">
-                <label htmlFor="labelQuantity">Label quantity</label>
-                <input
-                  type="text"
-                  id="labelQuantity"
-                  value={labelQuantity}
-                  onChange={(e) => setLabelQuantity(e.target.value)}
-                  className="input-small"
-                  ref={labelQtyRef}
-                />
-              </div>
-
-              <div className="form-group-inline">
-                <label htmlFor="numberLabels">Number labels</label>
-                <input
-                  type="text"
-                  id="numberLabels"
-                  value={numberLabels}
-                  onChange={(e) => setNumberLabels(e.target.value)}
-                  className="input-small"
-                />
-              </div>
-            </div>
-
-            <button className="btn-reset" onClick={handleReset} title="Reset">
-              <i className="fas fa-redo"></i>
-            </button>
-          </div>
-
-          <div className="pallet-buttons">
-            <button
-              className="btn-agregar"
-              onClick={handleAddItem}
-              disabled={isAddingItems}
-            >
-              <i className="fas fa-plus"></i>{" "}
-              {isAddingItems ? "Agregando..." : "Agregar"}
-            </button>
-            <button className="btn-visualizar" onClick={handleVisualizar}>
-              Visualizar
-            </button>
-            <button className="btn-print-labels" onClick={handlePrintLabels}>
-              <i className="fas fa-print"></i> Print labels QR
-            </button>
-            <button className="btn-go-back" onClick={onBack}>
-              <i className="fas fa-arrow-left"></i> Volver
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Error */}
-      {showErrorModal && (
+      {/* Footer Buttons (Outside the card, at the bottom) */}
+      {!qrMode && (
         <div
-          className="error-modal-overlay"
-          onClick={() => setShowErrorModal(false)}
+          className="action-buttons"
+          style={{
+            position: "fixed",
+            bottom: "1rem",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "90%",
+            maxWidth: "500px",
+            zIndex: 100,
+          }}
         >
-          <div
-            className="error-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>⚠️ Campo Requerido</h3>
-            <p>{errorMessage}</p>
-            <button
-              className="btn-modal-ok"
-              onClick={() => setShowErrorModal(false)}
-            >
-              OK
-            </button>
-          </div>
+          <button className="btn-action btn-back" onClick={onBack}>
+            <i className="fas fa-arrow-left"></i>
+            <span className="btn-text">Volver</span>
+          </button>
+          <button className="btn-action btn-logout-red" onClick={onLogout}>
+            <i className="fas fa-sign-out-alt"></i>
+            <span className="btn-text">Salir</span>
+          </button>
         </div>
       )}
 
-      {/* SECCIÓN DE IMPRESIÓN (Oculta en pantalla, visible al imprimir) */}
-      {showErrorModal && (
-        <div
-          className="error-modal-overlay"
-          onClick={() => setShowErrorModal(false)}
-        >
-          <div
-            className="error-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>⚠️ Campo Requerido</h3>
-            <p>{errorMessage}</p>
-            <button
-              className="btn-modal-ok"
-              onClick={() => setShowErrorModal(false)}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* SECCIÓN DE IMPRESIÓN (Oculta en pantalla, visible al imprimir) */}
+      {/* ÁREA DE IMPRESIÓN */}
       <div className="print-area">
         {addedItems.map((item, index) => {
-          // Construir el contenido del QR con toda la info + ID único
-          const qrContent = `CODE: ${item.code}\nDESCRIP: ${item.descrip}\nBATCH: ${item.batchCode}\nQTY: ${item.quantity} ${item.udm}\nMANUF: ${item.manufDate}\nEXPIRY: ${item.expiryDate}\nUID: ${item.uniqueId}`;
+          let qrContent = "";
+          if (item.mode === "PLANTAS") {
+            // Formato PLANTAS: P|CODIGO|DESC|LOTE|N_PAL
+            qrContent = `P|${item.code}|${item.descrip}|${item.batchCode}|${item.palletNum}`;
+          } else {
+            // Formato MTE
+            qrContent = `CODE: ${item.code}\nDESCRIP: ${item.descrip}\nBATCH: ${item.batchCode}\nQTY: ${item.quantity} ${item.udm}\nMANUF: ${item.manufDate}\nEXPIRY: ${item.expiryDate}\nUID: ${item.uniqueId}`;
+          }
 
           return (
             <div key={index} className="print-label">
               <div className="print-qr-container">
-                {/* Renderizar el QR directamente usando el componente QrCanvas */}
                 <QrCanvas value={qrContent} size={200} />
               </div>
               <div className="print-details">
@@ -602,21 +734,32 @@ const PrintQrPallet = ({ onBack }) => {
                   <strong>DESCRIP</strong> <span>{item.descrip}</span>
                 </div>
                 <div className="print-row">
-                  <strong>BATCH CODE</strong> <span>{item.batchCode}</span>
+                  <strong>LOTE</strong> <span>{item.batchCode}</span>
                 </div>
-                <div className="print-row">
-                  <strong>QUANTITY</strong>{" "}
-                  <span>
-                    {item.quantity} {item.udm}
-                  </span>
-                </div>
-                <div className="print-row">
-                  <strong>MANUF. DATE</strong> <span>{item.manufDate}</span>
-                </div>
-                <div className="print-row">
-                  <strong>EXPIRY DATE</strong> <span>{item.expiryDate}</span>
-                </div>
-                {/* El ID único NO se muestra en texto */}
+
+                {item.mode === "PLANTAS" ? (
+                  <div className="print-row">
+                    <strong>PALLET N°</strong>{" "}
+                    <span style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
+                      {item.palletNum}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="print-row">
+                      <strong>QTY</strong>{" "}
+                      <span>
+                        {item.quantity} {item.udm}
+                      </span>
+                    </div>
+                    <div className="print-row">
+                      <strong>MANUF</strong> <span>{item.manufDate}</span>
+                    </div>
+                    <div className="print-row">
+                      <strong>EXPIRY</strong> <span>{item.expiryDate}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           );

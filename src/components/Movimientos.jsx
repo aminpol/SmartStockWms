@@ -24,12 +24,24 @@ const Movimientos = ({ onBack, onLogout, user }) => {
 
   const handleFromKeyDown = (e) => {
     if (e.key === "Enter") {
-      const value = e.target.value.trim();
-      if (!value) return;
-      setFromPosition(value.toUpperCase());
+      // Al presionar Enter en Ubicación, pasar al input de cantidad
       if (qtyRef.current) {
         qtyRef.current.focus();
       }
+    }
+  };
+
+  const handleFromChange = (e) => {
+    const value = e.target.value.toUpperCase();
+    setFromPosition(value);
+    
+    // Si se escanea una ubicación válida, pasar automáticamente al input de cantidad
+    if (value.trim() && value.length > 2) {
+      setTimeout(() => {
+        if (qtyRef.current) {
+          qtyRef.current.focus();
+        }
+      }, 100);
     }
   };
 
@@ -60,6 +72,18 @@ const Movimientos = ({ onBack, onLogout, user }) => {
   const handleToKeyDown = (e) => {
     if (e.key === "Enter") {
       handleMove();
+    }
+  };
+
+  const handleToChange = (e) => {
+    const value = e.target.value.toUpperCase();
+    setToPosition(value);
+    
+    // Si se escanea una ubicación válida, guardar automáticamente
+    if (value.trim() && value.length > 2) {
+      setTimeout(() => {
+        handleMove();
+      }, 100);
     }
   };
 
@@ -158,14 +182,14 @@ const Movimientos = ({ onBack, onLogout, user }) => {
       <h3 className="movimientos-title">{t("movTitle")}</h3>
 
       <div className="movimientos-form">
-        <label className="mov-label">{t("ingPos")}</label>
+        <label className="mov-label">Ubicación</label>
         <input
           ref={fromRef}
           type="text"
           className="mov-input"
-          placeholder={t("ingPos")}
+          placeholder="Ubicación"
           value={fromPosition}
-          onChange={(e) => setFromPosition(e.target.value.toUpperCase())}
+          onChange={handleFromChange}
           onKeyDown={handleFromKeyDown}
         />
 
@@ -190,14 +214,14 @@ const Movimientos = ({ onBack, onLogout, user }) => {
           </button>
         </div>
 
-        <label className="mov-label">{t("ingPos")}</label>
+        <label className="mov-label">Nueva Ubicación</label>
         <input
           ref={toRef}
           type="text"
           className="mov-input"
-          placeholder={t("ingPos")}
+          placeholder="Nueva Ubicación"
           value={toPosition}
-          onChange={(e) => setToPosition(e.target.value.toUpperCase())}
+          onChange={handleToChange}
           onKeyDown={handleToKeyDown}
         />
       </div>
@@ -205,10 +229,16 @@ const Movimientos = ({ onBack, onLogout, user }) => {
       {(onBack || onLogout) && (
         <div className="movimientos-actions-row">
           {onBack && (
-            <button className="btn-action" onClick={onBack}>
-              <i className="fas fa-arrow-left"></i>
-              <span className="btn-text">{t("back")}</span>
-            </button>
+            <>
+              <button className="btn-action" onClick={onBack}>
+                <i className="fas fa-arrow-left"></i>
+                <span className="btn-text">{t("back")}</span>
+              </button>
+              <button className="btn-action btn-save" onClick={handleMove} disabled={loading}>
+                <i className="fas fa-save"></i>
+                <span className="btn-text">Guardar</span>
+              </button>
+            </>
           )}
           {onLogout && (
             <button className="btn-action btn-logout" onClick={onLogout}>

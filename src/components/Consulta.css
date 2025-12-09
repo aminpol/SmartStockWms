@@ -263,11 +263,14 @@
   .consulta-input {
     padding: 0.5rem;
     font-size: 0.85rem;
+    flex: 2; /* Hacer el input más grande */
   }
 
   .consulta-search-btn {
     padding: 0.5rem 0.6rem;
     font-size: 0.8rem;
+    flex: 0.8; /* Hacer el botón más pequeño */
+    min-width: 60px; /* Ancho mínimo */
   }
 
   .consulta-clear-btn {

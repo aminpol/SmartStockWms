@@ -31,6 +31,7 @@ export const translations = {
     optionBarcode: "Código de Barras",
     optionText: "Imprimir Texto",
     optionQrPallet: "QR Pallet",
+    optionReciboPlanta: "Recibo de Planta",
     optionInventory: "Inventario",
     optionAdmin: "Administrador",
 
@@ -172,6 +173,7 @@ export const translations = {
     optionBarcode: "Barcode",
     optionText: "Print Text",
     optionQrPallet: "QR Pallet",
+    optionReciboPlanta: "Plant Receipt",
     optionInventory: "Inventory",
     optionAdmin: "Administrator",
 
