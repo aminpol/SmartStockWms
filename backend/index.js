@@ -980,8 +980,26 @@ const initDB = async () => {
 
     // Verificar e insertar ubicación GROUND
     try {
-      // Como la tabla ubicaciones no existe, omitir este paso por ahora
-      console.log("Omitiendo verificación de GROUND (tabla ubicaciones no existe)");
+      // Crear tabla ubicaciones si no existe
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS ubicaciones (
+          ubicaciones VARCHAR(50) PRIMARY KEY,
+          descripcion TEXT,
+          activa BOOLEAN DEFAULT TRUE
+        )
+      `);
+      console.log('Tabla "ubicaciones" creada/verificada');
+
+      // Insertar GROUND si no existe
+      const [ground] = await db.query(
+        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = 'GROUND'"
+      );
+      if (ground.length === 0) {
+        await db.query(
+          "INSERT INTO ubicaciones (ubicaciones, descripcion, activa) VALUES ('GROUND', 'Ubicación de Recepción', TRUE)"
+        );
+        console.log("Ubicación 'GROUND' creada automáticamente");
+      }
     } catch (err) {
       console.warn("No se pudo verificar/crear ubicación GROUND:", err.message);
     }
