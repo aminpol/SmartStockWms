@@ -719,10 +719,7 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
 
     const [rows] = await db.query(query, [posicion]);
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "No hay stock en esta ubicación" });
-    }
-
+    // Devolver 200 con array vacío si no hay resultados, en lugar de 404
     res.json(rows);
   } catch (error) {
     console.error("Error consultando ubicación:", error);
