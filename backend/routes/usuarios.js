@@ -94,6 +94,9 @@ router.put("/:documento", async (req, res) => {
     tipo_usuario,
   } = req.body;
 
+  console.log("Actualizando usuario:", documento);
+  console.log("Datos recibidos:", { nombre, apellido, email, empresa_contratista, usuario, tipo_usuario });
+
   const connection = await db.getConnection();
 
   try {
@@ -101,7 +104,7 @@ router.put("/:documento", async (req, res) => {
 
     // 1. Obtener el usuario actual para ver si cambió el nombre de usuario
     const [currentRows] = await connection.query(
-      "SELECT usuario FROM usuarios WHERE documento = ?",
+      "SELECT usuario FROM usuarios WHERE documento = $1",
       [documento]
     );
 
@@ -111,6 +114,7 @@ router.put("/:documento", async (req, res) => {
     }
 
     const oldUsuario = currentRows[0].usuario;
+    console.log("Usuario anterior:", oldUsuario);
 
     // 2. Actualizar la tabla de usuarios
     const [result] = await connection.query(
@@ -130,6 +134,8 @@ router.put("/:documento", async (req, res) => {
       ]
     );
 
+    console.log("Update result:", result);
+
     // 3. Si el nombre de usuario cambió, actualizar tablas relacionadas
     if (oldUsuario !== usuario) {
       console.log(`Propagando cambio de usuario: ${oldUsuario} -> ${usuario}`);
@@ -148,6 +154,7 @@ router.put("/:documento", async (req, res) => {
     }
 
     await connection.commit();
+    console.log("Usuario actualizado exitosamente");
     res.json({ message: "Usuario actualizado exitosamente" });
   } catch (error) {
     await connection.rollback();
