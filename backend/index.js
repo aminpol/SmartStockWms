@@ -1039,18 +1039,45 @@ app.get("/api/recibos", async (req, res) => {
 app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
   try {
     const { ubicacion } = req.params;
+    console.log("Validando ubicación:", ubicacion);
     
     if (!ubicacion || ubicacion.trim() === "") {
       return res.status(400).json({ error: "Ubicación es requerida" });
     }
 
     const ubicacionTrim = ubicacion.trim();
+    console.log("Ubicación trim:", ubicacionTrim);
     
-    // Usar la misma estructura que las otras consultas PostgreSQL
+    // Primero verificar si podemos conectarnos a la base de datos
+    try {
+      const [test] = await db.query("SELECT 1 as test");
+      console.log("Conexión BD OK:", test);
+    } catch (testError) {
+      console.error("Error conexión BD:", testError);
+      return res.status(500).json({ error: "Error de conexión a base de datos" });
+    }
+    
+    // Verificar si la tabla existe
+    try {
+      const [tableCheck] = await db.query(
+        "SELECT table_name FROM information_schema.tables WHERE table_name = 'ubicaciones'"
+      );
+      console.log("Tabla ubicaciones existe:", tableCheck.length > 0);
+      
+      if (tableCheck.length === 0) {
+        return res.status(500).json({ error: "La tabla ubicaciones no existe" });
+      }
+    } catch (tableError) {
+      console.error("Error verificando tabla:", tableError);
+    }
+    
+    // Intentar la consulta principal
     const [ubicacionRows] = await db.query(
       "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
       [ubicacionTrim]
     );
+
+    console.log("Resultado consulta:", ubicacionRows);
 
     if (ubicacionRows.length > 0) {
       res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
@@ -1058,8 +1085,8 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
       res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
     }
   } catch (error) {
-    console.error("Error validando ubicación:", error);
-    res.status(500).json({ error: "Error interno al validar ubicación" });
+    console.error("Error general validando ubicación:", error);
+    res.status(500).json({ error: "Error interno al validar ubicación", details: error.message });
   }
 });
 
