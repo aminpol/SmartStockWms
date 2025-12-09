@@ -46,13 +46,13 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     const value = e.target.value.toUpperCase();
     setFromPosition(value);
     
-    // Auto-avanzar solo si parece un código de escaneo completo (formato LR-XX-XX exacto)
-    if (value.trim() && /^LR-\d{2}-\d{2}$/i.test(value)) {
+    // Auto-avanzar solo si parece un código de escaneo completo (formato LR-XX-XX exacto y 8 caracteres)
+    if (value.trim() && value.length === 8 && /^LR-\d{2}-\d{2}$/i.test(value)) {
       setTimeout(() => {
         if (qtyRef.current) {
           qtyRef.current.focus();
         }
-      }, 200);
+      }, 300);
     }
   };
 
@@ -90,11 +90,11 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     const value = e.target.value.toUpperCase();
     setToPosition(value);
     
-    // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX exacto)
-    if (value.trim() && /^LR-\d{2}-\d{2}$/i.test(value)) {
+    // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX exacto y 8 caracteres)
+    if (value.trim() && value.length === 8 && /^LR-\d{2}-\d{2}$/i.test(value)) {
       setTimeout(() => {
         handleMove();
-      }, 200);
+      }, 300);
     }
   };
 

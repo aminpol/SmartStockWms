@@ -185,11 +185,11 @@ const Ingresa = ({ onBack, onLogout, user }) => {
               const newPosition = e.target.value.toUpperCase();
               setPosition(newPosition);
               
-              // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX exacto)
-              if (newPosition.trim() && /^LR-\d{2}-\d{2}$/i.test(newPosition)) {
+              // Auto-guardar solo si parece un código de escaneo completo (formato LR-XX-XX exacto y 8 caracteres)
+              if (newPosition.trim() && newPosition.length === 8 && /^LR-\d{2}-\d{2}$/i.test(newPosition)) {
                 setTimeout(() => {
                   handleSave();
-                }, 200);
+                }, 300);
               }
             }}
             onKeyPress={(e) => {
