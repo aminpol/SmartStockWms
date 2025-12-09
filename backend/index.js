@@ -1044,37 +1044,42 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
       return res.status(400).json({ error: "Ubicación es requerida" });
     }
 
-    // Verificar si la columna 'activa' existe en la tabla ubicaciones
-    const [columns] = await db.query(
-      `SELECT column_name 
-       FROM information_schema.columns 
-       WHERE table_name = 'ubicaciones' 
-       AND column_name = 'activa'`
-    );
-    const hasActivaColumn = columns.length > 0;
-
-    let ubicacionRows;
-    if (hasActivaColumn) {
-      // Si tiene columna activa, validar con ella
-      [ubicacionRows] = await db.query(
-        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1 AND activa = TRUE",
-        [ubicacion.trim()]
+    const ubicacionTrim = ubicacion.trim();
+    
+    // Intentar validar directamente (método simple y compatible)
+    try {
+      const [ubicacionRows] = await db.query(
+        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = ?",
+        [ubicacionTrim]
       );
-    } else {
-      // Si no tiene columna activa, solo validar que existe
-      [ubicacionRows] = await db.query(
-        "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
-        [ubicacion.trim()]
-      );
-    }
 
-    if (ubicacionRows.length > 0) {
-      res.status(200).json({ exists: true, ubicacion: ubicacion.trim() });
-    } else {
-      res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
+      if (ubicacionRows.length > 0) {
+        res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+      } else {
+        res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
+      }
+    } catch (queryError) {
+      console.error("Error en consulta principal, intentando con sintaxis alternativa:", queryError.message);
+      
+      // Intentar con sintaxis alternativa si falla
+      try {
+        const [ubicacionRows] = await db.query(
+          "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
+          [ubicacionTrim]
+        );
+
+        if (ubicacionRows.length > 0) {
+          res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
+        } else {
+          res.status(404).json({ exists: false, message: "Ubicación no encontrada" });
+        }
+      } catch (fallbackError) {
+        console.error("Error en consulta fallback:", fallbackError.message);
+        res.status(500).json({ error: "Error al consultar la base de datos" });
+      }
     }
   } catch (error) {
-    console.error("Error validando ubicación:", error);
+    console.error("Error general validando ubicación:", error);
     res.status(500).json({ error: "Error interno al validar ubicación" });
   }
 });
