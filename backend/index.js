@@ -1048,27 +1048,50 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
     const ubicacionTrim = ubicacion.trim();
     console.log("Ubicación trim:", ubicacionTrim);
     
-    // Primero verificar si podemos conectarnos a la base de datos
+    // Verificar qué tablas existen
     try {
-      const [test] = await db.query("SELECT 1 as test");
-      console.log("Conexión BD OK:", test);
-    } catch (testError) {
-      console.error("Error conexión BD:", testError);
-      return res.status(500).json({ error: "Error de conexión a base de datos" });
-    }
-    
-    // Verificar si la tabla existe
-    try {
-      const [tableCheck] = await db.query(
-        "SELECT table_name FROM information_schema.tables WHERE table_name = 'ubicaciones'"
+      const [tables] = await db.query(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%ubicacion%'"
       );
-      console.log("Tabla ubicaciones existe:", tableCheck.length > 0);
+      console.log("Tablas encontradas:", tables.map(t => t.table_name));
       
-      if (tableCheck.length === 0) {
-        return res.status(500).json({ error: "La tabla ubicaciones no existe" });
+      if (tables.length === 0) {
+        // Crear tabla ubicaciones si no existe
+        console.log("Creando tabla ubicaciones...");
+        await db.query(`
+          CREATE TABLE IF NOT EXISTS ubicaciones (
+            ubicaciones VARCHAR(100) PRIMARY KEY,
+            descripcion VARCHAR(255),
+            activa BOOLEAN DEFAULT TRUE
+          )
+        `);
+        console.log("Tabla ubicaciones creada");
+        
+        // Insertar ubicaciones comunes si la tabla está vacía
+        const [count] = await db.query("SELECT COUNT(*) as total FROM ubicaciones");
+        if (count[0].total === 0) {
+          console.log("Insertando ubicaciones por defecto...");
+          const ubicacionesDefault = [];
+          for (let pasillo = 1; pasillo <= 15; pasillo++) {
+            for (let lado = 1; lado <= 2; lado++) {
+              for (let posicion = 1; posicion <= 15; posicion++) {
+                ubicacionesDefault.push(`LR-${String(pasillo).padStart(2, '0')}-${String(posicion).padStart(2, '0')}`);
+              }
+            }
+          }
+          ubicacionesDefault.push('GROUND');
+          
+          for (const ub of ubicacionesDefault) {
+            await db.query(
+              "INSERT INTO ubicaciones (ubicaciones, descripcion) VALUES ($1, $2)",
+              [ub, `Ubicación ${ub}`]
+            );
+          }
+          console.log("Ubicaciones por defecto insertadas");
+        }
       }
     } catch (tableError) {
-      console.error("Error verificando tabla:", tableError);
+      console.error("Error verificando/creando tablas:", tableError);
     }
     
     // Intentar la consulta principal
