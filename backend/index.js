@@ -438,8 +438,10 @@ app.post("/api/stock/mover", async (req, res) => {
       : "SELECT id, descrip, cantidad FROM stock_ubicaciones WHERE posicion = $1";
     
     const [origenRows] = await db.query(query, [fromPosition]);
+    console.log("Stock encontrado en origen:", origenRows.length);
 
     if (origenRows.length === 0) {
+      console.log("Error: No hay stock en ubicación origen");
       return res
         .status(404)
         .json({ error: "No hay stock en la ubicación de origen" });
