@@ -1501,6 +1501,49 @@ app.post("/api/pallets", async (req, res) => {
   }
 });
 
+// Endpoint temporal para insertar ubicación GROUND
+app.post("/api/temp/insert-ground", async (req, res) => {
+  try {
+    console.log("Insertando ubicación GROUND...");
+    
+    await db.query(`
+      INSERT INTO posiciones (Posiciones_Eti, descripcion, activa)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (Posiciones_Eti) DO NOTHING
+    `, ['GROUND', 'Área de tierra/piso - Ubicación especial', true]);
+    
+    console.log('✅ Ubicación GROUND insertada exitosamente');
+    
+    // Verificar que se insertó correctamente
+    const [result] = await db.query(
+      "SELECT * FROM posiciones WHERE Posiciones_Eti = $1",
+      ['GROUND']
+    );
+    
+    if (result.length > 0) {
+      console.log('✅ Verificación: Ubicación GROUND existe en la base de datos');
+      res.json({ 
+        success: true, 
+        message: 'Ubicación GROUND insertada correctamente',
+        data: result[0]
+      });
+    } else {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error: No se pudo insertar la ubicación GROUND' 
+      });
+    }
+    
+  } catch (error) {
+    console.error("❌ Error insertando GROUND:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno al insertar ubicación GROUND',
+      error: error.message 
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
