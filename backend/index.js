@@ -1512,6 +1512,24 @@ app.post("/api/pallets", async (req, res) => {
   }
 });
 
+// Endpoint para probar la lógica de GROUND
+app.post("/api/temp/test-ground", async (req, res) => {
+  try {
+    const { position } = req.body;
+    console.log("Probando posición:", position);
+    console.log("¿Es GROUND?", position.toUpperCase() === 'GROUND');
+    
+    res.json({ 
+      position: position,
+      isGround: position.toUpperCase() === 'GROUND',
+      message: 'Prueba completada'
+    });
+  } catch (error) {
+    console.error("Error en prueba:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Endpoint temporal para insertar ubicación GROUND
 app.post("/api/temp/insert-ground", async (req, res) => {
   try {
