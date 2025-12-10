@@ -343,13 +343,29 @@ app.get("/api/stock/consulta/:code", async (req, res) => {
       return res.status(400).json({ error: "Código no proporcionado" });
     }
 
-    const [rows] = await db.query(
-      `SELECT id, descrip, cantidad, posicion, updated_at
-       FROM stock_ubicaciones
-       WHERE id = $1
-       ORDER BY updated_at ASC`,
-      [code]
+    // Verificar si la columna lote existe
+    const [columns] = await db.query(
+      `SELECT column_name 
+       FROM information_schema.columns 
+       WHERE table_name = 'stock_ubicaciones' 
+       AND column_name = 'lote'`
     );
+    const hasLoteColumn = columns.length > 0;
+
+    let query;
+    if (hasLoteColumn) {
+      query = `SELECT id, descrip, cantidad, posicion, lote, updated_at
+               FROM stock_ubicaciones
+               WHERE id = $1
+               ORDER BY updated_at ASC`;
+    } else {
+      query = `SELECT id, descrip, cantidad, posicion, updated_at
+               FROM stock_ubicaciones
+               WHERE id = $1
+               ORDER BY updated_at ASC`;
+    }
+
+    const [rows] = await db.query(query, [code]);
 
     if (rows.length === 0) {
       return res
