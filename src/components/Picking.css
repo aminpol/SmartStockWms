@@ -103,41 +103,45 @@
 }
 
 .btn-action {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background-color: #6b7280;
+  cursor: pointer;
+  white-space: nowrap;
+  background-color: #64748b;
   color: white;
   border: none;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-  min-width: fit-content;
+  font-size: 0.9rem;
 }
 
 .btn-action:hover {
-  background-color: #4b5563;
+  background-color: #475569;
+}
+
+.btn-action i {
+  font-size: 1rem;
 }
 
 .picking-btn-retirar {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  cursor: pointer;
+  white-space: nowrap;
   background-color: #dc2626;
   color: white;
   border: none;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-  min-width: fit-content;
+  font-size: 0.9rem;
 }
 
 .picking-btn-retirar:hover:not(:disabled) {
