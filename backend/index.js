@@ -624,7 +624,7 @@ app.post("/api/stock/ingresa", async (req, res) => {
       const actual = parseFloat(rows[0].cantidad) || 0;
       newQuantity = actual + qty;
 
-      if (hasLoteColumn && lote) {
+      if (hasLoteColumn) {
         await db.query(
           "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
           [newQuantity, userName, lote || null, code, position]
