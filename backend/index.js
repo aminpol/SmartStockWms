@@ -663,23 +663,36 @@ app.post("/api/stock/ingresa", async (req, res) => {
         );
       }
     } else {
-      // Para GROUND, usamos UPSERT para manejar la constraint (id, posicion)
+      // Para GROUND, usar tabla especial stock_ground que permite múltiples lotes
       if (position.toUpperCase() === 'GROUND' && hasLoteColumn) {
-        // Intentar insertar, si hay conflicto actualizar el registro existente
-        await db.query(`
-          INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) 
-          VALUES ($1, $2, $3, $4, $5, $6)
-          ON CONFLICT (id, posicion) 
-          DO UPDATE SET 
-            cantidad = stock_ubicaciones.cantidad + $3,
-            Usuario = $5,
-            lote = CASE 
-              WHEN stock_ubicaciones.lote IS NULL OR stock_ubicaciones.lote = '' THEN $6
-              WHEN $6 IS NULL OR $6 = '' THEN stock_ubicaciones.lote
-              ELSE stock_ubicaciones.lote || ',' || $6
-            END,
-            updated_at = CURRENT_TIMESTAMP
-        `, [code, descrip, newQuantity, position, userName, lote || null]);
+        // Verificar si existe la tabla stock_ground
+        try {
+          await db.query(`
+            CREATE TABLE IF NOT EXISTS stock_ground (
+              id TEXT,
+              descrip TEXT,
+              cantidad NUMERIC,
+              posicion TEXT,
+              Usuario TEXT,
+              lote TEXT,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          
+          // Insertar en stock_ground (sin constraint única)
+          await db.query(
+            "INSERT INTO stock_ground (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
+            [code, descrip, newQuantity, position, userName, lote || null]
+          );
+        } catch (tableError) {
+          console.error("Error creando/insertando en stock_ground:", tableError);
+          // Si falla, intentar en tabla normal como fallback
+          await db.query(
+            "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
+            [code, descrip, newQuantity, position, userName, lote || null]
+          );
+        }
       } else {
         // Para otras posiciones o sin lote, inserción normal
         if (hasLoteColumn) {
@@ -746,6 +759,42 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
     console.log("¿Tiene columna lote?", hasLoteColumn);
 
     let query;
+    let queryParams;
+    
+    if (posicion.toUpperCase() === 'GROUND') {
+      // Para GROUND, buscar en ambas tablas
+      console.log("Consultando GROUND - buscar en stock_ground y stock_ubicaciones");
+      
+      try {
+        // Buscar en stock_ground primero
+        const [groundRows] = await db.query(
+          `SELECT id, descrip, cantidad, posicion, lote
+           FROM stock_ground
+           WHERE posicion = $1`,
+          [posicion]
+        );
+        
+        // También buscar en stock_ubicaciones por si hay datos antiguos
+        const [normalRows] = await db.query(
+          `SELECT id, descrip, cantidad, posicion, lote
+           FROM stock_ubicaciones
+           WHERE posicion = $1`,
+          [posicion]
+        );
+        
+        // Combinar resultados
+        const allRows = [...groundRows, ...normalRows];
+        console.log("Resultados GROUND - stock_ground:", groundRows.length, "stock_ubicaciones:", normalRows.length, "total:", allRows.length);
+        res.json(allRows);
+        return;
+        
+      } catch (groundError) {
+        console.warn("Error consultando stock_ground, usando solo stock_ubicaciones:", groundError.message);
+        // Fallback a tabla normal
+      }
+    }
+    
+    // Para otras posiciones o fallback, usar consulta normal
     if (hasLoteColumn) {
       query = `SELECT id, descrip, cantidad, posicion, lote
                FROM stock_ubicaciones
@@ -755,9 +804,10 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
                FROM stock_ubicaciones
                WHERE posicion = $1`;
     }
+    queryParams = [posicion];
 
     console.log("Query ejecutada:", query);
-    const [rows] = await db.query(query, [posicion]);
+    const [rows] = await db.query(query, queryParams);
     console.log("Resultados encontrados:", rows.length);
     
     // Para depuración: mostrar todos los datos en la tabla
