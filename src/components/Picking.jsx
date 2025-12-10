@@ -197,8 +197,9 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
           className="picking-input"
           placeholder={t("pickLocation")}
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          onChange={(e) => setLocation(e.target.value.toUpperCase())}
           onKeyDown={handleLocationKeyDown}
+          style={{ textTransform: 'uppercase' }}
         />
 
         {stockData && (
