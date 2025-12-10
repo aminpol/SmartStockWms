@@ -40,8 +40,8 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
       setMessage(null);
       setResults([]);
 
-      // Determinar si es búsqueda por ubicación (formato LR-XX-XX)
-      const isLocation = /^LR-\d{2}-\d{2}$/i.test(trimmed);
+      // Determinar si es búsqueda por ubicación (formato LR-XX-XX o GROUND)
+      const isLocation = /^LR-\d{2}-\d{2}$/i.test(trimmed) || trimmed.toUpperCase() === 'GROUND';
 
       let url;
       if (isLocation) {
@@ -142,7 +142,7 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
           <input
             type="text"
             className="consulta-input"
-            placeholder="Código o Ubicación (LR-XX-XX)"
+            placeholder="Código o Ubicación (LR-XX-XX o GROUND)"
             value={code}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
