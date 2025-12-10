@@ -8,8 +8,15 @@
   padding: 1rem;
   gap: 1rem;
   box-sizing: border-box;
-  max-height: 60vh; /* Reducir altura para forzar scroll más temprano */
-  overflow-y: auto; /* Agregar scroll vertical en el contenedor principal */
+  min-height: 60vh; /* En móvil usar altura mínima normal */
+}
+
+/* Solo aplicar scroll en modo PC (desktop) */
+@media (min-width: 768px) {
+  .picking-container {
+    max-height: 60vh; /* Reducir altura para forzar scroll más temprano en PC */
+    overflow-y: auto; /* Agregar scroll vertical solo en PC */
+  }
 }
 
 .picking-form {
