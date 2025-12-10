@@ -74,28 +74,6 @@
   color: #111827;
 }
 
-.picking-btn-retirar {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background-color: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.picking-btn-retirar:hover:not(:disabled) {
-  background-color: #b91c1c;
-}
-
-.picking-btn-retirar:disabled {
-  background-color: #fca5a5;
-  cursor: not-allowed;
-}
-
 .picking-message {
   padding: 0.75rem;
   border-radius: 0.375rem;
@@ -119,8 +97,82 @@
 .picking-actions {
   width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 1rem;
   margin-top: 1rem;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-action:hover {
+  background-color: #4b5563;
+}
+
+.picking-btn-retirar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.picking-btn-retirar:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.picking-btn-retirar:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
+}
+
+/* Estilos específicos para PC */
+@media (min-width: 768px) {
+  .picking-btn-retirar .btn-text {
+    display: inline; /* Mostrar texto en PC */
+  }
+  
+  .btn-action .btn-text {
+    display: inline; /* Mostrar texto en PC */
+  }
+}
+
+/* Estilos específicos para móvil */
+@media (max-width: 767px) {
+  .picking-btn-retirar .btn-text {
+    display: none; /* Ocultar texto en móvil, solo icono */
+  }
+  
+  .btn-action .btn-text {
+    display: none; /* Ocultar texto en móvil, solo icono */
+  }
+  
+  .picking-btn-retirar {
+    padding: 0.75rem; /* Botón cuadrado en móvil */
+  }
+  
+  .btn-action {
+    padding: 0.75rem; /* Botón cuadrado en móvil */
+  }
 }
 
 /* Modal para errores */

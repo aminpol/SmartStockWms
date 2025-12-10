@@ -231,14 +231,6 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
           onChange={(e) => setQuantityToWithdraw(e.target.value)}
           disabled={!stockData}
         />
-
-        <button
-          className="picking-btn-retirar"
-          onClick={handleWithdraw}
-          disabled={!stockData || loading}
-        >
-          {loading ? t("loading") : t("pickBtnConfirm")}
-        </button>
       </div>
 
       {message && message.showModal ? (
@@ -268,6 +260,15 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
         <button className="btn-action" onClick={handleBack}>
           <i className="fas fa-arrow-left"></i>
           <span className="btn-text">{t("back")}</span>
+        </button>
+        
+        <button
+          className="picking-btn-retirar"
+          onClick={handleWithdraw}
+          disabled={!stockData || loading}
+        >
+          <i className="fas fa-shipping-fast"></i>
+          <span className="btn-text">{loading ? t("loading") : t("pickBtnConfirm")}</span>
         </button>
       </div>
     </div>
