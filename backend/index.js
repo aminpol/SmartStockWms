@@ -607,23 +607,34 @@ app.post("/api/stock/ingresa", async (req, res) => {
     const descrip = materials[0].description;
 
     // Ver si ya existe algún registro en esa posición con OTRO código
-    const [otrosEnPosicion] = await db.query(
-      "SELECT id FROM stock_ubicaciones WHERE posicion = $1 AND id <> $2",
-      [position, code]
-    );
+    // Para GROUND, permitimos múltiples códigos. Para otras posiciones, mantenemos la restricción.
+    if (position.toUpperCase() !== 'GROUND') {
+      const [otrosEnPosicion] = await db.query(
+        "SELECT id FROM stock_ubicaciones WHERE posicion = $1 AND id <> $2",
+        [position, code]
+      );
 
-    if (otrosEnPosicion.length > 0) {
-      return res.status(400).json({
-        error:
-          "La ubicación ya contiene otro material distinto al código ingresado. Use otra ubicación o mueva primero el stock existente.",
-      });
+      if (otrosEnPosicion.length > 0) {
+        return res.status(400).json({
+          error:
+            "La ubicación ya contiene otro material distinto al código ingresado. Use otra ubicación o mueva primero el stock existente.",
+        });
+      }
     }
 
-    // Ver si ya existe registro para ese código y posición
-    const [rows] = await db.query(
-      "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
-      [code, position]
-    );
+    // Ver si ya existe registro para ese código, posición y lote
+    let query;
+    let queryParams;
+    
+    if (hasLoteColumn) {
+      query = "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2 AND lote = $3";
+      queryParams = [code, position, lote || null];
+    } else {
+      query = "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2";
+      queryParams = [code, position];
+    }
+    
+    const [rows] = await db.query(query, queryParams);
 
     let newQuantity = qty;
 
@@ -642,8 +653,8 @@ app.post("/api/stock/ingresa", async (req, res) => {
 
       if (hasLoteColumn) {
         await db.query(
-          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2, lote = $3 WHERE id = $4 AND posicion = $5",
-          [newQuantity, userName, lote || null, code, position]
+          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4 AND lote = $5",
+          [newQuantity, userName, code, position, lote || null]
         );
       } else {
         await db.query(
