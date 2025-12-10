@@ -663,16 +663,36 @@ app.post("/api/stock/ingresa", async (req, res) => {
         );
       }
     } else {
-      if (hasLoteColumn) {
-        await db.query(
-          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
-          [code, descrip, newQuantity, position, userName, lote || null]
-        );
+      // Para GROUND, usamos UPSERT para manejar la constraint (id, posicion)
+      if (position.toUpperCase() === 'GROUND' && hasLoteColumn) {
+        // Intentar insertar, si hay conflicto actualizar el registro existente
+        await db.query(`
+          INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) 
+          VALUES ($1, $2, $3, $4, $5, $6)
+          ON CONFLICT (id, posicion) 
+          DO UPDATE SET 
+            cantidad = stock_ubicaciones.cantidad + $3,
+            Usuario = $5,
+            lote = CASE 
+              WHEN stock_ubicaciones.lote IS NULL OR stock_ubicaciones.lote = '' THEN $6
+              WHEN $6 IS NULL OR $6 = '' THEN stock_ubicaciones.lote
+              ELSE stock_ubicaciones.lote || ',' || $6
+            END,
+            updated_at = CURRENT_TIMESTAMP
+        `, [code, descrip, newQuantity, position, userName, lote || null]);
       } else {
-        await db.query(
-          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES ($1, $2, $3, $4, $5)",
-          [code, descrip, newQuantity, position, userName]
-        );
+        // Para otras posiciones o sin lote, inserción normal
+        if (hasLoteColumn) {
+          await db.query(
+            "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
+            [code, descrip, newQuantity, position, userName, lote || null]
+          );
+        } else {
+          await db.query(
+            "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES ($1, $2, $3, $4, $5)",
+            [code, descrip, newQuantity, position, userName]
+          );
+        }
       }
     }
 
