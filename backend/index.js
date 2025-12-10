@@ -606,6 +606,15 @@ app.post("/api/stock/ingresa", async (req, res) => {
 
     const descrip = materials[0].description;
 
+    // Verificar si la columna lote existe en la tabla (PostgreSQL syntax)
+    const [columns] = await db.query(
+      `SELECT column_name 
+       FROM information_schema.columns 
+       WHERE table_name = 'stock_ubicaciones' 
+       AND column_name = 'lote'`
+    );
+    const hasLoteColumn = columns.length > 0;
+
     // Ver si ya existe algún registro en esa posición con OTRO código
     // Para GROUND, permitimos múltiples códigos. Para otras posiciones, mantenemos la restricción.
     if (position.toUpperCase() !== 'GROUND') {
@@ -637,15 +646,6 @@ app.post("/api/stock/ingresa", async (req, res) => {
     const [rows] = await db.query(query, queryParams);
 
     let newQuantity = qty;
-
-    // Verificar si la columna lote existe en la tabla (PostgreSQL syntax)
-    const [columns] = await db.query(
-      `SELECT column_name 
-       FROM information_schema.columns 
-       WHERE table_name = 'stock_ubicaciones' 
-       AND column_name = 'lote'`
-    );
-    const hasLoteColumn = columns.length > 0;
 
     if (rows.length > 0) {
       const actual = parseFloat(rows[0].cantidad) || 0;
