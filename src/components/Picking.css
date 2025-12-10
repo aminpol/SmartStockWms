@@ -106,7 +106,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   background-color: #6b7280;
   color: white;
   border: none;
@@ -115,6 +115,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .btn-action:hover {
@@ -125,7 +127,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   background-color: #dc2626;
   color: white;
   border: none;
@@ -134,6 +136,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .picking-btn-retirar:hover:not(:disabled) {
