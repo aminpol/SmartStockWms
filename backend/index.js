@@ -1011,6 +1011,23 @@ app.get("/api/stock/all", async (req, res) => {
     );
     const hasLoteColumn = columns.length > 0;
 
+    let allRows = [];
+    
+    try {
+      // Buscar en stock_ground (datos de GROUND con múltiples lotes)
+      const [groundRows] = await db.query(
+        `SELECT id, descrip, cantidad, posicion, lote
+         FROM stock_ground
+         WHERE cantidad > 0
+         ORDER BY id, posicion`
+      );
+      allRows.push(...groundRows);
+      console.log("Resultados en stock_ground:", groundRows.length);
+    } catch (groundError) {
+      console.warn("Error consultando stock_ground:", groundError.message);
+    }
+    
+    // Buscar en stock_ubicaciones (otras ubicaciones)
     let query;
     if (hasLoteColumn) {
       query = `SELECT id, descrip, cantidad, posicion, lote
@@ -1024,8 +1041,11 @@ app.get("/api/stock/all", async (req, res) => {
                ORDER BY id, posicion`;
     }
 
-    const [rows] = await db.query(query);
-    res.json(rows);
+    const [normalRows] = await db.query(query);
+    allRows.push(...normalRows);
+    console.log("Resultados en stock_ubicaciones:", normalRows.length, "total:", allRows.length);
+
+    res.json(allRows);
   } catch (error) {
     console.error("Error consultando todo el stock:", error);
     res.status(500).json({ error: "Error interno al consultar stock" });
