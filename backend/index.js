@@ -1590,26 +1590,11 @@ app.post("/api/pallets", async (req, res) => {
     const count = parseInt(numberLabels);
     const createdUniqueIds = [];
 
-    // Obtener el último unique_id desde la tabla SOLO para mantener la secuencia
-    const [lastRecord] = await db.query(
-      "SELECT unique_id FROM pallets ORDER BY id DESC LIMIT 1"
-    );
-
-    let nextNumber = 1;
-    if (lastRecord.length > 0 && lastRecord[0].unique_id) {
-      // Extraer el número del formato UID:XXX
-      const lastUid = lastRecord[0].unique_id;
-      const match = lastUid.match(/UID:(\d+)/);
-      if (match) {
-        nextNumber = parseInt(match[1]) + 1;
-      }
-    }
-
-    // Generar IDs únicos SIN guardar en la base de datos
+    // Generar IDs únicos usando timestamp y contador local
+    const timestamp = Date.now();
     for (let i = 0; i < count; i++) {
-      const uniqueId = `UID:${String(nextNumber).padStart(3, "0")}`;
+      const uniqueId = `UID:${String(timestamp + i).slice(-3)}`;
       createdUniqueIds.push(uniqueId);
-      nextNumber++;
     }
 
     console.log(
