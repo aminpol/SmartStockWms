@@ -88,7 +88,7 @@ export const printCodes = (codes, settings) => {
 <style>
 @media print {
   @page {
-    size: 11cm 19cm; /* Tamaño exacto de la etiqueta */
+    size: 3.8in 7.06in; /* Tamaño exacto de etiqueta Zebra */
     margin: 0;
   }
   body { 
@@ -96,16 +96,16 @@ export const printCodes = (codes, settings) => {
     padding: 0; 
   }
   .print-page {
-    width: 11cm;
-    height: 19cm;
+    width: 3.8in;
+    height: 7.06in;
     display: grid;
-    grid-template-rows: repeat(4, 1fr); /* Dividir en 4 filas iguales */
+    grid-template-rows: repeat(4, 1fr); /* 4 códigos por etiqueta */
     align-items: center;
     justify-items: center;
     page-break-after: always;
     overflow: hidden;
     box-sizing: border-box;
-    padding: 0.5cm; /* Pequeño margen interno */
+    padding: 0.1in; /* Margen interno pequeño */
   }
 
   .print-page:last-child { 
@@ -114,33 +114,34 @@ export const printCodes = (codes, settings) => {
   
   .codigoBox { 
     width: 100%;
-    height: 100%; /* Ocupar toda la celda del grid */
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     border: none;
-    padding: 2px 0;
+    padding: 1px 0;
     margin: 0;
     overflow: hidden;
   }
   
   .codigoBox svg, .codigoBox img { 
-    display: block; 
-    max-width: 90%; 
-    max-height: 3.5cm; /* Limitar altura para que quepan 4 */
-    width: auto;
-    height: auto;
-    object-fit: contain;
+    display: block !important; 
+    max-width: 85% !important; 
+    max-height: 1.2in !important; /* Ajustado para 4 códigos */
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    visibility: visible !important;
   }
   
   .etiqueta { 
     width: 100%; 
     text-align: center; 
     word-wrap: break-word; 
-    margin-top: 2px; 
-    font-size: 10px; /* Texto más pequeño para ajustar */
-    line-height: 1.1;
+    margin-top: 1px; 
+    font-size: 8px !important; /* Texto más pequeño */
+    line-height: 1.0;
   }
 }
 </style>
