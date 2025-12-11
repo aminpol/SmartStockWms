@@ -41,6 +41,22 @@ export const printCodes = (codes, settings) => {
       const btnDelete = clon.querySelector(".btn-delete");
       if (btnDelete) btnDelete.remove();
       
+      // Convertir canvas a imagen para QR
+      const canvas = clon.querySelector("canvas");
+      if (canvas) {
+        try {
+          const dataUrl = canvas.toDataURL("image/png");
+          const img = document.createElement("img");
+          img.src = dataUrl;
+          img.style.height = canvas.style.height || "auto";
+          img.style.width = canvas.style.width || "auto";
+          canvas.replaceWith(img);
+          console.log("Canvas convertido a imagen para impresión");
+        } catch (e) {
+          console.error("Error al convertir canvas a imagen:", e);
+        }
+      }
+      
       pagina.appendChild(clon);
     });
 
