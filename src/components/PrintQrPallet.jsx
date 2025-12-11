@@ -378,7 +378,7 @@ const PrintQrPallet = ({ onBack, onLogout }) => {
     
     // Obtener todos los elementos de códigos visibles
     const visibleCodes = Array.from(
-      document.querySelectorAll(".print-area .qr-label-item")
+      document.querySelectorAll(".print-area .print-label")
     );
 
     for (let i = 0; i < visibleCodes.length; i += codigosPorPagina) {
