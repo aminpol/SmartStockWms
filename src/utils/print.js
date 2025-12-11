@@ -43,9 +43,12 @@ export const printCodes = (codes, settings) => {
       
       // Convertir canvas a imagen para QR
       const canvas = clon.querySelector("canvas");
+      console.log("Canvas encontrado:", canvas);
       if (canvas) {
         try {
+          console.log("Intentando convertir canvas a imagen...");
           const dataUrl = canvas.toDataURL("image/png");
+          console.log("DataUrl generado, longitud:", dataUrl.length);
           const img = document.createElement("img");
           img.src = dataUrl;
           img.style.height = canvas.style.height || "auto";
