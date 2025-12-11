@@ -1,12 +1,21 @@
 export const printCodes = (codes, settings) => {
+  console.log("=== INICIANDO IMPRESIÓN DE CÓDIGOS ===");
+  console.log("Códigos a imprimir:", codes.length);
+  console.log("Settings:", settings);
+
   const visibleCodes = Array.from(
     document.querySelectorAll("#previewArea .codigoBox")
   );
 
+  console.log("Códigos encontrados en DOM:", visibleCodes.length);
+
   if (visibleCodes.length === 0) {
+    console.error("No se encontraron códigos en #previewArea .codigoBox");
     alert("No hay códigos para imprimir");
     return;
   }
+
+  console.log("Procesando códigos para impresión...");
 
   const printContainer = document.createElement("div");
   const codigosPorPagina = 4;
@@ -20,7 +29,9 @@ export const printCodes = (codes, settings) => {
       pagina.classList.add("partial-page");
     }
 
-    grupo.forEach((codigoOriginal) => {
+    grupo.forEach((codigoOriginal, index) => {
+      console.log(`Procesando código ${i + index}:`, codigoOriginal);
+      
       const clon = codigoOriginal.cloneNode(true);
 
       // Quitar botón de eliminar en la versión de impresión
@@ -33,15 +44,27 @@ export const printCodes = (codes, settings) => {
 
       if (originalCanvas && clonedCanvas) {
         try {
+          console.log("Convirtiendo canvas a imagen...");
           const dataUrl = originalCanvas.toDataURL("image/png");
           const img = clon.ownerDocument.createElement("img");
           img.src = dataUrl;
           img.style.height = clonedCanvas.style.height || "auto";
           img.style.width = clonedCanvas.style.width || "auto";
           clonedCanvas.replaceWith(img);
+          console.log("Canvas convertido a imagen exitosamente");
         } catch (e) {
           console.error("No se pudo convertir el canvas a imagen para impresión", e);
         }
+      }
+
+      // Si hay una imagen (barcode), asegurarse de que esté cargada
+      const originalImg = codigoOriginal.querySelector("img");
+      const clonedImg = clon.querySelector("img");
+      
+      if (originalImg && clonedImg && !originalCanvas) {
+        console.log("Procesando imagen de barcode...");
+        // Para barcode, asegurarse de que la imagen se mantenga
+        clonedImg.src = originalImg.src;
       }
 
       pagina.appendChild(clon);
@@ -49,6 +72,8 @@ export const printCodes = (codes, settings) => {
 
     printContainer.appendChild(pagina);
   }
+
+  console.log("Creando iframe para impresión...");
 
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
@@ -80,13 +105,13 @@ export const printCodes = (codes, settings) => {
     width: 11cm;
     height: 19cm;
     display: grid;
-    grid-template-rows: repeat(4, 1fr); /* Dividir en 4 filas iguales */
+    grid-template-rows: repeat(4, 1fr);
     align-items: center;
     justify-items: center;
     page-break-after: always;
     overflow: hidden;
     box-sizing: border-box;
-    padding: 0.5cm; /* Pequeño margen interno */
+    padding: 0.5cm;
   }
 
   .print-page:last-child { 
@@ -95,7 +120,7 @@ export const printCodes = (codes, settings) => {
   
   .codigoBox { 
     width: 100% !important;
-    height: 100%; /* Ocupar toda la celda del grid */
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -109,7 +134,7 @@ export const printCodes = (codes, settings) => {
   .codigoBox svg, .codigoBox img { 
     display: block; 
     max-width: 90%; 
-    max-height: 3.5cm; /* Limitar altura para que quepan 4 */
+    max-height: 3.5cm;
     width: auto;
     height: auto;
     object-fit: contain;
@@ -120,8 +145,50 @@ export const printCodes = (codes, settings) => {
     text-align: center; 
     word-wrap: break-word; 
     margin-top: 2px; 
-    font-size: 10px !important; /* Texto más pequeño para ajustar */
+    font-size: 10px !important;
     line-height: 1.1;
+  }
+}
+
+@media screen {
+  body {
+    background: white;
+    margin: 20px;
+  }
+  .print-page {
+    width: 11cm;
+    height: 19cm;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-rows: repeat(4, 1fr);
+    align-items: center;
+    justify-items: center;
+    box-sizing: border-box;
+    padding: 0.5cm;
+  }
+  .codigoBox { 
+    width: 100% !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin: 2px;
+  }
+  .codigoBox svg, .codigoBox img { 
+    display: block; 
+    max-width: 90%; 
+    max-height: 3cm;
+    width: auto;
+    height: auto;
+  }
+  .etiqueta { 
+    text-align: center; 
+    font-size: 8px;
+    margin-top: 2px;
   }
 }
 </style>
@@ -130,11 +197,14 @@ export const printCodes = (codes, settings) => {
 </html>`);
   doc.close();
 
+  console.log("Iniciando impresión...");
+
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
     setTimeout(() => {
       document.body.removeChild(iframe);
-    }, 500);
-  }, 500);
+      console.log("Impresión completada");
+    }, 1000);
+  }, 1000);
 };
