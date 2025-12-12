@@ -35,17 +35,24 @@ const PalletsRecibidos = ({
   const fetchRecibos = async () => {
     setLoading(true);
     try {
+      console.log("Intentando obtener pallets de GROUND...");
+      
       // Siempre obtener pallets de la tabla pallets_ground
       const response = await fetch(
         `https://smartstockwms-a8p6.onrender.com/api/pallets-ground`
       );
       
+      console.log("Response status:", response.status);
+      
       if (response.ok) {
         const data = await response.json();
         console.log("Pallets GROUND obtenidos:", data.length);
+        console.log("Datos recibidos:", data);
         setRecibos(data);
       } else {
-        console.error("Error fetching pallets GROUND");
+        console.error("Error fetching pallets GROUND - Status:", response.status);
+        const errorText = await response.text();
+        console.error("Error text:", errorText);
       }
     } catch (error) {
       console.error("Error conectando con servidor:", error);
