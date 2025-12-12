@@ -97,10 +97,12 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
 
   const handleUbicacionChange = (e) => {
     const newUbicacion = e.target.value.toUpperCase();
+    console.log("Ubicación escaneada:", newUbicacion); // Debug
     setUbicacion(newUbicacion);
     
     // Auto-guardar cuando se escanee una ubicación válida
     if (newUbicacion.trim() && planta && codigo.trim()) {
+      console.log("Intentando auto-guardar con ubicación:", newUbicacion); // Debug
       setTimeout(() => {
         handleSaveRecibo();
       }, 100);
@@ -108,7 +110,10 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   };
 
   const handleSaveRecibo = async () => {
+    console.log("Datos a guardar:", { planta, codigo, ubicacion, descripcion, lote, nPallet }); // Debug
+    
     if (!planta || !codigo || !ubicacion) {
+      console.log("Validación fallida - Datos faltantes:", { planta, codigo, ubicacion }); // Debug
       setMessage({
         type: "error",
         text: "Faltan datos obligatorios (Planta, Código, Ubicación)",
