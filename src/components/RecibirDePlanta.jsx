@@ -194,9 +194,11 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
 
   const handlePalletsRecibidosClick = () => {
     if (window.innerWidth >= 1024) {
+      // En desktop, actualizar el trigger para mostrar pallets de GROUND
       setRefreshTrigger((prev) => prev + 1);
     } else {
-      navigate("/pallets-recibidos");
+      // En móvil, navegar a la página de pallets con filtro de GROUND
+      navigate("/pallets-recibidos?ubicacion=GROUND");
     }
   };
 
@@ -288,6 +290,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
           user={user}
           isEmbedded={true}
           refreshTrigger={refreshTrigger}
+          filtroUbicacion="GROUND" // Filtrar solo pallets de GROUND
         />
       </div>
     </div>

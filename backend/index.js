@@ -1379,6 +1379,34 @@ app.get("/api/recibos/turno/:turno", async (req, res) => {
   }
 });
 
+// Obtener recibos por ubicación específica
+app.get("/api/recibos/ubicacion/:ubicacion", async (req, res) => {
+  try {
+    const { ubicacion } = req.params;
+    
+    if (!ubicacion || ubicacion.trim() === "") {
+      return res.status(400).json({ error: "Ubicación es requerida" });
+    }
+    
+    const ubicacionTrim = ubicacion.trim().toUpperCase();
+    
+    // Obtener todos los recibos para esa ubicación
+    const [rows] = await db.query(
+      `SELECT * FROM recibos_planta 
+       WHERE UPPER(ubicacion) = $1 
+       ORDER BY fecha DESC`,
+      [ubicacionTrim]
+    );
+    
+    console.log(`Recibos encontrados para ubicación ${ubicacionTrim}:`, rows.length);
+    
+    res.json(rows);
+  } catch (error) {
+    console.error("Error obteniendo recibos por ubicación:", error);
+    res.status(500).json({ error: "Error obteniendo recibos por ubicación" });
+  }
+});
+
 // ==================== ENDPOINTS DE GESTIÓN DE UBICACIONES ====================
 
 // Validar si una ubicación existe

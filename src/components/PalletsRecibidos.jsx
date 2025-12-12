@@ -7,6 +7,7 @@ const PalletsRecibidos = ({
   onLogout,
   isEmbedded = false,
   refreshTrigger,
+  filtroUbicacion = null, // Nuevo prop para filtrar por ubicación específica
 }) => {
   const [recibos, setRecibos] = useState([]);
   const [filtro, setFiltro] = useState("");
@@ -16,7 +17,7 @@ const PalletsRecibidos = ({
 
   useEffect(() => {
     fetchRecibos();
-  }, [refreshTrigger]); // Reload when refreshTrigger changes
+  }, [refreshTrigger, filtroUbicacion]); // Reload cuando cambian refreshTrigger o filtroUbicacion
 
   const obtenerTurnoActual = () => {
     const ahora = new Date();
@@ -34,12 +35,26 @@ const PalletsRecibidos = ({
   const fetchRecibos = async () => {
     setLoading(true);
     try {
-      const turnoActual = obtenerTurnoActual();
-      const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/recibos/turno/${turnoActual}`
-      );
+      let response;
+      
+      // Si hay filtro de ubicación, usar el endpoint específico
+      if (filtroUbicacion) {
+        console.log(`Buscando recibos para ubicación: ${filtroUbicacion}`);
+        response = await fetch(
+          `https://smartstockwms-a8p6.onrender.com/api/recibos/ubicacion/${filtroUbicacion}`
+        );
+      } else {
+        // Usar el endpoint normal por turno
+        const turnoActual = obtenerTurnoActual();
+        console.log(`Buscando recibos para turno: ${turnoActual}`);
+        response = await fetch(
+          `https://smartstockwms-a8p6.onrender.com/api/recibos/turno/${turnoActual}`
+        );
+      }
+      
       if (response.ok) {
         const data = await response.json();
+        console.log("Recibos obtenidos:", data.length);
         setRecibos(data);
       } else {
         console.error("Error fetching recibos");
