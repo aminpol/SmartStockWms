@@ -335,7 +335,6 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
           user={user}
           isEmbedded={true}
           refreshTrigger={refreshTrigger}
-          filtroUbicacion="GROUND" // Filtrar solo pallets de GROUND
         />
       </div>
     </div>
