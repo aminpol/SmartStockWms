@@ -1355,16 +1355,17 @@ app.get("/api/recibos/turno/:turno", async (req, res) => {
     // Obtener fecha actual en formato YYYY-MM-DD
     const hoy = new Date().toISOString().split('T')[0];
     
+    // Usar la columna correcta 'fecha' en lugar de 'created_at'
     const [rows] = await db.query(
       `SELECT * FROM recibos_planta 
-       WHERE DATE(created_at) = $1 
-       ORDER BY created_at DESC`,
+       WHERE DATE(fecha) = $1 
+       ORDER BY fecha DESC`,
       [hoy]
     );
     
     // Filtrar por turno según la hora del registro
     const recibosTurno = rows.filter(recibo => {
-      const horaRecibo = new Date(recibo.created_at).getHours();
+      const horaRecibo = new Date(recibo.fecha).getHours();
       if (turno === "1") return horaRecibo >= 0 && horaRecibo < 8;
       if (turno === "2") return horaRecibo >= 8 && horaRecibo < 16;
       if (turno === "3") return horaRecibo >= 16 && horaRecibo < 24;

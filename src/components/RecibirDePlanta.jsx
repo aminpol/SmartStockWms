@@ -100,12 +100,16 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     console.log("Ubicación escaneada:", newUbicacion); // Debug
     setUbicacion(newUbicacion);
     
-    // Auto-guardar cuando se escanee una ubicación válida
+    // Auto-guardar cuando se escanee una ubicación válida y completa
+    // Esperar un poco más para asegurar que el escaneo esté completo
     if (newUbicacion.trim() && planta && codigo.trim()) {
-      console.log("Intentando auto-guardar con ubicación:", newUbicacion); // Debug
-      setTimeout(() => {
-        handleSaveRecibo();
-      }, 100);
+      // Solo auto-guardar si la ubicación parece completa (más de 2 caracteres)
+      if (newUbicacion.length >= 3) {
+        console.log("Intentando auto-guardar con ubicación:", newUbicacion); // Debug
+        setTimeout(() => {
+          handleSaveRecibo();
+        }, 300); // Aumentar el timeout
+      }
     }
   };
 
