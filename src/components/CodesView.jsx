@@ -26,6 +26,17 @@ const CodesView = ({
     setContent("");
   };
 
+  const handleBackClick = () => {
+    // Limpiar el contenido del textarea
+    setContent("");
+    
+    // Limpiar todos los códigos generados
+    onClear();
+    
+    // Navegar hacia atrás
+    onBack();
+  };
+
   return (
     <div id="pantallaCodigos">
       <div className="codes-layout">
@@ -58,7 +69,7 @@ const CodesView = ({
         <div className="codes-right">
           {/* Botones superiores */}
           <div className="top-bar">
-            <button className="btn-action" onClick={onBack} title={t("back")}>
+            <button className="btn-action" onClick={handleBackClick} title={t("back")}>
               <i className="fas fa-arrow-left"></i>
               <span className="btn-text">{t("back")}</span>
             </button>

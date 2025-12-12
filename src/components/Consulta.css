@@ -1,54 +1,25 @@
+/*-----------------------------------------------------
+  CONTENEDOR PRINCIPAL
+-----------------------------------------------------*/
 .consulta-container {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: space-between; /* top arriba, acciones abajo */
+  justify-content: space-between;
   gap: 0.5rem;
   width: 100%;
-  min-height: calc(100vh - 140px); /* Ocupar casi toda la altura disponible */
+  min-height: calc(100vh - 140px);
 }
 
-/* ... (rest of styles) ... */
-
-/* Ajustes específicos para pantallas muy pequeñas */
-@media (max-width: 480px) {
-  /* ... */
-
-  /* Resetear padding extra de Posición y Cantidad en móvil para que quepa todo */
-  .consulta-table th:nth-child(2),
-  .consulta-table td:nth-child(2) {
-    padding-left: 0.3rem;
-    padding-right: 0.3rem;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    min-width: 70px;
-  }
-
-  .consulta-table th:nth-child(3),
-  .consulta-table td:nth-child(3) {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-    font-size: 0.9rem; /* Un poco más pequeño que en desktop pero legible */
-  }
-
-  .consulta-table th:nth-child(4),
-  .consulta-table td:nth-child(4) {
-    font-size: 0.85rem;
-  }
-
-  .consulta-table td:nth-child(1) {
-    padding-right: 0.5rem; /* Reducir separación ID */
-  }
-
-  /* ... */
-}
-
+/*-----------------------------------------------------
+  TOP (TÍTULO, SUBTÍTULO, INPUT Y BOTONES)
+-----------------------------------------------------*/
 .consulta-top {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  margin-top: -0.25rem; /* lo acercamos todavía más al borde superior del panel */
+  margin-top: -0.25rem;
 }
 
 .consulta-title {
@@ -66,13 +37,13 @@
   display: flex;
   gap: 0.5rem;
   width: 100%;
-  justify-content: center; /* centrar input + botón */
+  justify-content: center;
 }
 
 .consulta-input {
   flex: 1 1 auto;
-  min-width: 0; /* permite que se encoja en pantallas pequeñas */
-  max-width: 300px; /* Limitar ancho máximo */
+  min-width: 0;
+  max-width: 300px;
   padding: 0.6rem 0.75rem;
   border-radius: 0.5rem;
   border: 1px solid #cbd5e1;
@@ -97,23 +68,29 @@
   color: #ffffff;
   cursor: pointer;
   font-size: 0.9rem;
-  max-width: 120px; /* Reducir ancho a menos de la mitad */
-  flex-shrink: 0; /* Evitar que se encoja demasiado */
+  max-width: 120px;
+  flex-shrink: 0;
 }
 
 .consulta-search-btn i {
   font-size: 0.9rem;
 }
 
+/*-----------------------------------------------------
+  BOTONES INFERIORES
+-----------------------------------------------------*/
 .consulta-actions {
-  margin-top: auto; /* Empuja los botones hacia abajo */
+  margin-top: auto;
   display: flex;
   gap: 0.75rem;
   width: 100%;
-  justify-content: center; /* centrar Volver y Cerrar sesión */
+  justify-content: center;
   padding-bottom: 0.5rem;
 }
 
+/*-----------------------------------------------------
+  MENSAJES
+-----------------------------------------------------*/
 .consulta-message {
   margin-top: 1rem;
   padding: 0.75rem 1rem;
@@ -143,13 +120,48 @@
   font-size: 0.85rem;
 }
 
+/*-----------------------------------------------------
+  RESULTADOS - SCROLL
+-----------------------------------------------------*/
 .consulta-results {
   margin-top: 1rem;
-  max-height: 200px; /* Altura fija también en desktop para scroll */
+  max-height: 300px;
   overflow-y: auto;
   width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.3rem;
 }
 
+/* Scroll PC */
+@media (min-width: 769px) {
+  .consulta-results {
+    overflow-x: hidden;
+  }
+}
+
+.consulta-results::-webkit-scrollbar {
+  width: 12px;
+}
+.consulta-results::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+.consulta-results::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+}
+.consulta-results::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+.consulta-results::-webkit-scrollbar-thumb:active {
+  background: #475569;
+}
+
+/*-----------------------------------------------------
+  TABLA
+-----------------------------------------------------*/
 .consulta-table {
   width: 100%;
   border-collapse: collapse;
@@ -164,44 +176,7 @@
 }
 
 .consulta-table td:nth-child(1) {
-  padding-right: 1.5rem; /* Separar más el ID de la Descripción */
-}
-
-/* Encabezados de Posición, Cantidad y Acción: Compacto para móvil */
-.consulta-table th:nth-child(2),
-.consulta-table th:nth-child(3),
-.consulta-table th:nth-child(4) {
-  text-align: center !important;
-  font-weight: 700 !important;
-  font-size: 0.85rem !important;
-  padding-left: 0.2rem !important; /* Muy reducido */
-  padding-right: 0.2rem !important; /* Muy reducido */
-}
-
-/* Encabezado de Posición con ancho mínimo */
-.consulta-table th:nth-child(2) {
-  min-width: 70px;
-  white-space: nowrap;
-}
-
-/* Datos de Cantidad (ahora es la tercera columna) */
-.consulta-table td:nth-child(3) {
-  text-align: center !important;
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding-left: 0.2rem;
-  padding-right: 0.2rem;
-}
-
-/* Datos de Posición (ahora es la segunda columna) */
-.consulta-table td:nth-child(2) {
-  text-align: center !important;
-  font-weight: 400;
-  font-size: 0.85rem;
-  padding-left: 0.2rem;
-  padding-right: 0.2rem;
-  white-space: nowrap;
-  min-width: 70px;
+  padding-right: 1.5rem;
 }
 
 .consulta-table th {
@@ -209,51 +184,63 @@
   font-weight: 600;
 }
 
+/* Encabezados compactos */
+.consulta-table th:nth-child(2),
+.consulta-table th:nth-child(3),
+.consulta-table th:nth-child(4) {
+  text-align: center !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  padding: 0.2rem !important;
+}
+
+/* Posición */
+.consulta-table td:nth-child(2) {
+  text-align: center;
+  font-size: 0.85rem;
+  min-width: 70px;
+  white-space: nowrap;
+}
+
+/* Cantidad */
+.consulta-table td:nth-child(3) {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Botón Acción */
 .consulta-picking-btn {
-  padding: 0.3rem 0.6rem;
-  border-radius: 0.4rem;
-  border: none;
-  background: #dc2626;
-  color: #ffffff;
-  cursor: pointer;
-  cursor: pointer;
-  font-size: 0.8rem;
   width: 24px;
   height: 24px;
+  font-size: 0.8rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  border-radius: 4px;
+  cursor: pointer;
 }
 
-/* Botón de limpiar (pequeño) */
-.btn-clear-bottom {
-  background-color: #9ca3af;
-  color: white;
-}
-
-.btn-clear-bottom:hover {
-  background-color: #6b7280;
-}
-
-/* Ajustes específicos para pantallas muy pequeñas */
+/*-----------------------------------------------------
+  MÓVIL (≤480px)
+-----------------------------------------------------*/
 @media (max-width: 480px) {
   .consulta-container {
-    justify-content: flex-start; /* Alinear al inicio para subir todo */
+    justify-content: flex-start;
     padding-top: 0;
-    gap: 0.5rem;
   }
 
   .consulta-top {
-    margin-top: 0; /* Quitar margen negativo o ajustarlo */
+    margin-top: 0;
     gap: 0.25rem;
   }
 
   .consulta-title {
-    margin-top: 0;
-    margin-bottom: 0.25rem;
     font-size: 1rem;
+    margin-bottom: 0.25rem;
   }
 
   .consulta-form-row {
@@ -263,91 +250,67 @@
   .consulta-input {
     padding: 0.5rem;
     font-size: 0.85rem;
-    flex: 2; /* Hacer el input más grande */
+    flex: 2;
   }
 
   .consulta-search-btn {
     padding: 0.5rem 0.6rem;
     font-size: 0.8rem;
-    flex: 0.8; /* Hacer el botón más pequeño */
-    min-width: 60px; /* Ancho mínimo */
+    min-width: 60px;
+    flex: 0.8;
   }
 
-  .consulta-clear-btn {
-    padding: 0.5rem;
-  }
-
-  /* Scroll para resultados (aprox 4 líneas) */
+  /* Scroll móvil */
   .consulta-results {
-    max-height: 160px; /* Ajustar altura para ~4 filas */
-    overflow-y: auto;
-    margin-top: 0.5rem;
-    border: 1px solid #e5e7eb; /* Borde para que se note el área */
-    border-radius: 0.3rem;
+    max-height: 60vh;
+    overflow-y: auto !important;
+    overflow-x: auto;
+    margin-top: 0;
+  }
+
+  /* Columna Lote (5) */
+  .consulta-table th:nth-child(5),
+  .consulta-table td:nth-child(5) {
+    min-width: 80px !important;
+    max-width: 120px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .consulta-table {
-    font-size: 0.65rem; /* Letra mucho más pequeña para móvil */
+    font-size: 0.65rem;
   }
 
   .consulta-table th,
   .consulta-table td {
-    padding: 0.3rem 0.2rem; /* Menos padding para ahorrar espacio */
+    padding: 0.3rem 0.2rem;
   }
 
-  /* Sobrescribir estilos de escritorio para móvil */
-  .consulta-table th:nth-child(2),
-  .consulta-table th:nth-child(3),
-  .consulta-table th:nth-child(4) {
-    padding-left: 0.1rem !important;
-    padding-right: 0.1rem !important;
-    font-size: 0.65rem !important; /* Tamaño uniforme para todos los títulos en móvil */
-    font-weight: 700 !important;
-    text-align: center !important;
-  }
-
-  /* Encabezado de Posición en móvil */
-  .consulta-table th:nth-child(2) {
-    min-width: 60px !important;
-    white-space: nowrap !important;
-  }
-
-  /* Datos de Posición en móvil (segunda columna) */
+  /* Posición */
   .consulta-table td:nth-child(2) {
-    padding-left: 0.1rem !important;
-    padding-right: 0.1rem !important;
     font-size: 0.7rem !important;
-    font-weight: 400 !important;
-    text-align: center !important;
-    white-space: nowrap !important;
     min-width: 60px !important;
   }
 
-  /* Datos de Cantidad en móvil (tercera columna) */
+  /* Cantidad */
   .consulta-table td:nth-child(3) {
-    padding-left: 0.1rem !important;
-    padding-right: 0.1rem !important;
-    font-size: 0.75rem !important; /* Reducido para móvil */
-    font-weight: 700 !important;
-    text-align: center !important;
+    font-size: 0.75rem !important;
   }
 
-  /* Datos de Acción en móvil (cuarta columna) */
+  /* Acción */
   .consulta-table td:nth-child(4) {
-    padding-left: 0.1rem !important;
-    padding-right: 0.1rem !important;
     text-align: center !important;
   }
 
   .consulta-table td:nth-child(1) {
-    padding-right: 0.5rem;
-    padding-left: 0.5rem; /* Evitar que se pegue al borde izquierdo */
+    padding-left: 0.5rem;
   }
 
   .consulta-picking-btn {
     font-size: 0.7rem;
     width: 20px;
     height: 20px;
-    padding: 0;
   }
 }
+
