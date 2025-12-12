@@ -44,6 +44,7 @@ export const printCodes = (codes, settings) => {
       // Convertir canvas a imagen para QR
       const originalCanvas = codigoOriginal.querySelector("canvas");
       const clonedCanvas = clon.querySelector("canvas");
+      
       console.log("Canvas original:", originalCanvas);
       console.log("Canvas clonado:", clonedCanvas);
       
@@ -91,7 +92,7 @@ export const printCodes = (codes, settings) => {
 <style>
 @media print {
   @page {
-    size: 3.8in 7.06in; /* Tamaño exacto de etiqueta Zebra */
+    size: 3.8in 7.06in;
     margin: 0;
   }
   body { 
@@ -102,13 +103,13 @@ export const printCodes = (codes, settings) => {
     width: 3.8in;
     height: 7.06in;
     display: grid;
-    grid-template-rows: repeat(4, 1fr); /* 4 códigos por etiqueta */
+    grid-template-rows: repeat(4, 1fr);
     align-items: center;
     justify-items: center;
     page-break-after: always;
     overflow: hidden;
     box-sizing: border-box;
-    padding: 0.1in; /* Margen interno pequeño */
+    padding: 0.1in;
   }
 
   .print-page:last-child { 
@@ -131,7 +132,7 @@ export const printCodes = (codes, settings) => {
   .codigoBox svg, .codigoBox img { 
     display: block !important; 
     max-width: 85% !important; 
-    max-height: 1.2in !important; /* Ajustado para 4 códigos */
+    max-height: 1.2in !important;
     width: auto !important;
     height: auto !important;
     object-fit: contain !important;
@@ -143,7 +144,7 @@ export const printCodes = (codes, settings) => {
     text-align: center; 
     word-wrap: break-word; 
     margin-top: 1px; 
-    font-size: 8px !important; /* Texto más pequeño */
+    font-size: 8px !important;
     line-height: 1.0;
   }
 }
@@ -155,11 +156,9 @@ export const printCodes = (codes, settings) => {
 
   console.log("Iniciando impresión...");
 
-  // Imprimir después de un breve retardo
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
-    // Limpiar iframe
     setTimeout(() => {
       document.body.removeChild(iframe);
       console.log("Impresión completada");
