@@ -1236,20 +1236,21 @@ const initDB = async () => {
     `);
     console.log('Tabla "historial_movimientos" verificada/creada');
 
+    // Crear tabla para pallets recibidos en GROUND
     await db.query(`
-      CREATE TABLE IF NOT EXISTS recibos_planta (
+      CREATE TABLE IF NOT EXISTS pallets_ground (
         id SERIAL PRIMARY KEY,
-        planta VARCHAR(100),
+        codigo_interno VARCHAR(50),
         codigo VARCHAR(50),
-        descripcion VARCHAR(255),
+        numero_pallet VARCHAR(20),
         lote VARCHAR(50),
-        n_pallet VARCHAR(20),
-        ubicacion VARCHAR(100),
+        peso VARCHAR(20),
+        ubicacion VARCHAR(100) DEFAULT 'GROUND',
         usuario VARCHAR(100),
         fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Tabla "recibos_planta" verificada/creada');
+    console.log('Tabla "pallets_ground" verificada/creada');
 
     // Verificar e insertar ubicación GROUND
     try {
@@ -1303,111 +1304,58 @@ const initDB = async () => {
 
 initDB();
 
-// ==================== ENDPOINTS RECIBOS PLANTA ====================
+// ==================== ENDPOINTS GESTIÓN DE UBICACIONES ====================
 
-// Guardar un nuevo recibo
-app.post("/api/recibos", async (req, res) => {
+// Guardar pallet en tabla pallets_ground cuando se escanea en GROUND
+app.post("/api/pallets-ground", async (req, res) => {
   try {
-    const { planta, codigo, descripcion, lote, n_pallet, ubicacion, usuario } =
-      req.body;
+    const { codigo_interno, codigo, numero_pallet, lote, peso, usuario } = req.body;
 
-    if (!codigo || !ubicacion) {
+    if (!codigo_interno || !codigo || !numero_pallet || !lote) {
       return res
         .status(400)
-        .json({ error: "Código y ubicación son obligatorios" });
+        .json({ error: "Código interno, código, número de pallet y lote son obligatorios" });
     }
 
     await db.query(
-      `INSERT INTO recibos_planta (planta, codigo, descripcion, lote, n_pallet, ubicacion, usuario)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [planta, codigo, descripcion, lote, n_pallet, ubicacion, usuario]
+      `INSERT INTO pallets_ground (codigo_interno, codigo, numero_pallet, lote, peso, usuario)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [codigo_interno, codigo, numero_pallet, lote, peso || null, usuario]
     );
 
-    res.json({ message: "Recibo guardado correctamente" });
+    console.log("Pallet guardado en GROUND:", { codigo_interno, codigo, numero_pallet, lote, peso });
+
+    res.json({ message: "Pallet guardado correctamente en GROUND" });
   } catch (error) {
-    console.error("Error guardando recibo:", error);
-    res.status(500).json({ error: "Error al guardar el recibo" });
+    console.error("Error guardando pallet en GROUND:", error);
+    res.status(500).json({ error: "Error al guardar el pallet en GROUND" });
   }
 });
 
-// Obtener historial de recibos
-app.get("/api/recibos", async (req, res) => {
+// Obtener todos los pallets de GROUND con descripción de materiales
+app.get("/api/pallets-ground", async (req, res) => {
   try {
-    const [rows] = await db.query(
-      "SELECT * FROM recibos_planta ORDER BY fecha DESC LIMIT 100"
-    );
+    const [rows] = await db.query(`
+      SELECT 
+        pg.codigo,
+        COALESCE(m.description, 'Sin descripción') as descripcion,
+        pg.lote,
+        pg.numero_pallet as "n_pallet",
+        pg.codigo_interno,
+        pg.peso,
+        pg.usuario,
+        pg.fecha
+      FROM pallets_ground pg
+      LEFT JOIN materiales m ON pg.codigo = m.codigo
+      ORDER BY pg.fecha DESC
+    `);
+    console.log("Pallets GROUND con descripción obtenidos:", rows.length);
     res.json(rows);
   } catch (error) {
-    console.error("Error obteniendo recibos:", error);
-    res.status(500).json({ error: "Error obteniendo historial de recibos" });
+    console.error("Error obteniendo pallets GROUND:", error);
+    res.status(500).json({ error: "Error obteniendo pallets GROUND" });
   }
 });
-
-// Obtener recibos por turno
-app.get("/api/recibos/turno/:turno", async (req, res) => {
-  try {
-    const { turno } = req.params;
-    
-    if (!turno || !["1", "2", "3"].includes(turno)) {
-      return res.status(400).json({ error: "Turno inválido. Debe ser 1, 2 o 3" });
-    }
-    
-    // Obtener fecha actual en formato YYYY-MM-DD
-    const hoy = new Date().toISOString().split('T')[0];
-    
-    // Usar la columna correcta 'fecha' en lugar de 'created_at'
-    const [rows] = await db.query(
-      `SELECT * FROM recibos_planta 
-       WHERE DATE(fecha) = $1 
-       ORDER BY fecha DESC`,
-      [hoy]
-    );
-    
-    // Filtrar por turno según la hora del registro
-    const recibosTurno = rows.filter(recibo => {
-      const horaRecibo = new Date(recibo.fecha).getHours();
-      if (turno === "1") return horaRecibo >= 0 && horaRecibo < 8;
-      if (turno === "2") return horaRecibo >= 8 && horaRecibo < 16;
-      if (turno === "3") return horaRecibo >= 16 && horaRecibo < 24;
-      return false;
-    });
-    
-    res.json(recibosTurno);
-  } catch (error) {
-    console.error("Error obteniendo recibos por turno:", error);
-    res.status(500).json({ error: "Error obteniendo recibos por turno" });
-  }
-});
-
-// Obtener recibos por ubicación específica
-app.get("/api/recibos/ubicacion/:ubicacion", async (req, res) => {
-  try {
-    const { ubicacion } = req.params;
-    
-    if (!ubicacion || ubicacion.trim() === "") {
-      return res.status(400).json({ error: "Ubicación es requerida" });
-    }
-    
-    const ubicacionTrim = ubicacion.trim().toUpperCase();
-    
-    // Obtener todos los recibos para esa ubicación
-    const [rows] = await db.query(
-      `SELECT * FROM recibos_planta 
-       WHERE UPPER(ubicacion) = $1 
-       ORDER BY fecha DESC`,
-      [ubicacionTrim]
-    );
-    
-    console.log(`Recibos encontrados para ubicación ${ubicacionTrim}:`, rows.length);
-    
-    res.json(rows);
-  } catch (error) {
-    console.error("Error obteniendo recibos por ubicación:", error);
-    res.status(500).json({ error: "Error obteniendo recibos por ubicación" });
-  }
-});
-
-// ==================== ENDPOINTS DE GESTIÓN DE UBICACIONES ====================
 
 // Validar si una ubicación existe
 app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {

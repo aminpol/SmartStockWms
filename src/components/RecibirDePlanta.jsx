@@ -17,6 +17,10 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   const [descripcion, setDescripcion] = useState("");
   const [lote, setLote] = useState("");
   const [nPallet, setNPallet] = useState("");
+  
+  // Nuevos estados para el formato completo del QR
+  const [codigoInterno, setCodigoInterno] = useState("");
+  const [peso, setPeso] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState(null); // Feedback message
@@ -69,18 +73,37 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   };
 
   const parseQR = (value) => {
-    // Formato esperado: P|CODIGO|LOTE|NUM_PALLET
-    if (value.startsWith("P|")) {
-      const parts = value.split("|");
-      if (parts.length >= 4) {
-        setCodigo(parts[1]);
-        setLote(parts[2]);
-        setNPallet(parts[3]);
-        // La descripción se obtendrá de la tabla materiales usando el código
-        obtenerDescripcion(parts[1]);
-        return true;
-      }
+    // Formato esperado: REFERENCIA|CODIGO|N_PALLET|LOTE|PESO
+    // Ejemplo: 25120001|6180001|34|NOV25DF014|1152
+    const parts = value.split("|");
+    
+    if (parts.length >= 4) {
+      // parts[0]: Código interno
+      // parts[1]: Código principal
+      // parts[2]: Número de pallet
+      // parts[3]: Lote
+      // parts[4]: Peso (opcional)
+      
+      setCodigoInterno(parts[0]); // Código interno
+      setCodigo(parts[1]); // Código principal
+      setNPallet(parts[2]); // Número de pallet
+      setLote(parts[3]); // Lote
+      setPeso(parts[4] || ""); // Peso (opcional)
+      
+      // Obtener descripción usando el código principal
+      obtenerDescripcion(parts[1]);
+      
+      console.log("QR parseado:", {
+        codigoInterno: parts[0],
+        codigo: parts[1],
+        nPallet: parts[2],
+        lote: parts[3],
+        peso: parts[4] || ""
+      });
+      
+      return true;
     }
+    
     return false;
   };
 
@@ -130,7 +153,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     // Forzar lectura actual del estado
     const currentUbicacion = ubicacionRef.current?.value || ubicacion;
     
-    console.log("Datos a guardar:", { planta, codigo, ubicacion: currentUbicacion, descripcion, lote, nPallet }); // Debug
+    console.log("Datos a guardar:", { planta, codigo, ubicacion: currentUbicacion, codigoInterno, nPallet, lote, peso }); // Debug
     
     if (!planta || !codigo || !currentUbicacion) {
       console.log("Validación fallida - Datos faltantes:", { planta, codigo, ubicacion: currentUbicacion }); // Debug
@@ -141,41 +164,63 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
       return;
     }
 
+    // Solo guardar si la ubicación es GROUND y tenemos datos completos del QR
+    if (currentUbicacion !== "GROUND") {
+      setMessage({
+        type: "error",
+        text: "Solo se permite guardar en la ubicación GROUND",
+      });
+      return;
+    }
+
+    if (!codigoInterno || !codigo || !nPallet || !lote) {
+      setMessage({
+        type: "error",
+        text: "Se requiere escanear un QR completo para guardar en GROUND",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/recibos",
+      console.log("Guardando pallet en GROUND con datos completos:", { codigoInterno, codigo, nPallet, lote, peso });
+      
+      const groundResponse = await fetch(
+        "https://smartstockwms-a8p6.onrender.com/api/pallets-ground",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            planta,
-            codigo,
-            descripcion: descripcion || "Sin descripción",
-            lote: lote || "S/L",
-            n_pallet: nPallet || "00",
-            ubicacion: currentUbicacion,
+            codigo_interno: codigoInterno,
+            codigo: codigo,
+            numero_pallet: nPallet,
+            lote: lote,
+            peso: peso,
             usuario: user?.usuario || "Desconocido",
           }),
         }
       );
 
-      if (response.ok) {
+      if (groundResponse.ok) {
         setMessage({
           type: "success",
-          text: "Recibo guardado correctamente",
+          text: "Pallet guardado correctamente en GROUND",
         });
+        
         // Limpiar campos excepto planta
         setCodigo("");
         setUbicacion("");
         setDescripcion("");
         setLote("");
         setNPallet("");
+        setCodigoInterno("");
+        setPeso("");
         setRefreshTrigger((prev) => prev + 1); // Actualizar lista
         setTimeout(() => codigoRef.current?.focus(), 100);
       } else {
-        setMessage({ type: "error", text: "Error al guardar el recibo" });
+        setMessage({ type: "error", text: "Error al guardar pallet en GROUND" });
       }
+      
     } catch (error) {
       console.error("Error saving recibo:", error);
       setMessage({ type: "error", text: "Error de conexión" });

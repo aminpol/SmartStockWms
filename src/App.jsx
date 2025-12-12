@@ -389,7 +389,6 @@ const AppContent = () => {
                     onBack={() => navigate("/recibir-planta")}
                     onLogout={handleLogout}
                     user={user}
-                    filtroUbicacion={new URLSearchParams(window.location.search).get("ubicacion")}
                   />
                 </main>
               </div>

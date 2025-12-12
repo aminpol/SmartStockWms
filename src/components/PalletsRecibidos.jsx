@@ -35,29 +35,17 @@ const PalletsRecibidos = ({
   const fetchRecibos = async () => {
     setLoading(true);
     try {
-      let response;
-      
-      // Si hay filtro de ubicación, usar el endpoint específico
-      if (filtroUbicacion) {
-        console.log(`Buscando recibos para ubicación: ${filtroUbicacion}`);
-        response = await fetch(
-          `https://smartstockwms-a8p6.onrender.com/api/recibos/ubicacion/${filtroUbicacion}`
-        );
-      } else {
-        // Usar el endpoint normal por turno
-        const turnoActual = obtenerTurnoActual();
-        console.log(`Buscando recibos para turno: ${turnoActual}`);
-        response = await fetch(
-          `https://smartstockwms-a8p6.onrender.com/api/recibos/turno/${turnoActual}`
-        );
-      }
+      // Siempre obtener pallets de la tabla pallets_ground
+      const response = await fetch(
+        `https://smartstockwms-a8p6.onrender.com/api/pallets-ground`
+      );
       
       if (response.ok) {
         const data = await response.json();
-        console.log("Recibos obtenidos:", data.length);
+        console.log("Pallets GROUND obtenidos:", data.length);
         setRecibos(data);
       } else {
-        console.error("Error fetching recibos");
+        console.error("Error fetching pallets GROUND");
       }
     } catch (error) {
       console.error("Error conectando con servidor:", error);
