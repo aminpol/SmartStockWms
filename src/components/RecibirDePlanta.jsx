@@ -24,6 +24,9 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   // Focus refs
   const codigoRef = useRef(null);
   const ubicacionRef = useRef(null);
+  
+  // Timeout para debounce de ubicación
+  const ubicacionTimeoutRef = useRef(null);
 
   // Trigger para recargar la lista de pallets recibidos
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -100,24 +103,37 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     console.log("Ubicación escaneada:", newUbicacion); // Debug
     setUbicacion(newUbicacion);
     
-    // Auto-guardar cuando se escanee una ubicación válida y completa
-    // Esperar un poco más para asegurar que el escaneo esté completo
+    // Limpiar timeout anterior
+    if (ubicacionTimeoutRef.current) {
+      clearTimeout(ubicacionTimeoutRef.current);
+    }
+    
+    // Solo auto-guardar si la ubicación parece completa y hay datos válidos
     if (newUbicacion.trim() && planta && codigo.trim()) {
-      // Solo auto-guardar si la ubicación parece completa (más de 2 caracteres)
-      if (newUbicacion.length >= 3) {
-        console.log("Intentando auto-guardar con ubicación:", newUbicacion); // Debug
-        setTimeout(() => {
+      // Para ubicaciones cortas como "GR", esperar más tiempo
+      // Para ubicaciones más largas, esperar menos tiempo
+      const waitTime = newUbicacion.length >= 4 ? 800 : 1500;
+      
+      console.log("Configurando auto-guardado en", waitTime, "ms para:", newUbicacion); // Debug
+      
+      ubicacionTimeoutRef.current = setTimeout(() => {
+        // Verificar que todavía tenemos los datos necesarios
+        if (newUbicacion.trim() && planta && codigo.trim()) {
+          console.log("Auto-guardando con ubicación final:", newUbicacion); // Debug
           handleSaveRecibo();
-        }, 300); // Aumentar el timeout
-      }
+        }
+      }, waitTime);
     }
   };
 
   const handleSaveRecibo = async () => {
-    console.log("Datos a guardar:", { planta, codigo, ubicacion, descripcion, lote, nPallet }); // Debug
+    // Forzar lectura actual del estado
+    const currentUbicacion = ubicacionRef.current?.value || ubicacion;
     
-    if (!planta || !codigo || !ubicacion) {
-      console.log("Validación fallida - Datos faltantes:", { planta, codigo, ubicacion }); // Debug
+    console.log("Datos a guardar:", { planta, codigo, ubicacion: currentUbicacion, descripcion, lote, nPallet }); // Debug
+    
+    if (!planta || !codigo || !currentUbicacion) {
+      console.log("Validación fallida - Datos faltantes:", { planta, codigo, ubicacion: currentUbicacion }); // Debug
       setMessage({
         type: "error",
         text: "Faltan datos obligatorios (Planta, Código, Ubicación)",
@@ -138,7 +154,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
             descripcion: descripcion || "Sin descripción",
             lote: lote || "S/L",
             n_pallet: nPallet || "00",
-            ubicacion,
+            ubicacion: currentUbicacion,
             usuario: user?.usuario || "Desconocido",
           }),
         }
