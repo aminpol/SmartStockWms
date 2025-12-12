@@ -2,6 +2,7 @@ export const printCodes = (codes, settings) => {
   console.log("=== INICIANDO IMPRESIÓN DE CÓDIGOS ===");
   console.log("Códigos a imprimir:", codes.length);
   console.log("Settings:", settings);
+  console.log("Dispositivo móvil:", /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
   const visibleCodes = Array.from(
     document.querySelectorAll("#previewArea .codigoBox")
@@ -85,23 +86,31 @@ export const printCodes = (codes, settings) => {
 
   const doc = iframe.contentDocument || iframe.contentWindow.document;
   doc.open();
+  
+  // Detectar si es móvil para ajustar el CSS
+  const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
   doc.write(`<!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Impresión de códigos</title>
 <style>
 @media print {
   @page {
-    size: 3.8in 7.06in;
-    margin: 0;
+    size: ${isMobile ? 'A4' : '3.8in 7.06in'};
+    margin: ${isMobile ? '1cm' : '0'};
   }
   body { 
     margin: 0; 
     padding: 0; 
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .print-page {
-    width: 3.8in;
-    height: 7.06in;
+    width: ${isMobile ? '100%' : '3.8in'};
+    height: ${isMobile ? 'auto' : '7.06in'};
     display: grid;
     grid-template-rows: repeat(4, 1fr);
     align-items: center;
@@ -109,7 +118,7 @@ export const printCodes = (codes, settings) => {
     page-break-after: always;
     overflow: hidden;
     box-sizing: border-box;
-    padding: 0.1in;
+    padding: ${isMobile ? '10px' : '0.1in'};
   }
 
   .print-page:last-child { 
@@ -131,8 +140,8 @@ export const printCodes = (codes, settings) => {
   
   .codigoBox svg, .codigoBox img { 
     display: block !important; 
-    max-width: 85% !important; 
-    max-height: 1.2in !important;
+    max-width: ${isMobile ? '90%' : '85%'} !important; 
+    max-height: ${isMobile ? '25mm' : '1.2in'} !important;
     width: auto !important;
     height: auto !important;
     object-fit: contain !important;
@@ -144,8 +153,22 @@ export const printCodes = (codes, settings) => {
     text-align: center; 
     word-wrap: break-word; 
     margin-top: 1px; 
-    font-size: 8px !important;
+    font-size: ${isMobile ? '10px' : '8px'} !important;
     line-height: 1.0;
+  }
+}
+
+/* Estilos para vista previa en pantalla */
+@media screen {
+  body {
+    font-family: Arial, sans-serif;
+    background: white;
+    padding: 20px;
+  }
+  .print-page {
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+    background: white;
   }
 }
 </style>
@@ -156,12 +179,41 @@ export const printCodes = (codes, settings) => {
 
   console.log("Iniciando impresión...");
 
+  // Timeout más largo para móviles
+  const timeout = isMobile ? 1000 : 500;
+  
   setTimeout(() => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    setTimeout(() => {
+    try {
+      iframe.contentWindow.focus();
+      
+      // Para móviles, intentar diferentes métodos de impresión
+      if (isMobile) {
+        // Intentar imprimir directamente
+        iframe.contentWindow.print();
+        
+        // Fallback: mostrar diálogo de impresión del navegador
+        setTimeout(() => {
+          if (window.print) {
+            window.print();
+          }
+        }, 200);
+      } else {
+        iframe.contentWindow.print();
+      }
+      
+      // Limpiar iframe después de un tiempo
+      setTimeout(() => {
+        try {
+          document.body.removeChild(iframe);
+          console.log("Impresión completada");
+        } catch (e) {
+          console.log("Error limpiando iframe:", e);
+        }
+      }, 2000);
+    } catch (e) {
+      console.error("Error al imprimir:", e);
+      alert("Error al abrir el diálogo de impresión. Intente nuevamente.");
       document.body.removeChild(iframe);
-      console.log("Impresión completada");
-    }, 500);
-  }, 500);
+    }
+  }, timeout);
 };
