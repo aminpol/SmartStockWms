@@ -1343,6 +1343,41 @@ app.get("/api/recibos", async (req, res) => {
   }
 });
 
+// Obtener recibos por turno
+app.get("/api/recibos/turno/:turno", async (req, res) => {
+  try {
+    const { turno } = req.params;
+    
+    if (!turno || !["1", "2", "3"].includes(turno)) {
+      return res.status(400).json({ error: "Turno inválido. Debe ser 1, 2 o 3" });
+    }
+    
+    // Obtener fecha actual en formato YYYY-MM-DD
+    const hoy = new Date().toISOString().split('T')[0];
+    
+    const [rows] = await db.query(
+      `SELECT * FROM recibos_planta 
+       WHERE DATE(created_at) = $1 
+       ORDER BY created_at DESC`,
+      [hoy]
+    );
+    
+    // Filtrar por turno según la hora del registro
+    const recibosTurno = rows.filter(recibo => {
+      const horaRecibo = new Date(recibo.created_at).getHours();
+      if (turno === "1") return horaRecibo >= 0 && horaRecibo < 8;
+      if (turno === "2") return horaRecibo >= 8 && horaRecibo < 16;
+      if (turno === "3") return horaRecibo >= 16 && horaRecibo < 24;
+      return false;
+    });
+    
+    res.json(recibosTurno);
+  } catch (error) {
+    console.error("Error obteniendo recibos por turno:", error);
+    res.status(500).json({ error: "Error obteniendo recibos por turno" });
+  }
+});
+
 // ==================== ENDPOINTS DE GESTIÓN DE UBICACIONES ====================
 
 // Validar si una ubicación existe
