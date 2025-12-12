@@ -7,47 +7,71 @@ const CodeItem = ({ type, content, textSize, width, height, onDelete }) => {
   const imgRef = useRef(null);
 
   useEffect(() => {
-    if (type === "qr") {
-      if (canvasRef.current) {
-        new QRious({
-          element: canvasRef.current,
-          value: content,
-          size: 200,
-          level: "H",
+    if (!content || !type) return;
+
+    // QR CODE
+    if (type === "qr" && canvasRef.current) {
+      new QRious({
+        element: canvasRef.current,
+        value: content,
+        size: height > 0 ? height : 200, // ⬅ Usa el tamaño dinámico
+        level: "H",
+      });
+    }
+
+    // BARCODE
+    if (type === "barcode" && imgRef.current) {
+      try {
+        JsBarcode(imgRef.current, content, {
+          format: "CODE128",
+          height: height > 0 ? height : 80,
+          width: 2,
+          displayValue: false,
+          margin: 0,
         });
-      }
-    } else if (type === "barcode") {
-      if (imgRef.current) {
-        try {
-          JsBarcode(imgRef.current, content, {
-            format: "CODE128",
-            displayValue: false,
-            margin: 0,
-          });
-        } catch (e) {
-          console.error("Error de código de barras", e);
-        }
+      } catch (e) {
+        console.error("Error en código de barras:", e);
       }
     }
-    // Para type === "text", no se genera ningún código
-  }, [type, content]);
+  }, [type, content, height]);
 
   return (
-    <div className="codigoBox" style={{ width: `${width}px` }}>
+    <div
+      className="codigoBox"
+      style={{
+        width: `${width}px`, // ⬅ Se respeta el ancho dinámico
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        position: "relative",
+      }}
+    >
       <button className="btn-delete" onClick={onDelete} title="Eliminar código">
         ×
       </button>
 
+      {/* Render dinámico */}
       {type === "qr" ? (
         <canvas
           ref={canvasRef}
-          style={{ height: `${height}px`, width: "auto" }}
+          style={{
+            width: `${height}px`,
+            height: `${height}px`,
+          }}
         />
       ) : type === "barcode" ? (
-        <img ref={imgRef} style={{ height: `${height}px`, width: "auto" }} />
+        <img
+          ref={imgRef}
+          style={{
+            width: "100%",
+            height: `${height}px`,
+            objectFit: "contain",
+          }}
+        />
       ) : null}
 
-      <p className="etiqueta" style={{ fontSize: `${textSize}px` }}>
+      {/* Etiqueta de texto */}
+      <p style={{ fontSize: `${textSize}px`, marginTop: "5px" }}>
         {content}
       </p>
     </div>
