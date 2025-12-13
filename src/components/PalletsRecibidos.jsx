@@ -11,6 +11,8 @@ const PalletsRecibidos = ({
 }) => {
   const [recibos, setRecibos] = useState([]);
   const [filtro, setFiltro] = useState("");
+  const [filtroFecha, setFiltroFecha] = useState("");
+  const [filtroPlanta, setFiltroPlanta] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [alertMessage, setAlertMessage] = useState(null);
@@ -63,10 +65,10 @@ const PalletsRecibidos = ({
 
   const handleSearch = () => {
     // Activar el filtrado cuando se presiona el botón de búsqueda
-    if (!filtro.trim()) {
+    if (!filtro.trim() && !filtroFecha.trim() && !filtroPlanta.trim()) {
       setAlertMessage({
         type: "error",
-        text: "Por favor ingrese un código para buscar",
+        text: "Por favor ingrese un código, fecha o seleccione una planta para buscar",
       });
       return;
     }
@@ -75,26 +77,33 @@ const PalletsRecibidos = ({
     
     // Verificar si hay resultados después de filtrar
     const resultados = recibos.filter((r) => {
-      return r.codigo?.toLowerCase().includes(filtro.toLowerCase());
+      const coincideCodigo = !filtro.trim() || r.codigo?.toLowerCase().includes(filtro.toLowerCase());
+      const coincideFecha = !filtroFecha.trim() || r.fecha?.includes(filtroFecha);
+      const coincidePlanta = !filtroPlanta.trim() || r.planta?.toLowerCase().includes(filtroPlanta.toLowerCase());
+      return coincideCodigo && coincideFecha && coincidePlanta;
     });
     
     if (resultados.length === 0) {
       setAlertMessage({
         type: "error",
-        text: "Producto no recibido en turno actual",
+        text: "No se encontraron registros con los filtros aplicados",
       });
     }
   };
 
   const handleClearFilter = () => {
     setFiltro("");
+    setFiltroFecha("");
+    setFiltroPlanta("");
     setSearchActive(false);
   };
 
   const filteredRecibos = searchActive 
     ? recibos.filter((r) => {
-        if (!filtro) return true;
-        return r.codigo?.toLowerCase().includes(filtro.toLowerCase());
+        const coincideCodigo = !filtro.trim() || r.codigo?.toLowerCase().includes(filtro.toLowerCase());
+        const coincideFecha = !filtroFecha.trim() || r.fecha?.includes(filtroFecha);
+        const coincidePlanta = !filtroPlanta.trim() || r.planta?.toLowerCase().includes(filtroPlanta.toLowerCase());
+        return coincideCodigo && coincideFecha && coincidePlanta;
       })
     : recibos;
 
@@ -114,32 +123,73 @@ const PalletsRecibidos = ({
         )}
 
         <div className="search-section">
-          <label className="search-label">Filtrar codigo</label>
-          <div className="search-input-wrapper">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Codigo"
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch();
-                }
-              }}
-            />
-            <button className="btn-search-icon" onClick={handleSearch}>
-              <i className="fas fa-search"></i>
-            </button>
-            {searchActive && (
-              <button 
-                className="btn-clear-icon" 
-                onClick={handleClearFilter}
-                title="Limpiar filtro"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            )}
+          <div className="search-row">
+            <div className="search-input-group">
+              <label className="search-label">Filtrar codigo</label>
+              <div className="search-input-wrapper">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Codigo"
+                  value={filtro}
+                  onChange={(e) => setFiltro(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    }
+                  }}
+                />
+                <button className="btn-search-icon" onClick={handleSearch}>
+                  <i className="fas fa-search"></i>
+                </button>
+                {searchActive && (
+                  <button 
+                    className="btn-clear-icon" 
+                    onClick={handleClearFilter}
+                    title="Limpiar filtro"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <div className="search-input-group">
+              <label className="search-label">Filtrar fecha</label>
+              <div className="search-input-wrapper">
+                <input
+                  type="date"
+                  className="search-input"
+                  value={filtroFecha}
+                  onChange={(e) => setFiltroFecha(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="search-input-group">
+              <label className="search-label">Filtrar planta</label>
+              <div className="search-input-wrapper">
+                <select
+                  className="search-input"
+                  value={filtroPlanta}
+                  onChange={(e) => setFiltroPlanta(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    }
+                  }}
+                >
+                  <option value="">Todas</option>
+                  <option value="UPF-22">UPF-22</option>
+                  <option value="UPF-30">UPF-30</option>
+                </select>
+              </div>
+            </div>
           </div>
           
           {/* Mostrar turno actual en modo móvil */}
@@ -168,14 +218,15 @@ const PalletsRecibidos = ({
                 <th>CODIGO</th>
                 <th>DESCRIPCION</th>
                 <th>LOTE</th>
-                <th>N° PALLETS</th>
+                <th>N° PALL</th>
+                <th>USUARIO</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan="5"
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     Cargando...
@@ -187,13 +238,14 @@ const PalletsRecibidos = ({
                     <td>{item.codigo}</td>
                     <td>{item.descripcion}</td>
                     <td>{item.lote}</td>
-                    <td>{item.n_pallet}</td>
+                    <td>{item.numero_pallet}</td>
+                    <td>{item.usuario || 'N/A'}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan="5"
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     No hay registros encontrados

@@ -1309,7 +1309,7 @@ initDB();
 // Guardar pallet en tabla pallets_ground cuando se escanea en GROUND
 app.post("/api/pallets-ground", async (req, res) => {
   try {
-    const { codigo_interno, codigo, numero_pallet, lote, peso, usuario } = req.body;
+    const { codigo_interno, codigo, numero_pallet, lote, peso, planta, usuario } = req.body;
 
     if (!codigo_interno || !codigo || !numero_pallet || !lote) {
       return res
@@ -1318,12 +1318,12 @@ app.post("/api/pallets-ground", async (req, res) => {
     }
 
     await db.query(
-      `INSERT INTO pallets_ground (codigo_interno, codigo, numero_pallet, lote, peso, usuario)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [codigo_interno, codigo, numero_pallet, lote, peso || null, usuario]
+      `INSERT INTO pallets_ground (codigo_interno, codigo, numero_pallet, lote, peso, planta, usuario)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [codigo_interno, codigo, numero_pallet, lote, peso || null, planta || null, usuario]
     );
 
-    console.log("Pallet guardado en GROUND:", { codigo_interno, codigo, numero_pallet, lote, peso });
+    console.log("Pallet guardado en GROUND:", { codigo_interno, codigo, numero_pallet, lote, peso, planta });
 
     res.json({ message: "Pallet guardado correctamente en GROUND" });
   } catch (error) {
@@ -1335,20 +1335,52 @@ app.post("/api/pallets-ground", async (req, res) => {
 // Obtener todos los pallets de GROUND con descripción de materiales
 app.get("/api/pallets-ground", async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT 
-        pg.codigo,
-        COALESCE(m.description, 'Sin descripción') as descripcion,
-        pg.lote,
-        pg.numero_pallet as "n_pallet",
-        pg.codigo_interno,
-        pg.peso,
-        pg.usuario,
-        pg.fecha
-      FROM pallets_ground pg
-      LEFT JOIN materiales m ON pg.codigo = m.codigo
-      ORDER BY pg.fecha DESC
+    // Primero verificar si la columna planta existe
+    const [columnCheck] = await db.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'pallets_ground' 
+      AND column_name = 'planta'
     `);
+    
+    const hasPlantaColumn = columnCheck.length > 0;
+    
+    let query;
+    if (hasPlantaColumn) {
+      query = `
+        SELECT 
+          pg.codigo,
+          COALESCE(m.description, 'Sin descripción') as descripcion,
+          pg.lote,
+          pg.numero_pallet,
+          pg.codigo_interno,
+          pg.peso,
+          pg.planta,
+          pg.usuario,
+          pg.fecha
+        FROM pallets_ground pg
+        LEFT JOIN materiales m ON pg.codigo = m.codigo
+        ORDER BY pg.fecha DESC
+      `;
+    } else {
+      query = `
+        SELECT 
+          pg.codigo,
+          COALESCE(m.description, 'Sin descripción') as descripcion,
+          pg.lote,
+          pg.numero_pallet,
+          pg.codigo_interno,
+          pg.peso,
+          'UPF-22' as planta,
+          pg.usuario,
+          pg.fecha
+        FROM pallets_ground pg
+        LEFT JOIN materiales m ON pg.codigo = m.codigo
+        ORDER BY pg.fecha DESC
+      `;
+    }
+    
+    const [rows] = await db.query(query);
     console.log("Pallets GROUND con descripción obtenidos:", rows.length);
     res.json(rows);
   } catch (error) {

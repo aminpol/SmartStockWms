@@ -51,10 +51,24 @@
 
 .search-section {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 1rem;
   margin-bottom: 0.5rem;
+}
+
+.search-row {
+  display: flex;
+  gap: 1.25rem; /* Reducido para que los tres filtros quepan en la misma fila */
+  align-items: flex-end;
   flex-wrap: wrap;
+}
+
+.search-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 220px; /* Aumentado para dar más espacio a cada filtro */
 }
 
 .search-label {
@@ -77,7 +91,7 @@
   border-radius: 10px;
   font-size: 1rem;
   outline: none;
-  max-width: 250px;
+  max-width: 150px; /* Reducción drástica para asegurar espacio */
 }
 
 .btn-search-icon {
@@ -90,8 +104,8 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
+  width: 36px; /* Reducido de 44px a 36px */
+  height: 36px; /* Reducido de 44px a 36px */
 }
 
 .btn-search-icon i {
@@ -115,6 +129,37 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+}
+
+.pallets-table th:nth-child(3),
+.pallets-table td:nth-child(3) {
+  width: 25%; /* Columna LOTE más ancha */
+  min-width: 120px;
+}
+
+.pallets-table th:nth-child(4),
+.pallets-table td:nth-child(4) {
+  width: 10%; /* Columna N° PALL más angosta */
+  min-width: 80px;
+  max-width: 100px;
+}
+
+.pallets-table th:nth-child(5),
+.pallets-table td:nth-child(5) {
+  width: 15%; /* Columna USUARIO */
+  min-width: 100px;
+}
+
+.pallets-table th:nth-child(1),
+.pallets-table td:nth-child(1) {
+  width: 20%; /* Columna CODIGO */
+  min-width: 100px;
+}
+
+.pallets-table th:nth-child(2),
+.pallets-table td:nth-child(2) {
+  width: 30%; /* Columna DESCRIPCION */
+  min-width: 150px;
 }
 
 .pallets-table th,
@@ -198,6 +243,19 @@
 
   .page-title {
     font-size: 1.5rem;
+  }
+
+  .search-row {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .search-input-group {
+    min-width: 100%;
+  }
+
+  .search-input {
+    max-width: none;
   }
 
   .pallets-table {

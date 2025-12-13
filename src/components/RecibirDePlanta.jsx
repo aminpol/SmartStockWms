@@ -196,6 +196,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
             numero_pallet: nPallet,
             lote: lote,
             peso: peso,
+            planta: planta, // Agregar campo planta
             usuario: user?.usuario || "Desconocido",
           }),
         }
