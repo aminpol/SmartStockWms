@@ -1,6 +1,7 @@
 import React from "react";
 import "./Footer.css";
 import { useConfig } from "../context/ConfigContext";
+import { Link } from "react-router-dom";
 
 const FormView = ({ onMenuOption, onLogout, user }) => {
   const { t } = useConfig();
@@ -33,21 +34,6 @@ const FormView = ({ onMenuOption, onLogout, user }) => {
             </span>
           </div>
           <div className="code-type-buttons">
-            <button className="type-btn" onClick={() => onMenuOption("qr")}>
-              <i className="fas fa-qrcode"></i>
-              <span>{t("optionQr")}</span>
-            </button>
-            <button
-              className="type-btn"
-              onClick={() => onMenuOption("barcode")}
-            >
-              <i className="fas fa-barcode"></i>
-              <span>{t("optionBarcode")}</span>
-            </button>
-            <button className="type-btn" onClick={() => onMenuOption("text")}>
-              <i className="fas fa-font"></i>
-              <span>{t("optionText")}</span>
-            </button>
             <button
               className="type-btn"
               onClick={() => onMenuOption("qr-pallet")}
@@ -71,6 +57,14 @@ const FormView = ({ onMenuOption, onLogout, user }) => {
             >
               <i className="fas fa-boxes"></i>
               <span>{t("optionInventory")}</span>
+            </button>
+            <button
+              className="type-btn inventory-btn"
+              onClick={() => onMenuOption("codegenera")}
+              title={t("optionCodeGenera")}
+            >
+              <i className="fas fa-qrcode"></i>
+              <span>{t("optionCodeGenera")}</span>
             </button>
             {
               /* Botón de Administrador (Solo visible para Administrador y en PC) */

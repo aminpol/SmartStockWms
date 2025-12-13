@@ -1,0 +1,581 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to bottom right, #f1f5f9, #cfe3f9, #a5f3fc);
+  font-family: Arial, sans-serif;
+  color: #1e293b;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.pantalla {
+  height: 100%;
+  width: 100%;
+}
+
+.app-container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Main Content Styles */
+.contenedor {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Form specific adjustments */
+#pantallaFormulario {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#pantallaCodigos {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+.icon-qr {
+  color: #000000;
+}
+
+h2 {
+  margin-top: 0.2rem;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 1.5rem;
+}
+
+/* Header Animation */
+/* Wipe Effect for Barcode */
+@keyframes wipeReveal {
+  0% {
+    clip-path: inset(0 100% 0 0); /* Hidden (masked from right) */
+    opacity: 1;
+  }
+  20% {
+    clip-path: inset(0 0 0 0); /* Fully visible */
+    opacity: 1;
+  }
+  60% {
+    clip-path: inset(0 0 0 0); /* Stay visible */
+    opacity: 1;
+  }
+  80% {
+    clip-path: inset(0 0 0 100%); /* Wipe out to left (or hidden) */
+    opacity: 1;
+  }
+  81% {
+    opacity: 0; /* Ensure hidden */
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0); /* Reset */
+  }
+}
+
+.animated-barcode {
+  animation: wipeReveal 12s infinite linear;
+  width: fit-content; /* Ensure clip-path works on the container size */
+  margin: 0 auto; /* Center it */
+}
+
+/* Letter by Letter Fade for Title */
+@keyframes letterFade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  10%,
+  70% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0;
+  }
+}
+
+.animated-title span {
+  opacity: 0;
+  animation: letterFade 12s infinite ease-in-out;
+  display: inline-block; /* Required for animation */
+}
+
+/* Stagger delays for each letter */
+.animated-title span:nth-child(1) {
+  animation-delay: 2s;
+}
+.animated-title span:nth-child(2) {
+  animation-delay: 2.2s;
+}
+.animated-title span:nth-child(3) {
+  animation-delay: 2.4s;
+}
+.animated-title span:nth-child(4) {
+  animation-delay: 2.6s;
+}
+/* Space */
+.animated-title span:nth-child(5) {
+  animation-delay: 3s;
+}
+.animated-title span:nth-child(6) {
+  animation-delay: 3.2s;
+}
+.animated-title span:nth-child(7) {
+  animation-delay: 3.4s;
+}
+.animated-title span:nth-child(8) {
+  animation-delay: 3.6s;
+}
+/* Space */
+.animated-title span:nth-child(9) {
+  animation-delay: 4s;
+}
+.animated-title span:nth-child(10) {
+  animation-delay: 4.2s;
+}
+.animated-title span:nth-child(11) {
+  animation-delay: 4.4s;
+}
+.animated-title span:nth-child(12) {
+  animation-delay: 4.6s;
+}
+.animated-title span:nth-child(13) {
+  animation-delay: 4.8s;
+}
+.animated-title span:nth-child(14) {
+  animation-delay: 5s;
+}
+.animated-title span:nth-child(15) {
+  animation-delay: 5.2s;
+}
+.animated-title span:nth-child(16) {
+  animation-delay: 5.4s;
+}
+.animated-title span:nth-child(17) {
+  animation-delay: 5.6s;
+}
+
+/* Configuration Section */
+.config-section {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+}
+
+.config-section .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.form-group {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+select,
+textarea,
+button {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #94a3b8;
+  box-sizing: border-box;
+  background: white;
+}
+
+/* Slim input that grows */
+textarea {
+  resize: none;
+  min-height: 40px;
+  height: 40px; /* Initial height */
+  overflow-y: hidden; /* Hide scrollbar */
+  transition: height 0.1s ease;
+}
+
+/* Slider Styles */
+input[type="range"] {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .config-section {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .contenedor {
+    padding: 1rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .control-item {
+    max-width: 100%;
+  }
+}
+
+/* Top Bar Styles */
+.top-bar {
+  display: flex;
+  justify-content: center; /* Center the buttons */
+  gap: 1rem; /* Space between buttons */
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+}
+
+#btnVolver {
+  background-color: #3b82f6; /* Blue background */
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: auto;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+#btnVolver:hover {
+  background-color: #2563eb;
+  transform: none; /* Remove scale effect */
+}
+
+#btnImprimir {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: auto;
+  font-size: 1rem;
+}
+
+#btnImprimir i {
+  font-size: 1.1rem;
+}
+
+/* Compact Controls Bar */
+.controls-bar {
+  display: flex;
+  flex-direction: column; /* Stack vertically */
+  gap: 0.5rem; /* Reduced gap */
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  width: 100%;
+  max-width: 600px;
+  justify-content: center;
+}
+
+.control-item {
+  width: 100%;
+  max-width: 100%; /* Full width */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.control-item label {
+  font-size: 0.8rem;
+  margin-bottom: 0;
+}
+
+.control-item input[type="range"] {
+  margin-top: 0.1rem;
+  width: 90%; /* Slightly less than full width */
+}
+
+/* Compact Code Box */
+.codigoBox {
+  position: relative;
+  width: 220px;
+  background: white;
+  padding: 4px;
+  padding-bottom: 2px; /* Minimal bottom padding */
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: width 0.2s ease;
+}
+
+.etiqueta {
+  margin-top: 0;
+  font-weight: bold;
+  color: #000;
+  text-align: center;
+  width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1; /* Tighter line height */
+  margin-bottom: 0; /* No bottom margin */
+  padding-bottom: 2px; /* Minimal padding */
+}
+
+/* Delete Button */
+.btn-delete {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s, transform 0.1s;
+  z-index: 5;
+}
+
+.btn-delete:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.btn-ok {
+  margin-top: 1rem;
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Desktop Layout */
+@media (min-width: 1024px) {
+  .contenedor {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2rem;
+    max-width: 1200px;
+    height: 90vh; /* Limit height to viewport */
+    padding: 2rem;
+  }
+
+  /* Show both screens side-by-side */
+  #pantallaFormulario,
+  #pantallaCodigos {
+    display: flex !important; /* Override hidden */
+    flex: 1;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    max-height: 700px; /* Fixed max height */
+    box-sizing: border-box;
+  }
+
+  /* Adjust Form Container */
+  #pantallaFormulario {
+    justify-content: center;
+  }
+
+  /* Adjust Codes Container */
+  #pantallaCodigos {
+    position: relative;
+  }
+
+  /* Scrollable Results Area */
+  #previewArea {
+    flex: 1;
+    overflow-y: auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    align-content: start;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #f8fafc;
+    margin-top: 1rem;
+  }
+
+  /* Adjust Top Bar for Desktop */
+  .top-bar {
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  /* Hide the "Back" button text if needed, or keep it */
+  #btnVolver {
+    background-color: #64748b; /* Grey for "Clear/Reset" feel */
+  }
+
+  #btnVolver:hover {
+    background-color: #475569;
+  }
+
+  /* Ensure controls bar fits */
+  .controls-bar {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Global Print Styles */
+@media print {
+  @page {
+    size: 11cm 19cm;
+    margin: 0;
+  }
+
+  body {
+    background: white;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Hide UI elements */
+  .pantallaFormulario,
+  .controls-bar,
+  .acciones,
+  h2,
+  .logo-container,
+  .config-section,
+  .btn-delete,
+  #pantallaFormulario,
+  .top-bar {
+    /* Hide top bar in print */
+    display: none !important;
+  }
+
+  /* Ensure code view is visible */
+  .pantalla,
+  .app-container,
+  .contenedor,
+  #pantallaCodigos {
+    display: block !important;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    background: none !important; /* Remove background in print */
+    box-shadow: none !important; /* Remove shadow in print */
+  }
+
+  #previewArea {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    width: 100%;
+    margin: 0;
+    border: none !important; /* Remove border in print */
+    background: none !important; /* Remove background in print */
+    overflow: visible !important; /* Allow overflow for printing */
+  }
+
+  /* Style codes for print */
+  .codigoBox {
+    page-break-inside: avoid;
+    width: 100% !important;
+    height: auto !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0 !important;
+    padding: 0.5cm 0;
+  }
+}

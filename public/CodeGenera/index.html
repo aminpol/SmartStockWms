@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Generator</title>
+    <link rel="stylesheet" href="Estilos.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="pantalla">
+      <div class="app-container">
+        <!-- Main Content Area -->
+        <main class="contenedor">
+          <!-- View 1: Form -->
+          <div id="pantallaFormulario">
+            <div class="logo-container animated-barcode">
+              <img
+                src="barra.png"
+                alt="Barcode Logo"
+                class="icon-logo"
+                width="200"
+                height="80"
+              />
+            </div>
+            <h2 class="animated-title">
+              <span>C</span><span>o</span><span>d</span><span>e</span>
+              <span>G</span><span>e</span><span>n</span><span>e</span
+              ><span>r</span><span>a</span><span>t</span><span>o</span
+              ><span>r</span>
+            </h2>
+
+            <!-- Configuration Section -->
+            <div class="config-section">
+              <div class="form-group">
+                <label for="tipo">Tipo de código:</label>
+                <select id="tipo">
+                  <option value="qr">Código QR</option>
+                  <option value="barcode">Código de Barras</option>
+                  <option value="texto">Imprimir Texto</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="textoTamano"
+                  >Tamaño del texto: <span id="sizeValue">16px</span></label
+                >
+                <input
+                  type="range"
+                  id="textoTamano"
+                  min="10"
+                  max="40"
+                  value="16"
+                  step="1"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="contenido">Contenido (uno por línea):</label>
+              <textarea
+                id="contenido"
+                placeholder="Ingrese datos..."
+                rows="1"
+              ></textarea>
+            </div>
+
+            <div class="acciones">
+              <button id="btnGenerar" onclick="generarCodigos()">
+                Generar códigos
+              </button>
+            </div>
+          </div>
+
+          <!-- View 2: Codes -->
+          <div id="pantallaCodigos" class="hidden">
+            <!-- Top Bar with Navigation and Print -->
+            <div class="top-bar">
+              <button id="btnVolver" onclick="volver()" title="Volver">
+                <i class="fas fa-undo"></i>
+              </button>
+              <button id="btnImprimir" onclick="imprimirTodos()">
+                <i class="fas fa-print"></i> Print
+              </button>
+            </div>
+
+            <h2>Códigos Generados</h2>
+
+            <!-- Controls for Codes -->
+            <div class="controls-bar">
+              <div class="control-item">
+                <label for="codeWidth"
+                  >Ancho: <span id="widthValue">80%</span></label
+                >
+                <input
+                  type="range"
+                  id="codeWidth"
+                  min="50"
+                  max="150"
+                  value="80"
+                  step="1"
+                />
+              </div>
+              <div class="control-item">
+                <label for="codeHeight"
+                  >Alto: <span id="heightValue">80px</span></label
+                >
+                <input
+                  type="range"
+                  id="codeHeight"
+                  min="50"
+                  max="300"
+                  value="80"
+                  step="10"
+                />
+              </div>
+            </div>
+
+            <div id="previewArea"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal de éxito -->
+    <div id="modalExito" class="modal hidden">
+      <div class="modal-content">
+        <p>Código generado exitosamente</p>
+        <button class="btn-ok" onclick="irACodigos()">OK</button>
+      </div>
+    </div>
+
+    <script type="module" src="logica.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+  </body>
+</html>

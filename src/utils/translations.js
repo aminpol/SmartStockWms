@@ -27,27 +27,11 @@ export const translations = {
 
     // Menu (FormView)
     menuTitle: "Menú Principal",
-    optionQr: "Código QR",
-    optionBarcode: "Código de Barras",
-    optionText: "Imprimir Texto",
     optionQrPallet: "QR Pallet",
     optionReciboPlanta: "Recibo de Planta",
     optionInventory: "Inventario",
     optionAdmin: "Administrador",
-
-    // Codes Generator (CodesView)
-    genTitle: "Generador de Códigos",
-    genInputLabel: "Ingrese los códigos (uno por línea):",
-    genInputPlaceholder: "Ejemplo:\\nCÓDIGO1\\nCÓDIGO2\\nCÓDIGO3",
-    genBtnGenerate: "Generar Códigos",
-    genBtnPrint: "Imprimir Todo",
-    genBtnClear: "Limpiar Todo",
-    genSettings: "Configuración de Impresión",
-    genType: "Tipo de Código",
-    genSize: "Tamaño de Texto (px)",
-    genWidth: "Ancho (mm)",
-    genHeight: "Alto (mm)",
-    genPreview: "Vista Previa",
+    optionCodeGenera: "Generar Códigos",
 
     // Inventory
     inventoryTitle: "Stock De Inventario",
@@ -169,27 +153,11 @@ export const translations = {
 
     // Menu (FormView)
     menuTitle: "Main Menu",
-    optionQr: "QR Code",
-    optionBarcode: "Barcode",
-    optionText: "Print Text",
     optionQrPallet: "QR Pallet",
     optionReciboPlanta: "Plant Receipt",
     optionInventory: "Inventory",
     optionAdmin: "Administrator",
-
-    // Codes Generator (CodesView)
-    genTitle: "Code Generator",
-    genInputLabel: "Enter codes (one per line):",
-    genInputPlaceholder: "Example:\\nCODE1\\nCODE2\\nCODE3",
-    genBtnGenerate: "Generate Codes",
-    genBtnPrint: "Print All",
-    genBtnClear: "Clear All",
-    genSettings: "Print Settings",
-    genType: "Code Type",
-    genSize: "Text Size (px)",
-    genWidth: "Width (mm)",
-    genHeight: "Height (mm)",
-    genPreview: "Preview",
+    optionCodeGenera: "Generate Codes",
 
     // Inventory
     inventoryTitle: "Inventory Stock",

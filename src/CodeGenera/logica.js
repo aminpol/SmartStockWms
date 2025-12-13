@@ -55,6 +55,9 @@ function updateDimensions() {
 
     const svg = box.querySelector("svg");
     const img = box.querySelector("img");
+    const etiqueta = box.querySelector(".etiqueta");
+
+    // Si hay SVG o IMG (QR/Barcode), el alto controla su altura
     if (svg) {
       svg.setAttribute("height", height);
       svg.style.height = `${height}px`;
@@ -62,6 +65,22 @@ function updateDimensions() {
     if (img) {
       img.style.height = `${height}px`;
       img.style.width = "auto";
+    }
+
+    // Si NO hay SVG ni IMG (es solo texto), el alto controla el tamaño de fuente
+    if (!svg && !img && etiqueta) {
+      // Mapeamos el rango de altura (50-300) a un rango de fuente razonable (e.g., 10px - 60px)
+      // O simplemente usamos el valor directo si el usuario prefiere control total,
+      // pero 300px de fuente es mucho. Vamos a escalar un poco.
+      // Vamos a usar una proporción simple: height / 4 para font-size aprox?
+      // O mejor, usaremos el valor directo pero interpretado como "escala" relativa a un base.
+      // El usuario pidió "opciones de ancho y alto para darle tamaño al texto".
+      // Vamos a asumir que "Alto" se convierte en "Tamaño de Fuente" directamente para simplicidad visual,
+      // pero tal vez ajustado. Probemos directo primero, o con un factor.
+      // Dado que el slider va de 50 a 300, 50px de texto es grande.
+      // Vamos a dividir por 2 para que sea 25px a 150px, que es más razonable para títulos grandes.
+      const fontSize = Math.max(10, height / 2);
+      etiqueta.style.fontSize = `${fontSize}px`;
     }
   });
 }
@@ -94,12 +113,16 @@ window.generarCodigos = function () {
     btnDelete.onclick = () => box.remove();
     box.appendChild(btnDelete);
 
-    const visual = tipo === "qr" ? crearQR(dato) : crearBarcode(dato);
-    box.appendChild(visual);
+    if (tipo !== "texto") {
+      const visual = tipo === "qr" ? crearQR(dato) : crearBarcode(dato);
+      box.appendChild(visual);
+    }
 
     const etiqueta = document.createElement("p");
     etiqueta.className = "etiqueta";
     etiqueta.textContent = dato;
+    // Si es modo texto, el tamaño inicial lo define el slider de "Tamaño del texto" del formulario,
+    // pero luego será controlado por el slider de "Alto" en la vista de códigos.
     etiqueta.style.fontSize = textoTamano;
     box.appendChild(etiqueta);
 

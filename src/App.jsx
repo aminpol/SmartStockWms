@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 import Login from "./components/Login";
 import FormView from "./components/FormView";
-import CodesView from "./components/CodesView";
 import PrintQrPallet from "./components/PrintQrPallet";
 import Inventario from "./components/Inventario";
 import Consulta from "./components/Consulta";
@@ -19,8 +18,8 @@ import Administrador from "./components/Administrador";
 import RecibirDePlanta from "./components/RecibirDePlanta";
 import PalletsRecibidos from "./components/PalletsRecibidos";
 import BarcodeScannerListener from "./components/BarcodeScannerListener";
+import CodeGeneraView from "./components/CodeGeneraView";
 
-import { printCodes } from "./utils/print";
 import "./index.css";
 
 import { useConfig } from "./context/ConfigContext";
@@ -45,61 +44,6 @@ const AppContent = () => {
     return null;
   });
 
-  const [codes, setCodes] = useState(() => {
-    const saved = localStorage.getItem("app_codes");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem("appSettings");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Error parsing settings:", e);
-      }
-    }
-    // Use defaults from global config
-    return {
-      type: config.generatorDefaults.type,
-      textSize: config.generatorDefaults.textSize,
-      codeWidth: config.generatorDefaults.width,
-      codeHeight: config.generatorDefaults.height,
-    };
-  });
-
-  // Guardar configuración cuando cambie
-  useEffect(() => {
-    localStorage.setItem("appSettings", JSON.stringify(settings));
-    sessionStorage.setItem("appSettings", JSON.stringify(settings));
-  }, [settings]);
-
-  // Guardar códigos cuando cambien
-  useEffect(() => {
-    localStorage.setItem("app_codes", JSON.stringify(codes));
-  }, [codes]);
-
-  const handleGenerate = (content) => {
-    const lines = content.split("\n").filter((l) => l.trim().length > 0);
-    const newCodes = lines.map((line) => ({
-      type: settings.type,
-      content: line,
-      textSize: settings.textSize,
-    }));
-
-    setCodes(newCodes);
-    localStorage.setItem("textoTamano", settings.textSize + "px");
-    navigate("/codes");
-  };
-
-  const handleDelete = (index) => {
-    setCodes(codes.filter((_, i) => i !== index));
-  };
-
-  const handlePrint = () => {
-    printCodes(codes, settings);
-  };
-
   const handleLogin = (userData) => {
     setIsAuthenticated(true);
     setUser(userData);
@@ -116,18 +60,8 @@ const AppContent = () => {
     navigate("/login");
   };
 
-  const handleBackFromCodes = () => {
-    setCodes([]);
-    navigate("/menu");
-  };
-
-  const handleClearCodes = () => {
-    setCodes([]);
-  };
-
   const handleMenuOption = (type) => {
     console.log("handleMenuOption type:", type);
-    setSettings((prev) => ({ ...prev, type }));
     if (type === "qr-pallet") {
       console.log("Navegando a /qr-pallet");
       navigate("/qr-pallet");
@@ -140,9 +74,9 @@ const AppContent = () => {
     } else if (type === "admin") {
       console.log("Navegando a /admin");
       navigate("/admin");
-    } else {
-      console.log("Navegando a /codes");
-      navigate("/codes");
+    } else if (type === "codegenera") {
+      console.log("Navegando a /codegenera");
+      navigate("/codegenera");
     }
   };
 
@@ -311,22 +245,15 @@ const AppContent = () => {
         }
       />
       <Route
-        path="/codes"
+        path="/codegenera"
         element={
           isAuthenticated ? (
             <div className="pantalla">
               <div className="app-container">
                 <main className="contenedor">
-                  <CodesView
-                    codes={codes}
-                    onBack={handleBackFromCodes}
-                    onPrint={handlePrint}
-                    settings={settings}
-                    setSettings={setSettings}
-                    onDelete={handleDelete}
-                    onGenerate={handleGenerate}
+                  <CodeGeneraView
+                    onBack={() => navigate("/menu")}
                     onLogout={handleLogout}
-                    onClear={handleClearCodes}
                   />
                 </main>
               </div>
