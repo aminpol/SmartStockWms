@@ -259,6 +259,9 @@ window.imprimirTodos = function () {
   body { 
     margin: 0; 
     padding: 0; 
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .print-page {
     width: 11cm;
@@ -270,7 +273,8 @@ window.imprimirTodos = function () {
     page-break-after: always;
     overflow: hidden;
     box-sizing: border-box;
-    padding: 0.5cm; /* Pequeño margen interno */
+    padding: 0.3cm; /* Reducido para más espacio */
+    background: white !important;
   }
 
   .print-page:last-child { 
@@ -285,28 +289,43 @@ window.imprimirTodos = function () {
     justify-content: center;
     align-items: center;
     border: none;
-    padding: 2px 0;
+    padding: 1px 0;
     margin: 0;
     overflow: hidden;
+    background: white !important;
   }
   
   .codigoBox svg, .codigoBox img { 
-    display: block; 
-    max-width: 90%; 
-    max-height: 3.5cm; /* Limitar altura para que quepan 4 */
+    display: block !important; 
+    max-width: 85%; 
+    max-height: 3.2cm; /* Ajustado para mejor ajuste */
     width: auto;
     height: auto;
     object-fit: contain;
+    background: white !important;
   }
   
   .etiqueta { 
     width: 100%; 
     text-align: center; 
     word-wrap: break-word; 
-    margin-top: 2px; 
-    font-size: 10px; /* Texto más pequeño para ajustar */
-    line-height: 1.1;
+    margin-top: 1px; 
+    font-size: 9px; /* Reducido para mejor ajuste */
+    line-height: 1.0;
+    font-weight: bold;
+    background: white !important;
   }
+}
+
+/* Estilos para pantalla (vista previa) */
+body {
+  font-family: Arial, sans-serif;
+  background: white;
+}
+.print-page {
+  background: white;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
 }
 </style>
 </head>
@@ -314,13 +333,40 @@ window.imprimirTodos = function () {
 </html>`);
   doc.close();
 
-  // Imprimir después de un breve retardo
-  setTimeout(() => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    // Limpiar iframe
+  // Imprimir después de asegurar que el contenido esté completamente cargado
+  iframe.onload = function() {
+    // Esperar un poco más para que los estilos se apliquen completamente
     setTimeout(() => {
-      document.body.removeChild(iframe);
-    }, 500);
-  }, 500);
+      try {
+        iframe.contentWindow.focus();
+        
+        // Forzar un repaint antes de imprimir
+        iframe.contentWindow.document.body.offsetHeight;
+        
+        // Verificar que haya contenido antes de imprimir
+        const contentCheck = iframe.contentWindow.document.querySelectorAll('.codigoBox').length;
+        if (contentCheck === 0) {
+          console.error('No se encontraron códigos en el iframe de impresión');
+          document.body.removeChild(iframe);
+          alert('Error: No se pudo cargar el contenido para imprimir');
+          return;
+        }
+        
+        iframe.contentWindow.print();
+        
+        // Limpiar iframe después de la impresión
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('Error al imprimir:', error);
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+        alert('Error al intentar imprimir. Por favor intente nuevamente.');
+      }
+    }, 1000); // Aumentado a 1 segundo para asegurar carga completa
+  };
 };
