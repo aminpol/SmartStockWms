@@ -391,6 +391,18 @@
     padding: 0.4rem 0.2rem;
   }
 
+  .pallets-table th:nth-child(1),
+  .pallets-table td:nth-child(1) {
+    width: 15% !important; /* Columna CODIGO más estrecha */
+    min-width: 65px !important;
+  }
+
+  .pallets-table th:nth-child(2),
+  .pallets-table td:nth-child(2) {
+    width: 40% !important; /* Más espacio para DESCRIPCION */
+    min-width: 100px !important;
+  }
+
   .footer-buttons {
     padding-top: 0.4rem;
     padding-bottom: 0.8rem; /* Espacio extra abajo */
