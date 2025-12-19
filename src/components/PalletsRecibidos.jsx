@@ -98,11 +98,20 @@ const PalletsRecibidos = ({
           !filtro.trim() ||
           r.codigo?.toLowerCase().includes(filtro.toLowerCase());
 
-        // Formatear fecha del registro (YYYY-MM-DD)
-        // Soporta tanto "2023-12-18T..." como "2023-12-18 ..."
-        const fechaRegistro = r.fecha
-          ? r.fecha.replace("T", " ").split(" ")[0]
-          : "";
+        // Formatear fecha del registro de forma robusta para Bogotá (UTC-5)
+        let fechaRegistro = "";
+        if (r.fecha) {
+          try {
+            const d = new Date(r.fecha);
+            // Si la fecha es válida, ajustamos manualmente a Bogotá para la comparación
+            // Esto evita que registros nocturnos se pasen al "día siguiente" por UTC
+            const bogota = new Date(d.getTime() - 5 * 60 * 60 * 1000);
+            fechaRegistro = bogota.toISOString().split("T")[0];
+          } catch (e) {
+            fechaRegistro = r.fecha.split(/[T ]/)[0];
+          }
+        }
+
         const coincideFecha =
           !filtroFecha.trim() || fechaRegistro === filtroFecha;
 
@@ -198,7 +207,10 @@ const PalletsRecibidos = ({
                 type="date"
                 className="search-input"
                 value={filtroFecha}
-                onChange={(e) => setFiltroFecha(e.target.value)}
+                onChange={(e) => {
+                  setFiltroFecha(e.target.value);
+                  setFiltroTurno(""); // Al cambiar fecha, ver todo el día por defecto
+                }}
                 onKeyPress={(e) => {
                   if (e.key === "Enter") {
                     handleSearch();
