@@ -167,22 +167,10 @@ const PalletsRecibidos = ({
           <div className="search-row responsive-grid">
             {/* Codigo */}
             <div className="search-input-group">
-              <label className="search-label">
-                <span className="label-prefix">Filtrar </span>codigo
-              </label>
-              <div className="search-input-wrapper">
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Codigo"
-                  value={filtro}
-                  onChange={(e) => setFiltro(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
+              <div className="search-label-row">
+                <label className="search-label">
+                  <span className="label-prefix">Filtrar </span>codigo
+                </label>
                 <div className="search-actions">
                   <button
                     className="btn-search-icon"
@@ -201,6 +189,20 @@ const PalletsRecibidos = ({
                     </button>
                   )}
                 </div>
+              </div>
+              <div className="search-input-wrapper">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Codigo"
+                  value={filtro}
+                  onChange={(e) => setFiltro(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    }
+                  }}
+                />
               </div>
             </div>
 

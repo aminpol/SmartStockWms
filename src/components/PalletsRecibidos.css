@@ -69,12 +69,36 @@
 }
 
 .search-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 0 1 auto; /* No estirar en PC */
+  display: grid;
+  grid-template-areas:
+    "label label"
+    "input actions";
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+  flex: 0 1 auto;
   min-width: 130px;
   position: relative;
+}
+
+.search-label-row {
+  grid-area: label;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-label {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #000;
+  white-space: nowrap;
+}
+
+.search-actions {
+  grid-area: actions;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .label-prefix {
@@ -98,16 +122,11 @@
 }
 
 .search-input-wrapper {
+  grid-area: input;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
-}
-
-.search-actions {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
 }
 
 .btn-search-icon {
@@ -279,6 +298,7 @@
 
   .main-container {
     padding: 0.8rem 0.6rem;
+    padding-bottom: 3rem; /* Levantar botones de navegación */
     border-radius: 0;
     height: 100%;
   }
@@ -304,54 +324,58 @@
   }
 
   .search-input-group {
-    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     width: 100%;
-    gap: 0.1rem;
-    position: relative;
     min-width: 0;
+  }
+
+  .search-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 2px;
   }
 
   .search-label {
     font-size: 0.75rem;
     font-weight: 700;
-    margin-bottom: 1px;
     display: inline-block;
   }
 
   .search-actions {
-    position: absolute;
-    top: -4px;
-    right: 0;
-    gap: 0.15rem;
-    z-index: 5;
+    display: flex;
+    gap: 0.5rem; /* Separar más Lupa y X */
+    margin-right: 2px;
   }
 
   .search-input {
     width: 100% !important;
-    padding: 0.35rem 0.5rem;
-    padding-right: 2.2rem; /* Espacio para botones */
+    padding: 0.3rem 0.6rem;
     font-size: 0.8rem;
-    height: 34px; /* Adelgasado */
+    height: 32px; /* Adelgasado */
     border-radius: 8px;
   }
 
   .btn-search-icon,
   .btn-clear-icon-small {
-    width: 26px;
-    height: 26px;
-    border-radius: 5px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
   }
 
   .btn-search-icon i,
   .btn-clear-icon-small i {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
 
   .table-container {
     flex: 1; /* Usar todo el espacio disponible */
     min-height: 0;
     margin-bottom: 0.5rem;
-    max-height: none; /* Quitar límite fijo */
+    max-height: none;
   }
 
   .pallets-table {
@@ -368,13 +392,14 @@
   }
 
   .footer-buttons {
-    padding-top: 0.3rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.8rem; /* Espacio extra abajo */
     gap: 0.5rem;
-    margin-top: 5px;
+    margin-top: auto;
   }
 
   .btn-action {
-    padding: 0.5rem;
+    padding: 0.6rem;
     font-size: 0.75rem;
     border-radius: 8px;
   }
