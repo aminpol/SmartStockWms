@@ -8,6 +8,8 @@
   justify-content: center;
   overflow: hidden;
   box-sizing: border-box;
+  height: 100vh;
+  height: 100dvh;
 }
 
 .main-container {
@@ -21,6 +23,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Embedded overrides */
@@ -276,12 +280,11 @@
   .main-container {
     padding: 0.8rem 0.6rem;
     border-radius: 0;
+    height: 100%;
   }
 
   .page-title {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
+    display: none; /* Quitar título para ganar espacio */
   }
 
   .search-section {
@@ -296,7 +299,7 @@
   .search-row.responsive-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
+    gap: 0.5rem;
     margin-bottom: 0.2rem;
   }
 
@@ -305,54 +308,50 @@
     width: 100%;
     gap: 0.1rem;
     position: relative;
+    min-width: 0;
   }
 
   .search-label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     display: inline-block;
   }
 
   .search-actions {
     position: absolute;
-    top: -6px; /* Ajustar para quedar frente a la etiqueta */
+    top: -4px;
     right: 0;
-    gap: 0.2rem;
+    gap: 0.15rem;
+    z-index: 5;
   }
 
   .search-input {
     width: 100% !important;
-    padding: 0.4rem;
-    font-size: 0.85rem;
-    height: 36px;
+    padding: 0.35rem 0.5rem;
+    padding-right: 2.2rem; /* Espacio para botones */
+    font-size: 0.8rem;
+    height: 34px; /* Adelgasado */
     border-radius: 8px;
   }
 
-  .btn-search-icon {
-    background-color: #f0fdf4; /* Verde suave solo en movil */
-    border: 1px solid #bbf7d0;
-    width: 28px;
-    height: 28px;
-  }
-
-  .btn-search-icon i {
-    font-size: 0.85rem;
-    color: #166534;
-  }
-
+  .btn-search-icon,
   .btn-clear-icon-small {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
   }
 
+  .btn-search-icon i,
   .btn-clear-icon-small i {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .table-container {
-    max-height: 50vh;
+    flex: 1; /* Usar todo el espacio disponible */
+    min-height: 0;
     margin-bottom: 0.5rem;
+    max-height: none; /* Quitar límite fijo */
   }
 
   .pallets-table {
@@ -371,6 +370,7 @@
   .footer-buttons {
     padding-top: 0.3rem;
     gap: 0.5rem;
+    margin-top: 5px;
   }
 
   .btn-action {
