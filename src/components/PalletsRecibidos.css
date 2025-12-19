@@ -58,7 +58,7 @@
 
 .search-row.responsive-grid {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem; /* Separación original PC */
   align-items: flex-end;
   flex-wrap: wrap;
   width: 100%;
@@ -67,14 +67,30 @@
 .search-input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  flex: 1;
-  min-width: 120px;
-  position: relative; /* Para posicionar botones móvil */
+  gap: 0.5rem;
+  flex: 0 1 auto; /* No estirar en PC */
+  min-width: 130px;
+  position: relative;
 }
 
 .label-prefix {
   display: inline;
+}
+
+.search-label {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #000;
+  white-space: nowrap;
+}
+
+.search-input {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  outline: none;
+  width: 130px; /* Ancho fijo moderado para consistencia PC */
 }
 
 .search-input-wrapper {
@@ -91,21 +107,21 @@
 }
 
 .btn-search-icon {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
+  background-color: #86efac; /* Verde vibrante original */
+  border: 1px solid #4ade80;
+  border-radius: 8px;
   padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 44px; /* Tamaño original PC */
+  height: 44px;
 }
 
 .btn-search-icon i {
-  font-size: 1rem;
-  color: #166534;
+  font-size: 1.3rem;
+  color: #000;
 }
 
 .btn-clear-icon-small {
@@ -313,13 +329,23 @@
     border-radius: 8px;
   }
 
-  .btn-search-icon,
+  .btn-search-icon {
+    background-color: #f0fdf4; /* Verde suave solo en movil */
+    border: 1px solid #bbf7d0;
+    width: 28px;
+    height: 28px;
+  }
+
+  .btn-search-icon i {
+    font-size: 0.85rem;
+    color: #166534;
+  }
+
   .btn-clear-icon-small {
     width: 28px;
     height: 28px;
   }
 
-  .btn-search-icon i,
   .btn-clear-icon-small i {
     font-size: 0.85rem;
   }
