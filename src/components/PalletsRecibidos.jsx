@@ -50,9 +50,9 @@ const PalletsRecibidos = ({
 
         // Establecer filtros por defecto si no hay búsqueda activa
         if (!searchActive) {
-          // Bogotá es UTC-5
-          const nowServer = new Date();
-          const bogotaTime = new Date(nowServer.getTime() - 5 * 60 * 60 * 1000);
+          // Bogotá es UTC-5. Usamos -5h respecto a UTC para consistencia total.
+          const nowUtc = new Date();
+          const bogotaTime = new Date(nowUtc.getTime() - 5 * 60 * 60 * 1000);
           const hoy = bogotaTime.toISOString().split("T")[0];
 
           const turnoActual = obtenerTurnoActual();
@@ -98,8 +98,11 @@ const PalletsRecibidos = ({
           !filtro.trim() ||
           r.codigo?.toLowerCase().includes(filtro.toLowerCase());
 
-        // Formatear fecha del registro (YYYY-MM-DD) para comparar con filtroFecha
-        const fechaRegistro = r.fecha ? r.fecha.split("T")[0] : "";
+        // Formatear fecha del registro (YYYY-MM-DD)
+        // Soporta tanto "2023-12-18T..." como "2023-12-18 ..."
+        const fechaRegistro = r.fecha
+          ? r.fecha.replace("T", " ").split(" ")[0]
+          : "";
         const coincideFecha =
           !filtroFecha.trim() || fechaRegistro === filtroFecha;
 

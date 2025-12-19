@@ -1410,13 +1410,13 @@ app.post("/api/pallets-ground", async (req, res) => {
       kg,
     } = req.body;
 
-    // Calcular turno y fecha basado en la hora local (Colombia/Cali UTC-5)
+    // Calcular turno y fecha basado en la hora local de Bogotá (UTC-5)
     // Usamos el desplazamiento manual de -5h respecto a UTC de forma explícita
-    const nowTemp = new Date();
-    const bogotaTime = new Date(nowTemp.getTime() - 5 * 60 * 60 * 1000);
+    const nowUtc = new Date();
+    const bogotaDate = new Date(nowUtc.getTime() - 5 * 60 * 60 * 1000);
 
     // Obtener la hora para el turno (0-23)
-    const hora = bogotaTime.getUTCHours();
+    const hora = bogotaDate.getUTCHours();
 
     let calculatedTurno = 3;
     if (hora >= 0 && hora < 8) {
@@ -1426,10 +1426,10 @@ app.post("/api/pallets-ground", async (req, res) => {
     }
 
     // Formatear fecha para el insert: YYYY-MM-DD HH:MM:SS
-    // Esto garantiza que la DB lo reciba como el tiempo local exacto de Bogotá
-    const isoString = bogotaTime.toISOString();
-    const formattedDate =
-      isoString.split("T")[0] + " " + isoString.split("T")[1].split(".")[0];
+    const isoString = bogotaDate.toISOString();
+    const datePart = isoString.split("T")[0];
+    const timePart = isoString.split("T")[1].split(".")[0];
+    const formattedDate = `${datePart} ${timePart}`;
 
     if (!codigo_interno || !codigo || !numero_pallet || !lote) {
       return res.status(400).json({
@@ -1438,12 +1438,30 @@ app.post("/api/pallets-ground", async (req, res) => {
       });
     }
 
+    // Normalizar códigos (quitar espacios)
+    const normalizedCodigoInterno = codigo_interno.trim();
+    const normalizedCodigo = codigo.trim();
+
+    // 1. Verificar Duplicados (Mismo código interno = mismo pallet)
+    const [existing] = await db.query(
+      "SELECT id FROM pallets_ground WHERE codigo_interno = $1",
+      [normalizedCodigoInterno]
+    );
+
+    if (existing && existing.length > 0) {
+      return res.status(409).json({
+        error: "¡Error! Este pallet ya ha sido registrado previamente",
+        palletId: existing[0].id,
+      });
+    }
+
+    // 2. Insertar Registro
     await db.query(
       `INSERT INTO pallets_ground (codigo_interno, codigo, numero_pallet, lote, peso, planta, turno, kg, usuario, fecha)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
-        codigo_interno,
-        codigo,
+        normalizedCodigoInterno,
+        normalizedCodigo,
         numero_pallet,
         lote,
         peso || null,
@@ -1500,7 +1518,7 @@ app.get("/api/pallets-ground", async (req, res) => {
           pg.usuario,
           pg.fecha
         FROM pallets_ground pg
-        LEFT JOIN materiales m ON pg.codigo = m.id_code
+        LEFT JOIN materiales m ON TRIM(pg.codigo) = TRIM(m.id_code)
         ORDER BY pg.fecha DESC
       `;
     } else {
@@ -1518,7 +1536,7 @@ app.get("/api/pallets-ground", async (req, res) => {
           pg.usuario,
           pg.fecha
         FROM pallets_ground pg
-        LEFT JOIN materiales m ON pg.codigo = m.id_code
+        LEFT JOIN materiales m ON TRIM(pg.codigo) = TRIM(m.id_code)
         ORDER BY pg.fecha DESC
       `;
     }
