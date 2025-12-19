@@ -98,18 +98,12 @@ const PalletsRecibidos = ({
           !filtro.trim() ||
           r.codigo?.toLowerCase().includes(filtro.toLowerCase());
 
-        // Formatear fecha del registro de forma robusta para Bogotá (UTC-5)
+        // Extraer la parte de la fecha (YYYY-MM-DD) de forma directa del string
+        // El servidor ya guarda la fecha en formato local de Bogotá (YYYY-MM-DD HH:mm:ss)
         let fechaRegistro = "";
         if (r.fecha) {
-          try {
-            const d = new Date(r.fecha);
-            // Si la fecha es válida, ajustamos manualmente a Bogotá para la comparación
-            // Esto evita que registros nocturnos se pasen al "día siguiente" por UTC
-            const bogota = new Date(d.getTime() - 5 * 60 * 60 * 1000);
-            fechaRegistro = bogota.toISOString().split("T")[0];
-          } catch (e) {
-            fechaRegistro = r.fecha.split(/[T ]/)[0];
-          }
+          // Tomamos la parte antes del espacio o la 'T'
+          fechaRegistro = r.fecha.split(/[T ]/)[0];
         }
 
         const coincideFecha =
