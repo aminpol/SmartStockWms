@@ -1441,16 +1441,19 @@ app.post("/api/pallets-ground", async (req, res) => {
     // Normalizar códigos (quitar espacios)
     const normalizedCodigoInterno = codigo_interno.trim();
     const normalizedCodigo = codigo.trim();
+    const normalizedLote = lote.trim();
+    const normalizedNumPallet = numero_pallet.trim();
 
-    // 1. Verificar Duplicados (Mismo código interno = mismo pallet)
+    // 1. Verificar Duplicados (Llave: Código + Lote + Número de Pallet)
+    // Se permite el mismo número de pallet si el lote es diferente.
     const [existing] = await db.query(
-      "SELECT id FROM pallets_ground WHERE codigo_interno = $1",
-      [normalizedCodigoInterno]
+      "SELECT id FROM pallets_ground WHERE TRIM(codigo) = $1 AND TRIM(lote) = $2 AND TRIM(numero_pallet) = $3",
+      [normalizedCodigo, normalizedLote, normalizedNumPallet]
     );
 
     if (existing && existing.length > 0) {
       return res.status(409).json({
-        error: "¡Error! Este pallet ya ha sido registrado previamente",
+        error: `¡Error! El Pallet N° ${normalizedNumPallet} del Lote ${normalizedLote} ya ha sido registrado previamente`,
         palletId: existing[0].id,
       });
     }
