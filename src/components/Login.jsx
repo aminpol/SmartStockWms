@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Login.css";
+import API_URL from "../apiConfig";
 import AlertModal from "./AlertModal";
 import barraImg from "../assets/barra.png";
 import almacenImg from "../assets/alamcen.png";
@@ -24,7 +25,7 @@ export default function Login({ onLogin }) {
 
   // Efecto para despertar al backend (Render Cold Start) al iniciar
   useEffect(() => {
-    fetch("https://smartstockwms-a8p6.onrender.com/")
+    fetch(`${API_URL}/`)
       .then(() => console.log("Backend despierto"))
       .catch((err) => console.log("Despertando backend...", err));
   }, []);
@@ -39,16 +40,13 @@ export default function Login({ onLogin }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ usuario, contraseña }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ usuario, contraseña }),
+      });
 
       const data = await response.json();
 

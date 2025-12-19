@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Usuarios.css";
+import API_URL from "../apiConfig";
 import AlertModal from "./AlertModal";
 import { useConfig } from "../context/ConfigContext";
 
@@ -38,9 +39,7 @@ const Usuarios = () => {
     }
 
     try {
-      const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/usuarios/${searchDoc}`
-      );
+      const response = await fetch(`${API_URL}/api/usuarios/${searchDoc}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -74,9 +73,7 @@ const Usuarios = () => {
   const handleLoadAllUsers = async () => {
     try {
       setLoadingUsers(true);
-      const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/usuarios"
-      );
+      const response = await fetch(`${API_URL}/api/usuarios`);
 
       if (!response.ok) {
         setMessage({ type: "error", text: t("error") });
@@ -115,12 +112,9 @@ const Usuarios = () => {
     }
 
     try {
-      const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/usuarios/${documento}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`${API_URL}/api/usuarios/${documento}`, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         const data = await response.json();
@@ -154,8 +148,8 @@ const Usuarios = () => {
 
     try {
       const url = isEditing
-        ? `https://smartstockwms-a8p6.onrender.com/api/usuarios/${formData.documento}`
-        : "https://smartstockwms-a8p6.onrender.com/api/usuarios";
+        ? `${API_URL}/api/usuarios/${formData.documento}`
+        : `${API_URL}/api/usuarios`;
 
       const method = isEditing ? "PUT" : "POST";
 
@@ -206,7 +200,7 @@ const Usuarios = () => {
 
     try {
       const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/usuarios/${formData.documento}`,
+        `${API_URL}/api/usuarios/${formData.documento}`,
         {
           method: "DELETE",
         }

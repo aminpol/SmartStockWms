@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./EditarCrearProd.css";
+import API_URL from "../apiConfig";
 import "./Usuarios.css"; // Importar estilos de Usuarios
 import AlertModal from "./AlertModal";
 import { useConfig } from "../context/ConfigContext";
@@ -26,7 +27,7 @@ const EditarCrearProd = ({ onBack, user }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/materiales/${searchCode.trim()}`
+        `${API_URL}/api/materiales/${searchCode.trim()}`
       );
 
       if (!response.ok) {
@@ -63,8 +64,8 @@ const EditarCrearProd = ({ onBack, user }) => {
     try {
       setLoading(true);
       const url = isEditing
-        ? `https://smartstockwms-a8p6.onrender.com/api/materiales/${code.trim()}`
-        : `https://smartstockwms-a8p6.onrender.com/api/materiales`;
+        ? `${API_URL}/api/materiales/${code.trim()}`
+        : `${API_URL}/api/materiales`;
 
       const method = isEditing ? "PUT" : "POST";
 

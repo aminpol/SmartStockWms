@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./PalletsRecibidos.css";
 import AlertModal from "./AlertModal";
+import API_URL from "../apiConfig";
 
 const PalletsRecibidos = ({
   onBack,
@@ -13,6 +14,7 @@ const PalletsRecibidos = ({
   const [filtro, setFiltro] = useState("");
   const [filtroFecha, setFiltroFecha] = useState("");
   const [filtroPlanta, setFiltroPlanta] = useState("");
+  const [filtroTurno, setFiltroTurno] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [alertMessage, setAlertMessage] = useState(null);
@@ -24,7 +26,7 @@ const PalletsRecibidos = ({
   const obtenerTurnoActual = () => {
     const ahora = new Date();
     const hora = ahora.getHours();
-    
+
     if (hora >= 0 && hora < 8) {
       return 1; // Turno 1: 12:00 AM - 7:59 AM
     } else if (hora >= 8 && hora < 16) {
@@ -38,21 +40,32 @@ const PalletsRecibidos = ({
     setLoading(true);
     try {
       console.log("Intentando obtener pallets de GROUND...");
-      
+
       // Siempre obtener pallets de la tabla pallets_ground
-      const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/pallets-ground`
-      );
-      
-      console.log("Response status:", response.status);
-      
+      const response = await fetch(`${API_URL}/api/pallets-ground`);
+
       if (response.ok) {
         const data = await response.json();
-        console.log("Pallets GROUND obtenidos:", data.length);
-        console.log("Datos recibidos:", data);
         setRecibos(data);
+
+        // Establecer filtros por defecto si no hay búsqueda activa
+        if (!searchActive) {
+          // Bogotá es UTC-5
+          const nowServer = new Date();
+          const bogotaTime = new Date(nowServer.getTime() - 5 * 60 * 60 * 1000);
+          const hoy = bogotaTime.toISOString().split("T")[0];
+
+          const turnoActual = obtenerTurnoActual();
+
+          setFiltroFecha(hoy);
+          setFiltroTurno(turnoActual.toString());
+          setSearchActive(true);
+        }
       } else {
-        console.error("Error fetching pallets GROUND - Status:", response.status);
+        console.error(
+          "Error fetching pallets GROUND - Status:",
+          response.status
+        );
         const errorText = await response.text();
         console.error("Error text:", errorText);
       }
@@ -65,24 +78,11 @@ const PalletsRecibidos = ({
 
   const handleSearch = () => {
     // Activar el filtrado cuando se presiona el botón de búsqueda
-    if (!filtro.trim() && !filtroFecha.trim() && !filtroPlanta.trim()) {
-      setAlertMessage({
-        type: "error",
-        text: "Por favor ingrese un código, fecha o seleccione una planta para buscar",
-      });
-      return;
-    }
-    
     setSearchActive(true);
-    
+
     // Verificar si hay resultados después de filtrar
-    const resultados = recibos.filter((r) => {
-      const coincideCodigo = !filtro.trim() || r.codigo?.toLowerCase().includes(filtro.toLowerCase());
-      const coincideFecha = !filtroFecha.trim() || r.fecha?.includes(filtroFecha);
-      const coincidePlanta = !filtroPlanta.trim() || r.planta?.toLowerCase().includes(filtroPlanta.toLowerCase());
-      return coincideCodigo && coincideFecha && coincidePlanta;
-    });
-    
+    const resultados = getFilteredData();
+
     if (resultados.length === 0) {
       setAlertMessage({
         type: "error",
@@ -91,28 +91,57 @@ const PalletsRecibidos = ({
     }
   };
 
+  const getFilteredData = () => {
+    return recibos
+      .filter((r) => {
+        const coincideCodigo =
+          !filtro.trim() ||
+          r.codigo?.toLowerCase().includes(filtro.toLowerCase());
+
+        // Formatear fecha del registro (YYYY-MM-DD) para comparar con filtroFecha
+        const fechaRegistro = r.fecha ? r.fecha.split("T")[0] : "";
+        const coincideFecha =
+          !filtroFecha.trim() || fechaRegistro === filtroFecha;
+
+        const coincidePlanta =
+          !filtroPlanta.trim() ||
+          r.planta?.toLowerCase() === filtroPlanta.toLowerCase();
+
+        const coincideTurno =
+          !filtroTurno || r.turno?.toString() === filtroTurno;
+
+        return (
+          coincideCodigo && coincideFecha && coincidePlanta && coincideTurno
+        );
+      })
+      .sort((a, b) => {
+        // Ordenar por número de pallet ascendente
+        const numA = parseInt(a.numero_pallet) || 0;
+        const numB = parseInt(b.numero_pallet) || 0;
+        return numA - numB;
+      });
+  };
+
   const handleClearFilter = () => {
     setFiltro("");
     setFiltroFecha("");
     setFiltroPlanta("");
+    setFiltroTurno("");
     setSearchActive(false);
   };
 
-  const filteredRecibos = searchActive 
-    ? recibos.filter((r) => {
-        const coincideCodigo = !filtro.trim() || r.codigo?.toLowerCase().includes(filtro.toLowerCase());
-        const coincideFecha = !filtroFecha.trim() || r.fecha?.includes(filtroFecha);
-        const coincidePlanta = !filtroPlanta.trim() || r.planta?.toLowerCase().includes(filtroPlanta.toLowerCase());
-        return coincideCodigo && coincideFecha && coincidePlanta;
-      })
-    : recibos;
+  const filteredRecibos = searchActive ? getFilteredData() : recibos;
 
   return (
     <div className={`pallets-recibidos-screen ${isEmbedded ? "embedded" : ""}`}>
       <div
         className={`main-container ${isEmbedded ? "embedded-container" : ""}`}
       >
-        {!isEmbedded && <h2 className="page-title" style={{ fontSize: "1.5rem" }}>Pallets Recibidos</h2>}
+        {!isEmbedded && (
+          <h2 className="page-title" style={{ fontSize: "1.5rem" }}>
+            Pallets Recibidos
+          </h2>
+        )}
         {isEmbedded && (
           <h3
             className="page-title"
@@ -143,8 +172,8 @@ const PalletsRecibidos = ({
                   <i className="fas fa-search"></i>
                 </button>
                 {searchActive && (
-                  <button 
-                    className="btn-clear-icon" 
+                  <button
+                    className="btn-clear-icon"
                     onClick={handleClearFilter}
                     title="Limpiar filtro"
                   >
@@ -153,7 +182,7 @@ const PalletsRecibidos = ({
                 )}
               </div>
             </div>
-            
+
             <div className="search-input-group">
               <label className="search-label">Filtrar fecha</label>
               <div className="search-input-wrapper">
@@ -170,7 +199,7 @@ const PalletsRecibidos = ({
                 />
               </div>
             </div>
-            
+
             <div className="search-input-group">
               <label className="search-label">Filtrar planta</label>
               <div className="search-input-wrapper">
@@ -178,11 +207,6 @@ const PalletsRecibidos = ({
                   className="search-input"
                   value={filtroPlanta}
                   onChange={(e) => setFiltroPlanta(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
                 >
                   <option value="">Todas</option>
                   <option value="UPF-22">UPF-22</option>
@@ -190,23 +214,42 @@ const PalletsRecibidos = ({
                 </select>
               </div>
             </div>
+
+            <div className="search-input-group">
+              <label className="search-label">Filtrar turno</label>
+              <div className="search-input-wrapper">
+                <select
+                  className="search-input"
+                  value={filtroTurno}
+                  onChange={(e) => setFiltroTurno(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  <option value="1">Turno 1</option>
+                  <option value="2">Turno 2</option>
+                  <option value="3">Turno 3</option>
+                </select>
+              </div>
+            </div>
           </div>
-          
+
           {/* Mostrar turno actual en modo móvil */}
           {window.innerWidth < 1024 && (
-            <div style={{ 
-              textAlign: "center", 
-              fontSize: "0.8rem", 
-              color: "#666", 
-              margin: "0",
-              padding: "0",
-              lineHeight: "1",
-              height: "20px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}>
-              Turno {obtenerTurnoActual()} Actual
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: "0.8rem",
+                color: "#666",
+                margin: "0",
+                padding: "0",
+                lineHeight: "1",
+                height: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              Turno {obtenerTurnoActual()} Actual - Registros:{" "}
+              {filteredRecibos.length}
             </div>
           )}
         </div>
@@ -219,14 +262,19 @@ const PalletsRecibidos = ({
                 <th>DESCRIPCION</th>
                 <th>LOTE</th>
                 <th>N° PALL</th>
-                <th>USUARIO</th>
+                <th className="col-kg">KG</th>
+                {searchActive && (
+                  <th>
+                    <i className="fas fa-user" title="USUARIO"></i>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td
-                    colSpan="5"
+                    colSpan={searchActive ? 6 : 5}
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     Cargando...
@@ -239,13 +287,16 @@ const PalletsRecibidos = ({
                     <td>{item.descripcion}</td>
                     <td>{item.lote}</td>
                     <td>{item.numero_pallet}</td>
-                    <td>{item.usuario || 'N/A'}</td>
+                    <td style={{ fontWeight: "700" }}>{item.kg || 0}</td>
+                    {searchActive && (
+                      <td style={{ fontSize: "0.85rem" }}>{item.usuario}</td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan="5"
+                    colSpan={searchActive ? 6 : 5}
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     No hay registros encontrados

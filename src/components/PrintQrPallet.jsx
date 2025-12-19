@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./PrintQrPallet.css";
+import API_URL from "../apiConfig";
 import VisualizarQr from "./VisualizarQr";
 import QRious from "qrious";
 
@@ -158,9 +159,7 @@ const PrintQrPallet = ({ onBack, onLogout }) => {
 
     try {
       // Asumiendo que el backend corre en localhost:3000
-      const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/materials/${formData.code}`
-      );
+      const response = await fetch(`${API_URL}/api/materials/${formData.code}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -318,18 +317,15 @@ const PrintQrPallet = ({ onBack, onLogout }) => {
 
     try {
       // Backend call for UNIQUE IDs
-      const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/pallets",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...formData,
-            numberLabels: numLabels,
-            quantity: labelQty,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/pallets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          numberLabels: numLabels,
+          quantity: labelQty,
+        }),
+      });
 
       if (!response.ok) throw new Error("Error generando etiquetas");
       const data = await response.json();
@@ -364,7 +360,7 @@ const PrintQrPallet = ({ onBack, onLogout }) => {
       setShowErrorModal(true);
       return;
     }
-    
+
     // Usar el método del backup con iframe para mejor compatibilidad
     imprimirConIframe();
   };
@@ -372,10 +368,10 @@ const PrintQrPallet = ({ onBack, onLogout }) => {
   const imprimirConIframe = () => {
     // Crear contenedor temporal para armar las páginas
     const printContainer = document.createElement("div");
-    
+
     // Configurar para 4 códigos por etiqueta (página)
     const codigosPorPagina = 4;
-    
+
     // Obtener todos los elementos de códigos visibles
     const visibleCodes = Array.from(
       document.querySelectorAll(".print-area .print-label")
@@ -384,20 +380,20 @@ const PrintQrPallet = ({ onBack, onLogout }) => {
     for (let i = 0; i < visibleCodes.length; i += codigosPorPagina) {
       const pagina = document.createElement("div");
       pagina.className = "print-page";
-      
+
       const grupo = visibleCodes.slice(i, i + codigosPorPagina);
-      
+
       // Si la página no está llena (menos de 4 códigos), añadir clase especial
       if (grupo.length < 4) {
         pagina.classList.add("partial-page");
       }
-      
+
       grupo.forEach((codigoOriginal) => {
         // Clonar código
         const clon = codigoOriginal.cloneNode(true);
         pagina.appendChild(clon);
       });
-      
+
       printContainer.appendChild(pagina);
     }
 
@@ -409,9 +405,9 @@ const PrintQrPallet = ({ onBack, onLogout }) => {
     iframe.style.width = "0";
     iframe.style.height = "0";
     iframe.style.border = "0";
-    
+
     document.body.appendChild(iframe);
-    
+
     // Escribir contenido en el iframe
     const doc = iframe.contentWindow.document;
     doc.open();

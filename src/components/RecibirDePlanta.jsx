@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./RecibirDePlanta.css";
 import PalletsRecibidos from "./PalletsRecibidos";
+import API_URL from "../apiConfig";
 
 const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   const navigate = useNavigate();
@@ -17,10 +18,11 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   const [descripcion, setDescripcion] = useState("");
   const [lote, setLote] = useState("");
   const [nPallet, setNPallet] = useState("");
-  
+
   // Nuevos estados para el formato completo del QR
   const [codigoInterno, setCodigoInterno] = useState("");
   const [peso, setPeso] = useState("");
+  const [kg, setKg] = useState(""); // Nuevo estado para peso manual KG
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState(null); // Feedback message
@@ -28,7 +30,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   // Focus refs
   const codigoRef = useRef(null);
   const ubicacionRef = useRef(null);
-  
+
   // Timeout para debounce de ubicación
   const ubicacionTimeoutRef = useRef(null);
 
@@ -57,13 +59,13 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
 
   const obtenerDescripcion = async (codigo) => {
     try {
-      const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/materiales/descripcion/${codigo}`
-      );
+      const response = await fetch(`${API_URL}/api/materiales/${codigo}`);
       if (response.ok) {
         const data = await response.json();
-        setDescripcion(data.descripcion || "Sin descripción");
+        console.log("Material de backend:", data);
+        setDescripcion(data.description || "Sin descripción");
       } else {
+        console.warn("Material no encontrado o error:", response.status);
         setDescripcion("Sin descripción");
       }
     } catch (error) {
@@ -76,34 +78,34 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     // Formato esperado: REFERENCIA|CODIGO|N_PALLET|LOTE|PESO
     // Ejemplo: 25120001|6180001|34|NOV25DF014|1152
     const parts = value.split("|");
-    
+
     if (parts.length >= 4) {
       // parts[0]: Código interno
       // parts[1]: Código principal
       // parts[2]: Número de pallet
       // parts[3]: Lote
       // parts[4]: Peso (opcional)
-      
+
       setCodigoInterno(parts[0]); // Código interno
       setCodigo(parts[1]); // Código principal
       setNPallet(parts[2]); // Número de pallet
       setLote(parts[3]); // Lote
       setPeso(parts[4] || ""); // Peso (opcional)
-      
+
       // Obtener descripción usando el código principal
       obtenerDescripcion(parts[1]);
-      
+
       console.log("QR parseado:", {
         codigoInterno: parts[0],
         codigo: parts[1],
         nPallet: parts[2],
         lote: parts[3],
-        peso: parts[4] || ""
+        peso: parts[4] || "",
       });
-      
+
       return true;
     }
-    
+
     return false;
   };
 
@@ -125,20 +127,25 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     const newUbicacion = e.target.value.toUpperCase();
     console.log("Ubicación escaneada:", newUbicacion); // Debug
     setUbicacion(newUbicacion);
-    
+
     // Limpiar timeout anterior
     if (ubicacionTimeoutRef.current) {
       clearTimeout(ubicacionTimeoutRef.current);
     }
-    
+
     // Solo auto-guardar si la ubicación parece completa y hay datos válidos
     if (newUbicacion.trim() && planta && codigo.trim()) {
       // Para ubicaciones cortas como "GR", esperar más tiempo
       // Para ubicaciones más largas, esperar menos tiempo
       const waitTime = newUbicacion.length >= 4 ? 800 : 1500;
-      
-      console.log("Configurando auto-guardado en", waitTime, "ms para:", newUbicacion); // Debug
-      
+
+      console.log(
+        "Configurando auto-guardado en",
+        waitTime,
+        "ms para:",
+        newUbicacion
+      ); // Debug
+
       ubicacionTimeoutRef.current = setTimeout(() => {
         // Verificar que todavía tenemos los datos necesarios
         if (newUbicacion.trim() && planta && codigo.trim()) {
@@ -152,11 +159,23 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   const handleSaveRecibo = async () => {
     // Forzar lectura actual del estado
     const currentUbicacion = ubicacionRef.current?.value || ubicacion;
-    
-    console.log("Datos a guardar:", { planta, codigo, ubicacion: currentUbicacion, codigoInterno, nPallet, lote, peso }); // Debug
-    
+
+    console.log("Datos a guardar:", {
+      planta,
+      codigo,
+      ubicacion: currentUbicacion,
+      codigoInterno,
+      nPallet,
+      lote,
+      peso,
+    }); // Debug
+
     if (!planta || !codigo || !currentUbicacion) {
-      console.log("Validación fallida - Datos faltantes:", { planta, codigo, ubicacion: currentUbicacion }); // Debug
+      console.log("Validación fallida - Datos faltantes:", {
+        planta,
+        codigo,
+        ubicacion: currentUbicacion,
+      }); // Debug
       setMessage({
         type: "error",
         text: "Faltan datos obligatorios (Planta, Código, Ubicación)",
@@ -183,31 +202,36 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
 
     setIsLoading(true);
     try {
-      console.log("Guardando pallet en GROUND con datos completos:", { codigoInterno, codigo, nPallet, lote, peso });
-      
-      const groundResponse = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/pallets-ground",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            codigo_interno: codigoInterno,
-            codigo: codigo,
-            numero_pallet: nPallet,
-            lote: lote,
-            peso: peso,
-            planta: planta, // Agregar campo planta
-            usuario: user?.usuario || "Desconocido",
-          }),
-        }
-      );
+      console.log("Guardando pallet en GROUND con datos completos:", {
+        codigoInterno,
+        codigo,
+        nPallet,
+        lote,
+        peso,
+        kg,
+      });
+
+      const groundResponse = await fetch(`${API_URL}/api/pallets-ground`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          codigo_interno: codigoInterno,
+          codigo: codigo,
+          numero_pallet: nPallet,
+          lote: lote,
+          peso: peso,
+          planta: planta,
+          kg: parseInt(kg) || 0, // Enviar kg manual
+          usuario: user?.usuario || "Desconocido",
+        }),
+      });
 
       if (groundResponse.ok) {
         setMessage({
           type: "success",
           text: "Pallet guardado correctamente en GROUND",
         });
-        
+
         // Limpiar campos excepto planta
         setCodigo("");
         setUbicacion("");
@@ -216,12 +240,24 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
         setNPallet("");
         setCodigoInterno("");
         setPeso("");
+        setKg(""); // Limpiar KG
         setRefreshTrigger((prev) => prev + 1); // Actualizar lista
         setTimeout(() => codigoRef.current?.focus(), 100);
       } else {
-        setMessage({ type: "error", text: "Error al guardar pallet en GROUND" });
+        const errorData = await groundResponse.json().catch(() => ({}));
+
+        if (groundResponse.status === 409) {
+          setMessage({
+            type: "error",
+            text: "¡Error! Este pallet ya ha sido ingresado previamente",
+          });
+        } else {
+          setMessage({
+            type: "error",
+            text: errorData.error || "Error al guardar pallet en GROUND",
+          });
+        }
       }
-      
     } catch (error) {
       console.error("Error saving recibo:", error);
       setMessage({ type: "error", text: "Error de conexión" });
@@ -250,7 +286,6 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
 
   return (
     <div className="recibo-screen-split">
-      {/* Panel Izquierdo: Formulario de Recibo */}
       <div className="recibo-container box-shadow-container">
         <h2 className="title">Recibo de Planta</h2>
 
@@ -271,6 +306,19 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
               <option value="UPF-30">UPF-30</option>
             </select>
             <i className="fas fa-chevron-down select-icon"></i>
+          </div>
+        </div>
+
+        <div className="input-group">
+          <label className="label-text">Peso Bruto</label>
+          <div className="input-wrapper">
+            <input
+              type="number"
+              value={kg}
+              onChange={(e) => setKg(e.target.value)}
+              placeholder="Ingrese Kilos"
+              className="scanner-input"
+            />
           </div>
         </div>
 

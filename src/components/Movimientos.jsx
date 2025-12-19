@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import "./Movimientos.css";
+import API_URL from "../apiConfig";
 import AlertModal from "./AlertModal";
 import { useConfig } from "../context/ConfigContext";
 
@@ -18,7 +19,7 @@ const Movimientos = ({ onBack, onLogout, user }) => {
   const validateUbicacion = async (ubicacion) => {
     try {
       const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/ubicaciones/validar/${encodeURIComponent(ubicacion)}`
+        `${API_URL}/api/ubicaciones/validar/${encodeURIComponent(ubicacion)}`
       );
       return response.ok;
     } catch (error) {
@@ -102,7 +103,7 @@ const Movimientos = ({ onBack, onLogout, user }) => {
     try {
       const [fromValid, toValid] = await Promise.all([
         validateUbicacion(fromPosition.trim()),
-        validateUbicacion(toPosition.trim())
+        validateUbicacion(toPosition.trim()),
       ]);
 
       if (!fromValid) {
@@ -151,19 +152,16 @@ const Movimientos = ({ onBack, onLogout, user }) => {
           ? user.usuario
           : user || "Usuario Desconocido";
 
-      const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/stock/mover",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fromPosition: fromPosition.trim(),
-            toPosition: toPosition.trim(),
-            quantity: qty,
-            user: userName,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/stock/mover`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fromPosition: fromPosition.trim(),
+          toPosition: toPosition.trim(),
+          quantity: qty,
+          user: userName,
+        }),
+      });
 
       const data = await response.json().catch(() => ({}));
 
@@ -264,7 +262,11 @@ const Movimientos = ({ onBack, onLogout, user }) => {
                 <i className="fas fa-arrow-left"></i>
                 <span className="btn-text">{t("back")}</span>
               </button>
-              <button className="btn-action btn-save" onClick={handleMove} disabled={loading}>
+              <button
+                className="btn-action btn-save"
+                onClick={handleMove}
+                disabled={loading}
+              >
                 <i className="fas fa-save"></i>
                 <span className="btn-text">Guardar</span>
               </button>

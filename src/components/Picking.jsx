@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./Picking.css";
+import API_URL from "../apiConfig";
 import { useConfig } from "../context/ConfigContext";
 
 const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
@@ -36,9 +37,7 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
       setStockData(null);
 
       const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/stock/ubicacion/${encodeURIComponent(
-          loc
-        )}`
+        `${API_URL}/api/stock/ubicacion/${encodeURIComponent(loc)}`
       );
       const data = await response.json();
 
@@ -116,19 +115,16 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
           ? user.usuario
           : user || "Usuario Desconocido";
 
-      const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/stock/retirar",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code: stockData.id,
-            position: stockData.posicion,
-            quantity: qty,
-            user: userName,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/stock/retirar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: stockData.id,
+          position: stockData.posicion,
+          quantity: qty,
+          user: userName,
+        }),
+      });
 
       const data = await response.json();
 
@@ -199,7 +195,7 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
           value={location}
           onChange={(e) => setLocation(e.target.value.toUpperCase())}
           onKeyDown={handleLocationKeyDown}
-          style={{ textTransform: 'uppercase' }}
+          style={{ textTransform: "uppercase" }}
         />
 
         {stockData && (
@@ -261,14 +257,16 @@ const Picking = ({ onBack, onLogout, initialCode, expectedPosition, user }) => {
           <i className="fas fa-arrow-left"></i>
           <span className="btn-text">{t("back")}</span>
         </button>
-        
+
         <button
           className="picking-btn-retirar"
           onClick={handleWithdraw}
           disabled={!stockData || loading}
         >
           <i className="fas fa-shipping-fast"></i>
-          <span className="btn-text">{loading ? t("loading") : t("pickBtnConfirm")}</span>
+          <span className="btn-text">
+            {loading ? t("loading") : t("pickBtnConfirm")}
+          </span>
         </button>
       </div>
     </div>

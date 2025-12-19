@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./VerMovimientos.css";
+import API_URL from "../apiConfig";
 import { useConfig } from "../context/ConfigContext";
 import AlertModal from "./AlertModal";
 
@@ -20,7 +21,7 @@ const VerMovimientos = () => {
     setTieneIngresosPlanta(false);
     // Enfocar el input después de limpiar
     setTimeout(() => {
-      document.querySelector('.ver-movimientos-input')?.focus();
+      document.querySelector(".ver-movimientos-input")?.focus();
     }, 100);
   };
 
@@ -32,7 +33,10 @@ const VerMovimientos = () => {
 
     // Validar que el código sea numérico
     if (!/^\d+$/.test(codigo.trim())) {
-      setMessage({ type: "error", text: `${codigo.trim()} no es un código válido` });
+      setMessage({
+        type: "error",
+        text: `${codigo.trim()} no es un código válido`,
+      });
       return;
     }
 
@@ -42,9 +46,7 @@ const VerMovimientos = () => {
       setMovimientos([]);
       setTieneIngresosPlanta(false);
 
-      let url = `https://smartstockwms-a8p6.onrender.com/api/historial/${encodeURIComponent(
-        codigo.trim()
-      )}`;
+      let url = `${API_URL}/api/historial/${encodeURIComponent(codigo.trim())}`;
 
       // Agregar filtros a la URL
       const params = [];
@@ -52,10 +54,13 @@ const VerMovimientos = () => {
         params.push(`tipo=${tipoFiltro}`);
       }
       // Solo agregar filtro de planta si es "Todos" o "Entro"
-      if (plantaFiltro !== "Todos" && (tipoFiltro === "Todos" || tipoFiltro === "Entro")) {
+      if (
+        plantaFiltro !== "Todos" &&
+        (tipoFiltro === "Todos" || tipoFiltro === "Entro")
+      ) {
         params.push(`planta=${plantaFiltro}`);
       }
-      
+
       if (params.length > 0) {
         url += `?${params.join("&")}`;
       }
@@ -64,7 +69,10 @@ const VerMovimientos = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage({ type: "error", text: data.error || "Producto no ingresado" });
+        setMessage({
+          type: "error",
+          text: data.error || "Producto no ingresado",
+        });
         return;
       }
 
@@ -74,11 +82,12 @@ const VerMovimientos = () => {
       }
 
       setMovimientos(data);
-      
+
       // Verificar si hay ingresos de planta en los resultados
-      const hayIngresosPlanta = data.some(mov => 
-        mov.T_movimi === "Entro" && 
-        (mov.planta === "UPF-22" || mov.planta === "UPF-30")
+      const hayIngresosPlanta = data.some(
+        (mov) =>
+          mov.T_movimi === "Entro" &&
+          (mov.planta === "UPF-22" || mov.planta === "UPF-30")
       );
       setTieneIngresosPlanta(hayIngresosPlanta);
     } catch (error) {
@@ -117,8 +126,12 @@ const VerMovimientos = () => {
           >
             <option value="Todos">Todos</option>
             <option value="Entro">Entro</option>
-            <option value="Salio" disabled={tieneIngresosPlanta}>Salio</option>
-            <option value="Movimiento" disabled={tieneIngresosPlanta}>Movimiento</option>
+            <option value="Salio" disabled={tieneIngresosPlanta}>
+              Salio
+            </option>
+            <option value="Movimiento" disabled={tieneIngresosPlanta}>
+              Movimiento
+            </option>
           </select>
 
           <select

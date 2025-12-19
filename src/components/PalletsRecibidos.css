@@ -58,23 +58,24 @@
 
 .search-row {
   display: flex;
-  gap: 1.25rem; /* Reducido para que los tres filtros quepan en la misma fila */
+  gap: 1.5rem; /* Aumentado para mayor separación */
   align-items: flex-end;
   flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 .search-input-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  flex: 1;
-  min-width: 220px; /* Aumentado para dar más espacio a cada filtro */
+  flex: 0 1 auto; /* Cambiado de flex: 1 para que no se estiren demasiado */
 }
 
 .search-label {
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1rem; /* Reducido un poco para ahorrar espacio */
   color: #000;
+  white-space: nowrap;
 }
 
 .search-input-wrapper {
@@ -85,13 +86,12 @@
 }
 
 .search-input {
-  flex: 1;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.8rem;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   outline: none;
-  max-width: 150px; /* Reducción drástica para asegurar espacio */
+  width: 130px; /* Ancho fijo moderado para consistencia */
 }
 
 .btn-search-icon {
@@ -139,15 +139,22 @@
 
 .pallets-table th:nth-child(4),
 .pallets-table td:nth-child(4) {
-  width: 10%; /* Columna N° PALL más angosta */
-  min-width: 80px;
-  max-width: 100px;
+  width: 8%; /* Columna N° PALL */
+  min-width: 60px;
 }
 
-.pallets-table th:nth-child(5),
+.pallets-table th.col-kg,
 .pallets-table td:nth-child(5) {
-  width: 15%; /* Columna USUARIO */
-  min-width: 100px;
+  width: 50px; /* Columna KG */
+  min-width: 45px;
+  padding-left: 0.1rem;
+  padding-right: 0.1rem;
+}
+
+.pallets-table th:nth-child(6),
+.pallets-table td:nth-child(6) {
+  width: 10%; /* Columna USUARIO */
+  min-width: 60px;
 }
 
 .pallets-table th:nth-child(1),

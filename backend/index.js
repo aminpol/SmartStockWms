@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const db = require("./db");
 require("dotenv").config();
+const db = require("./db");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -353,7 +353,7 @@ app.get("/api/stock/consulta/:code", async (req, res) => {
     const hasLoteColumn = columns.length > 0;
 
     let allRows = [];
-    
+
     try {
       // Buscar en stock_ground (puede tener múltiples filas del mismo código en GROUND)
       const [groundRows] = await db.query(
@@ -368,7 +368,7 @@ app.get("/api/stock/consulta/:code", async (req, res) => {
     } catch (groundError) {
       console.warn("Error consultando stock_ground:", groundError.message);
     }
-    
+
     // Buscar en stock_ubicaciones (otras ubicaciones y datos antiguos)
     let query;
     if (hasLoteColumn) {
@@ -385,7 +385,12 @@ app.get("/api/stock/consulta/:code", async (req, res) => {
 
     const [normalRows] = await db.query(query, [code]);
     allRows.push(...normalRows);
-    console.log("Resultados en stock_ubicaciones:", normalRows.length, "total:", allRows.length);
+    console.log(
+      "Resultados en stock_ubicaciones:",
+      normalRows.length,
+      "total:",
+      allRows.length
+    );
 
     if (allRows.length === 0) {
       return res
@@ -405,7 +410,12 @@ app.post("/api/stock/mover", async (req, res) => {
   try {
     const { fromPosition, toPosition, quantity, user } = req.body;
     console.log("=== MOVIMIENTO DE STOCK ===");
-    console.log("Datos recibidos:", { fromPosition, toPosition, quantity, user });
+    console.log("Datos recibidos:", {
+      fromPosition,
+      toPosition,
+      quantity,
+      user,
+    });
 
     // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
     const userName =
@@ -430,7 +440,7 @@ app.post("/api/stock/mover", async (req, res) => {
         [fromPosition]
       );
       console.log("Posición origen encontrada:", posicionOrigen.length);
-      
+
       console.log("Validando posición destino:", toPosition);
       const [posicionDestino] = await db.query(
         "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
@@ -469,10 +479,10 @@ app.post("/api/stock/mover", async (req, res) => {
     );
     const hasLoteColumn = columns.length > 0;
 
-    let query = hasLoteColumn 
+    let query = hasLoteColumn
       ? "SELECT id, descrip, cantidad, lote FROM stock_ubicaciones WHERE posicion = $1"
       : "SELECT id, descrip, cantidad FROM stock_ubicaciones WHERE posicion = $1";
-    
+
     const [origenRows] = await db.query(query, [fromPosition]);
     console.log("Stock encontrado en origen:", origenRows.length);
 
@@ -541,7 +551,14 @@ app.post("/api/stock/mover", async (req, res) => {
       if (hasLoteColumn) {
         await db.query(
           "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
-          [origen.id, origen.descrip, totalDestino, toPosition, userName, origen.lote]
+          [
+            origen.id,
+            origen.descrip,
+            totalDestino,
+            toPosition,
+            userName,
+            origen.lote,
+          ]
         );
       } else {
         await db.query(
@@ -637,7 +654,7 @@ app.post("/api/stock/ingresa", async (req, res) => {
 
     // Ver si ya existe algún registro en esa posición con OTRO código
     // Para GROUND, permitimos múltiples códigos. Para otras posiciones, mantenemos la restricción.
-    if (position.toUpperCase() !== 'GROUND') {
+    if (position.toUpperCase() !== "GROUND") {
       const [otrosEnPosicion] = await db.query(
         "SELECT id FROM stock_ubicaciones WHERE posicion = $1 AND id <> $2",
         [position, code]
@@ -654,15 +671,17 @@ app.post("/api/stock/ingresa", async (req, res) => {
     // Ver si ya existe registro para ese código, posición y lote
     let query;
     let queryParams;
-    
+
     if (hasLoteColumn) {
-      query = "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2 AND lote = $3";
+      query =
+        "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2 AND lote = $3";
       queryParams = [code, position, lote || null];
     } else {
-      query = "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2";
+      query =
+        "SELECT cantidad FROM stock_ubicaciones WHERE id = $1 AND posicion = $2";
       queryParams = [code, position];
     }
-    
+
     const [rows] = await db.query(query, queryParams);
 
     let newQuantity = qty;
@@ -684,7 +703,7 @@ app.post("/api/stock/ingresa", async (req, res) => {
       }
     } else {
       // Para GROUND, usar tabla especial stock_ground que permite múltiples lotes
-      if (position.toUpperCase() === 'GROUND' && hasLoteColumn) {
+      if (position.toUpperCase() === "GROUND" && hasLoteColumn) {
         // Verificar si existe la tabla stock_ground
         try {
           await db.query(`
@@ -699,14 +718,17 @@ app.post("/api/stock/ingresa", async (req, res) => {
               updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
           `);
-          
+
           // Insertar en stock_ground (sin constraint única)
           await db.query(
             "INSERT INTO stock_ground (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
             [code, descrip, newQuantity, position, userName, lote || null]
           );
         } catch (tableError) {
-          console.error("Error creando/insertando en stock_ground:", tableError);
+          console.error(
+            "Error creando/insertando en stock_ground:",
+            tableError
+          );
           // Si falla, intentar en tabla normal como fallback
           await db.query(
             "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
@@ -780,11 +802,13 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
 
     let query;
     let queryParams;
-    
-    if (posicion.toUpperCase() === 'GROUND') {
+
+    if (posicion.toUpperCase() === "GROUND") {
       // Para GROUND, buscar en ambas tablas
-      console.log("Consultando GROUND - buscar en stock_ground y stock_ubicaciones");
-      
+      console.log(
+        "Consultando GROUND - buscar en stock_ground y stock_ubicaciones"
+      );
+
       try {
         // Buscar en stock_ground primero
         const [groundRows] = await db.query(
@@ -793,7 +817,7 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
            WHERE posicion = $1`,
           [posicion]
         );
-        
+
         // También buscar en stock_ubicaciones por si hay datos antiguos
         const [normalRows] = await db.query(
           `SELECT id, descrip, cantidad, posicion, lote
@@ -801,19 +825,28 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
            WHERE posicion = $1`,
           [posicion]
         );
-        
+
         // Combinar resultados
         const allRows = [...groundRows, ...normalRows];
-        console.log("Resultados GROUND - stock_ground:", groundRows.length, "stock_ubicaciones:", normalRows.length, "total:", allRows.length);
+        console.log(
+          "Resultados GROUND - stock_ground:",
+          groundRows.length,
+          "stock_ubicaciones:",
+          normalRows.length,
+          "total:",
+          allRows.length
+        );
         res.json(allRows);
         return;
-        
       } catch (groundError) {
-        console.warn("Error consultando stock_ground, usando solo stock_ubicaciones:", groundError.message);
+        console.warn(
+          "Error consultando stock_ground, usando solo stock_ubicaciones:",
+          groundError.message
+        );
         // Fallback a tabla normal
       }
     }
-    
+
     // Para otras posiciones o fallback, usar consulta normal
     if (hasLoteColumn) {
       query = `SELECT id, descrip, cantidad, posicion, lote
@@ -829,7 +862,7 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
     console.log("Query ejecutada:", query);
     const [rows] = await db.query(query, queryParams);
     console.log("Resultados encontrados:", rows.length);
-    
+
     // Para depuración: mostrar todos los datos en la tabla
     const [allRows] = await db.query("SELECT * FROM stock_ubicaciones LIMIT 5");
     console.log("Primeros 5 registros en stock_ubicaciones:", allRows);
@@ -846,7 +879,7 @@ app.get("/api/stock/ubicacion/:posicion", async (req, res) => {
 app.get("/api/check-tables", async (req, res) => {
   try {
     console.log("Verificando tablas en la base de datos...");
-    
+
     // Obtener todas las tablas
     const [tables] = await db.query(`
       SELECT table_name 
@@ -855,31 +888,37 @@ app.get("/api/check-tables", async (req, res) => {
       AND table_type = 'BASE TABLE'
       ORDER BY table_name
     `);
-    
-    console.log("Tablas encontradas:", tables.map(t => t.table_name));
-    
-    // Verificar si existe tabla con nombre similar a ubicaciones
-    const ubicacionesTables = tables.filter(t => 
-      t.table_name.toLowerCase().includes('ubicacion') || 
-      t.table_name.toLowerCase().includes('posicion')
+
+    console.log(
+      "Tablas encontradas:",
+      tables.map((t) => t.table_name)
     );
-    
+
+    // Verificar si existe tabla con nombre similar a ubicaciones
+    const ubicacionesTables = tables.filter(
+      (t) =>
+        t.table_name.toLowerCase().includes("ubicacion") ||
+        t.table_name.toLowerCase().includes("posicion")
+    );
+
     // Si encontramos una tabla similar, mostrar su contenido
     let tableData = {};
     for (const table of ubicacionesTables) {
       try {
-        const [data] = await db.query(`SELECT * FROM ${table.table_name} LIMIT 5`);
+        const [data] = await db.query(
+          `SELECT * FROM ${table.table_name} LIMIT 5`
+        );
         tableData[table.table_name] = data;
       } catch (err) {
         tableData[table.table_name] = { error: err.message };
       }
     }
-    
-    res.json({ 
+
+    res.json({
       total_tables: tables.length,
-      all_tables: tables.map(t => t.table_name),
-      ubicaciones_related_tables: ubicacionesTables.map(t => t.table_name),
-      table_data: tableData
+      all_tables: tables.map((t) => t.table_name),
+      ubicaciones_related_tables: ubicacionesTables.map((t) => t.table_name),
+      table_data: tableData,
     });
   } catch (error) {
     console.error("Error al verificar tablas:", error);
@@ -891,15 +930,19 @@ app.get("/api/check-tables", async (req, res) => {
 app.get("/api/debug-stock", async (req, res) => {
   try {
     console.log("Depurando tabla stock_ubicaciones...");
-    
+
     // Contar total de registros
-    const [count] = await db.query("SELECT COUNT(*) as total FROM stock_ubicaciones");
+    const [count] = await db.query(
+      "SELECT COUNT(*) as total FROM stock_ubicaciones"
+    );
     console.log("Total registros:", count[0].total);
-    
+
     // Mostrar todos los registros
-    const [all] = await db.query("SELECT * FROM stock_ubicaciones ORDER BY posicion");
+    const [all] = await db.query(
+      "SELECT * FROM stock_ubicaciones ORDER BY posicion"
+    );
     console.log("Registros encontrados:", all.length);
-    
+
     // Mostrar posiciones únicas
     const [positions] = await db.query(`
       SELECT DISTINCT posicion, COUNT(*) as count 
@@ -909,12 +952,12 @@ app.get("/api/debug-stock", async (req, res) => {
       ORDER BY posicion
     `);
     console.log("Posiciones únicas:", positions.length);
-    
-    res.json({ 
+
+    res.json({
       total_registros: count[0].total,
       posiciones_unicas: positions.length,
       detalles_posiciones: positions,
-      todos_los_registros: all
+      todos_los_registros: all,
     });
   } catch (error) {
     console.error("Error al depurar stock:", error);
@@ -926,7 +969,7 @@ app.get("/api/debug-stock", async (req, res) => {
 app.get("/api/sync-ubicaciones", async (req, res) => {
   try {
     console.log("Sincronizando ubicaciones desde stock_ubicaciones...");
-    
+
     // Obtener todas las posiciones únicas de stock_ubicaciones
     const [positions] = await db.query(`
       SELECT DISTINCT posicion 
@@ -935,9 +978,12 @@ app.get("/api/sync-ubicaciones", async (req, res) => {
       AND posicion ~ '^LR-\d{2}-\d{2}$'
       ORDER BY posicion
     `);
-    
-    console.log("Posiciones encontradas en stock_ubicaciones:", positions.length);
-    
+
+    console.log(
+      "Posiciones encontradas en stock_ubicaciones:",
+      positions.length
+    );
+
     let synced = 0;
     for (const pos of positions) {
       // Verificar si ya existe en ubicaciones
@@ -945,7 +991,7 @@ app.get("/api/sync-ubicaciones", async (req, res) => {
         "SELECT ubicaciones FROM ubicaciones WHERE ubicaciones = $1",
         [pos.posicion]
       );
-      
+
       if (exists.length === 0) {
         // Insertar si no existe
         await db.query(
@@ -956,11 +1002,11 @@ app.get("/api/sync-ubicaciones", async (req, res) => {
         console.log(`Insertada ubicación: ${pos.posicion}`);
       }
     }
-    
-    res.json({ 
+
+    res.json({
       message: `Sincronización completada. ${synced} nuevas ubicaciones agregadas.`,
       total_positions: positions.length,
-      new_positions: synced
+      new_positions: synced,
     });
   } catch (error) {
     console.error("Error al sincronizar ubicaciones:", error);
@@ -972,26 +1018,31 @@ app.get("/api/sync-ubicaciones", async (req, res) => {
 app.get("/api/cleanup-mocha-locations", async (req, res) => {
   try {
     console.log('Limpiando ubicaciones "mochas" de stock_ubicaciones...');
-    
+
     // Eliminar registros con posicion que no tenga formato LR-XX-XX exacto
     const [result] = await db.query(`
       DELETE FROM stock_ubicaciones 
       WHERE posicion !~ '^LR-\d{2}-\d{2}$'
     `);
-    
-    console.log(`Eliminados ${result.rowCount} registros con ubicaciones inválidas`);
-    
+
+    console.log(
+      `Eliminados ${result.rowCount} registros con ubicaciones inválidas`
+    );
+
     // Mostrar las ubicaciones que quedan
     const [remaining] = await db.query(`
       SELECT DISTINCT posicion FROM stock_ubicaciones 
       ORDER BY posicion
     `);
-    
-    console.log('Ubicaciones restantes:', remaining.map(r => r.posicion));
-    
-    res.json({ 
+
+    console.log(
+      "Ubicaciones restantes:",
+      remaining.map((r) => r.posicion)
+    );
+
+    res.json({
       message: `Limpieza completada. Eliminados ${result.rowCount} registros inválidos.`,
-      remaining: remaining.map(r => r.posicion)
+      remaining: remaining.map((r) => r.posicion),
     });
   } catch (error) {
     console.error("Error al limpiar ubicaciones:", error);
@@ -1012,7 +1063,7 @@ app.get("/api/stock/all", async (req, res) => {
     const hasLoteColumn = columns.length > 0;
 
     let allRows = [];
-    
+
     try {
       // Buscar en stock_ground (datos de GROUND con múltiples lotes)
       const [groundRows] = await db.query(
@@ -1026,7 +1077,7 @@ app.get("/api/stock/all", async (req, res) => {
     } catch (groundError) {
       console.warn("Error consultando stock_ground:", groundError.message);
     }
-    
+
     // Buscar en stock_ubicaciones (otras ubicaciones)
     let query;
     if (hasLoteColumn) {
@@ -1043,7 +1094,12 @@ app.get("/api/stock/all", async (req, res) => {
 
     const [normalRows] = await db.query(query);
     allRows.push(...normalRows);
-    console.log("Resultados en stock_ubicaciones:", normalRows.length, "total:", allRows.length);
+    console.log(
+      "Resultados en stock_ubicaciones:",
+      normalRows.length,
+      "total:",
+      allRows.length
+    );
 
     res.json(allRows);
   } catch (error) {
@@ -1081,8 +1137,13 @@ app.post("/api/stock/retirar", async (req, res) => {
         "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
         [position]
       );
-      
-      console.log("Posiciones encontradas para", position, ":", posiciones.length);
+
+      console.log(
+        "Posiciones encontradas para",
+        position,
+        ":",
+        posiciones.length
+      );
 
       if (posiciones.length === 0) {
         console.log("Error: Posición no encontrada en tabla posiciones");
@@ -1092,10 +1153,7 @@ app.post("/api/stock/retirar", async (req, res) => {
       }
     } catch (posError) {
       // Si hay un error, registrar pero continuar (para compatibilidad)
-      console.warn(
-        "Error validando posición:",
-        posError.message
-      );
+      console.warn("Error validando posición:", posError.message);
       // Continuar sin validación si hay error
     }
 
@@ -1245,12 +1303,44 @@ const initDB = async () => {
         numero_pallet VARCHAR(20),
         lote VARCHAR(50),
         peso VARCHAR(20),
+        planta VARCHAR(50),
+        turno INTEGER,
+        kg INTEGER,
         ubicacion VARCHAR(100) DEFAULT 'GROUND',
         usuario VARCHAR(100),
         fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log('Tabla "pallets_ground" verificada/creada');
+
+    // MIGRACIÓN: Asegurar que la columna 'planta' existe en 'pallets_ground'
+    try {
+      await db.query(`
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                         WHERE table_name='pallets_ground' AND column_name='planta') THEN 
+            ALTER TABLE pallets_ground ADD COLUMN planta VARCHAR(50); 
+          END IF; 
+          
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                         WHERE table_name='pallets_ground' AND column_name='turno') THEN 
+            ALTER TABLE pallets_ground ADD COLUMN turno INTEGER; 
+          END IF;
+
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                         WHERE table_name='pallets_ground' AND column_name='kg') THEN 
+            ALTER TABLE pallets_ground ADD COLUMN kg INTEGER; 
+          END IF;
+        END $$;
+      `);
+      console.log('Columna "planta" en "pallets_ground" verificada/agregada');
+    } catch (migError) {
+      console.warn(
+        "No se pudo agregar columna planta (puede que ya exista):",
+        migError.message
+      );
+    }
 
     // Verificar e insertar ubicación GROUND
     try {
@@ -1309,21 +1399,70 @@ initDB();
 // Guardar pallet en tabla pallets_ground cuando se escanea en GROUND
 app.post("/api/pallets-ground", async (req, res) => {
   try {
-    const { codigo_interno, codigo, numero_pallet, lote, peso, planta, usuario } = req.body;
+    const {
+      codigo_interno,
+      codigo,
+      numero_pallet,
+      lote,
+      peso,
+      planta,
+      usuario,
+      kg,
+    } = req.body;
+
+    // Calcular turno y fecha basado en la hora local (Colombia/Cali UTC-5)
+    // Usamos el desplazamiento manual de -5h respecto a UTC de forma explícita
+    const nowTemp = new Date();
+    const bogotaTime = new Date(nowTemp.getTime() - 5 * 60 * 60 * 1000);
+
+    // Obtener la hora para el turno (0-23)
+    const hora = bogotaTime.getUTCHours();
+
+    let calculatedTurno = 3;
+    if (hora >= 0 && hora < 8) {
+      calculatedTurno = 1;
+    } else if (hora >= 8 && hora < 16) {
+      calculatedTurno = 2;
+    }
+
+    // Formatear fecha para el insert: YYYY-MM-DD HH:MM:SS
+    // Esto garantiza que la DB lo reciba como el tiempo local exacto de Bogotá
+    const isoString = bogotaTime.toISOString();
+    const formattedDate =
+      isoString.split("T")[0] + " " + isoString.split("T")[1].split(".")[0];
 
     if (!codigo_interno || !codigo || !numero_pallet || !lote) {
-      return res
-        .status(400)
-        .json({ error: "Código interno, código, número de pallet y lote son obligatorios" });
+      return res.status(400).json({
+        error:
+          "Código interno, código, número de pallet y lote son obligatorios",
+      });
     }
 
     await db.query(
-      `INSERT INTO pallets_ground (codigo_interno, codigo, numero_pallet, lote, peso, planta, usuario)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [codigo_interno, codigo, numero_pallet, lote, peso || null, planta || null, usuario]
+      `INSERT INTO pallets_ground (codigo_interno, codigo, numero_pallet, lote, peso, planta, turno, kg, usuario, fecha)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        codigo_interno,
+        codigo,
+        numero_pallet,
+        lote,
+        peso || null,
+        planta || null,
+        calculatedTurno,
+        kg || 0,
+        usuario,
+        formattedDate,
+      ]
     );
 
-    console.log("Pallet guardado en GROUND:", { codigo_interno, codigo, numero_pallet, lote, peso, planta });
+    console.log("Pallet guardado en GROUND:", {
+      codigo_interno,
+      codigo,
+      numero_pallet,
+      lote,
+      peso,
+      planta,
+    });
 
     res.json({ message: "Pallet guardado correctamente en GROUND" });
   } catch (error) {
@@ -1342,9 +1481,9 @@ app.get("/api/pallets-ground", async (req, res) => {
       WHERE table_name = 'pallets_ground' 
       AND column_name = 'planta'
     `);
-    
+
     const hasPlantaColumn = columnCheck.length > 0;
-    
+
     let query;
     if (hasPlantaColumn) {
       query = `
@@ -1356,10 +1495,12 @@ app.get("/api/pallets-ground", async (req, res) => {
           pg.codigo_interno,
           pg.peso,
           pg.planta,
+          pg.turno,
+          pg.kg,
           pg.usuario,
           pg.fecha
         FROM pallets_ground pg
-        LEFT JOIN materiales m ON pg.codigo = m.codigo
+        LEFT JOIN materiales m ON pg.codigo = m.id_code
         ORDER BY pg.fecha DESC
       `;
     } else {
@@ -1372,14 +1513,16 @@ app.get("/api/pallets-ground", async (req, res) => {
           pg.codigo_interno,
           pg.peso,
           'UPF-22' as planta,
+          pg.turno,
+          pg.kg,
           pg.usuario,
           pg.fecha
         FROM pallets_ground pg
-        LEFT JOIN materiales m ON pg.codigo = m.codigo
+        LEFT JOIN materiales m ON pg.codigo = m.id_code
         ORDER BY pg.fecha DESC
       `;
     }
-    
+
     const [rows] = await db.query(query);
     console.log("Pallets GROUND con descripción obtenidos:", rows.length);
     res.json(rows);
@@ -1393,20 +1536,20 @@ app.get("/api/pallets-ground", async (req, res) => {
 app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
   try {
     const { ubicacion } = req.params;
-    
+
     if (!ubicacion || ubicacion.trim() === "") {
       return res.status(400).json({ error: "Ubicación es requerida" });
     }
 
     const ubicacionTrim = ubicacion.trim();
     console.log("Validando ubicación:", ubicacionTrim);
-    
+
     // Validar contra la tabla posiciones
     const [posiciones] = await db.query(
       "SELECT posiciones_eti FROM posiciones WHERE posiciones_eti = $1 AND activa = TRUE",
       [ubicacionTrim]
     );
-    
+
     if (posiciones.length > 0) {
       console.log("Ubicación válida:", ubicacionTrim);
       res.status(200).json({ exists: true, ubicacion: ubicacionTrim });
@@ -1414,7 +1557,6 @@ app.get("/api/ubicaciones/validar/:ubicacion", async (req, res) => {
       console.log("Ubicación no válida:", ubicacionTrim);
       res.status(404).json({ exists: false, error: "Ubicación no encontrada" });
     }
-    
   } catch (error) {
     console.error("Error general validando ubicación:", error);
     res.status(500).json({ error: "Error interno al validar ubicación" });
@@ -1436,12 +1578,12 @@ app.get("/api/ubicaciones", async (req, res) => {
 app.get("/api/ubicaciones/:ubicacion", async (req, res) => {
   try {
     const { ubicacion } = req.params;
-    
+
     // Por ahora, como la tabla no existe, retornar un objeto simulado
     res.json({
       Posiciones_Eti: ubicacion,
       descripcion: `Ubicación ${ubicacion}`,
-      activa: true
+      activa: true,
     });
   } catch (error) {
     console.error("Error obteniendo ubicación:", error);
@@ -1656,12 +1798,12 @@ app.post("/api/temp/test-ground", async (req, res) => {
   try {
     const { position } = req.body;
     console.log("Probando posición:", position);
-    console.log("¿Es GROUND?", position.toUpperCase() === 'GROUND');
-    
-    res.json({ 
+    console.log("¿Es GROUND?", position.toUpperCase() === "GROUND");
+
+    res.json({
       position: position,
-      isGround: position.toUpperCase() === 'GROUND',
-      message: 'Prueba completada'
+      isGround: position.toUpperCase() === "GROUND",
+      message: "Prueba completada",
     });
   } catch (error) {
     console.error("Error en prueba:", error);
@@ -1673,41 +1815,45 @@ app.post("/api/temp/test-ground", async (req, res) => {
 app.post("/api/temp/insert-ground", async (req, res) => {
   try {
     console.log("Insertando ubicación GROUND...");
-    
-    await db.query(`
+
+    await db.query(
+      `
       INSERT INTO posiciones (Posiciones_Eti, descripcion, activa)
       VALUES ($1, $2, $3)
       ON CONFLICT (Posiciones_Eti) DO NOTHING
-    `, ['GROUND', 'Área de tierra/piso - Ubicación especial', true]);
-    
-    console.log('✅ Ubicación GROUND insertada exitosamente');
-    
+    `,
+      ["GROUND", "Área de tierra/piso - Ubicación especial", true]
+    );
+
+    console.log("✅ Ubicación GROUND insertada exitosamente");
+
     // Verificar que se insertó correctamente
     const [result] = await db.query(
       "SELECT * FROM posiciones WHERE Posiciones_Eti = $1",
-      ['GROUND']
+      ["GROUND"]
     );
-    
+
     if (result.length > 0) {
-      console.log('✅ Verificación: Ubicación GROUND existe en la base de datos');
-      res.json({ 
-        success: true, 
-        message: 'Ubicación GROUND insertada correctamente',
-        data: result[0]
+      console.log(
+        "✅ Verificación: Ubicación GROUND existe en la base de datos"
+      );
+      res.json({
+        success: true,
+        message: "Ubicación GROUND insertada correctamente",
+        data: result[0],
       });
     } else {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Error: No se pudo insertar la ubicación GROUND' 
+      res.status(500).json({
+        success: false,
+        message: "Error: No se pudo insertar la ubicación GROUND",
       });
     }
-    
   } catch (error) {
     console.error("❌ Error insertando GROUND:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error interno al insertar ubicación GROUND',
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: "Error interno al insertar ubicación GROUND",
+      error: error.message,
     });
   }
 });

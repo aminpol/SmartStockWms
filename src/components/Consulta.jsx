@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Consulta.css";
+import API_URL from "../apiConfig";
 import { useConfig } from "../context/ConfigContext";
 import AlertModal from "./AlertModal";
 
@@ -15,14 +16,14 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
     setCode("");
     // Enfocar el input después de limpiar
     setTimeout(() => {
-      document.querySelector('.consulta-input')?.focus();
+      document.querySelector(".consulta-input")?.focus();
     }, 100);
   };
 
   const handleInputChange = (e) => {
     const value = e.target.value.toUpperCase();
     setCode(value);
-    
+
     // No auto-búsqueda - solo buscar manualmente con el botón
     const trimmed = value.trim();
     // Auto-búsqueda desactivado para evitar búsquedas prematuras
@@ -41,17 +42,14 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
       setResults([]);
 
       // Determinar si es búsqueda por ubicación (formato LR-XX-XX o GROUND)
-      const isLocation = /^LR-\d{2}-\d{2}$/i.test(trimmed) || trimmed.toUpperCase() === 'GROUND';
+      const isLocation =
+        /^LR-\d{2}-\d{2}$/i.test(trimmed) || trimmed.toUpperCase() === "GROUND";
 
       let url;
       if (isLocation) {
-        url = `https://smartstockwms-a8p6.onrender.com/api/stock/ubicacion/${encodeURIComponent(
-          trimmed
-        )}`;
+        url = `${API_URL}/api/stock/ubicacion/${encodeURIComponent(trimmed)}`;
       } else {
-        url = `https://smartstockwms-a8p6.onrender.com/api/stock/consulta/${encodeURIComponent(
-          trimmed
-        )}`;
+        url = `${API_URL}/api/stock/consulta/${encodeURIComponent(trimmed)}`;
       }
 
       const response = await fetch(url);
@@ -89,17 +87,14 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/stock/all",
-        {
-          signal: controller.signal,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        }
-      );
-      
+      const response = await fetch(`${API_URL}/api/stock/all`, {
+        signal: controller.signal,
+        headers: {
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        },
+      });
+
       clearTimeout(timeoutId);
       const data = await response.json().catch(() => ({}));
 
@@ -118,7 +113,7 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
       setResults(data);
     } catch (error) {
       console.error(error);
-      if (error.name === 'AbortError') {
+      if (error.name === "AbortError") {
         setMessage("La consulta tardó demasiado. Intente nuevamente.");
       } else {
         setMessage(t("error"));
@@ -179,12 +174,12 @@ const Consulta = ({ onBack, onLogout, onNavigateToPicking }) => {
         </div>
 
         {message && (
-        <AlertModal
-          type={message.type || "error"}
-          message={message.text || message}
-          onClose={handleModalClose}
-        />
-      )}
+          <AlertModal
+            type={message.type || "error"}
+            message={message.text || message}
+            onClose={handleModalClose}
+          />
+        )}
 
         {results.length > 0 && (
           <div className="consulta-results">

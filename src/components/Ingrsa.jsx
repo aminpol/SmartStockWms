@@ -18,7 +18,7 @@ const Ingresa = ({ onBack, onLogout, user }) => {
   const validateUbicacion = async (ubicacion) => {
     try {
       const response = await fetch(
-        `https://smartstockwms-a8p6.onrender.com/api/ubicaciones/validar/${encodeURIComponent(ubicacion)}`
+        `${API_URL}/api/ubicaciones/validar/${encodeURIComponent(ubicacion)}`
       );
       return response.ok;
     } catch (error) {
@@ -52,7 +52,7 @@ const Ingresa = ({ onBack, onLogout, user }) => {
     setLoading(true);
     try {
       const ubicacionValida = await validateUbicacion(position.trim());
-      
+
       if (!ubicacionValida) {
         setErrorMsg(`La ubicación "${position}" no existe en la base de datos`);
         setLoading(false);
@@ -79,20 +79,17 @@ const Ingresa = ({ onBack, onLogout, user }) => {
           ? user.usuario
           : user || "Usuario Desconocido";
 
-      const response = await fetch(
-        "https://smartstockwms-a8p6.onrender.com/api/stock/ingresa",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code: code.trim(),
-            quantity: qty,
-            position: position.trim(),
-            lote: lote.trim(), // Agregar lote
-            user: userName,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/stock/ingresa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: code.trim(),
+          quantity: qty,
+          position: position.trim(),
+          lote: lote.trim(), // Agregar lote
+          user: userName,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
