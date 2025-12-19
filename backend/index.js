@@ -1504,6 +1504,23 @@ app.get("/api/pallets-ground", async (req, res) => {
 
     const hasPlantaColumn = columnCheck.length > 0;
 
+    // DIAGNOSTICO PROFUNDO
+    const [allMats] = await db.query(
+      "SELECT id_code, description FROM materiales LIMIT 100"
+    );
+    console.log(
+      "MUESTRA MATERIALES (Primeros 100):",
+      allMats.map((m) => `[${m.id_code}]: ${m.description}`)
+    );
+
+    const [specificMat] = await db.query(
+      "SELECT * FROM materiales WHERE TRIM(CAST(id_code AS TEXT)) = '6180001'"
+    );
+    console.log("BUSQUEDA ESPECIFICA '6180001':", specificMat);
+
+    const [countMats] = await db.query("SELECT COUNT(*) FROM materiales");
+    console.log("TOTAL MATERIALES EN DB:", countMats[0].count);
+
     let query;
     if (hasPlantaColumn) {
       query = `
