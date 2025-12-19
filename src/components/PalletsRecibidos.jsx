@@ -15,6 +15,7 @@ const PalletsRecibidos = ({
   const [filtroFecha, setFiltroFecha] = useState("");
   const [filtroPlanta, setFiltroPlanta] = useState("");
   const [filtroTurno, setFiltroTurno] = useState("");
+  const [filtroLote, setFiltroLote] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [alertMessage, setAlertMessage] = useState(null);
@@ -116,8 +117,16 @@ const PalletsRecibidos = ({
         const coincideTurno =
           !filtroTurno || r.turno?.toString() === filtroTurno;
 
+        const coincideLote =
+          !filtroLote.trim() ||
+          r.lote?.toLowerCase().includes(filtroLote.toLowerCase());
+
         return (
-          coincideCodigo && coincideFecha && coincidePlanta && coincideTurno
+          coincideCodigo &&
+          coincideFecha &&
+          coincidePlanta &&
+          coincideTurno &&
+          coincideLote
         );
       })
       .sort((a, b) => {
@@ -133,6 +142,7 @@ const PalletsRecibidos = ({
     setFiltroFecha("");
     setFiltroPlanta("");
     setFiltroTurno("");
+    setFiltroLote("");
     setSearchActive(false);
   };
 
@@ -256,6 +266,30 @@ const PalletsRecibidos = ({
                   <option value="1">Turno 1</option>
                   <option value="2">Turno 2</option>
                   <option value="3">Turno 3</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Lote */}
+            <div className="search-input-group">
+              <label className="search-label">
+                <span className="label-prefix">Filtrar </span>lote
+              </label>
+              <div className="search-input-wrapper">
+                <select
+                  className="search-input"
+                  value={filtroLote}
+                  onChange={(e) => setFiltroLote(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  {[...new Set(recibos.map((r) => r.lote))]
+                    .filter(Boolean)
+                    .sort()
+                    .map((lote) => (
+                      <option key={lote} value={lote}>
+                        {lote}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
