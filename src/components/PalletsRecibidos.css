@@ -229,35 +229,51 @@
   word-break: break-word;
 }
 
-.pallets-table th.th-with-filter {
-  padding: 0.4rem 0.2rem; /* Menos padding para el filtro */
+/* Excel Style Header Filter */
+.excel-th-filter {
+  padding: 0 !important; /* Allow content to fill */
+  background-color: #ecfdf5 !important;
 }
 
-.header-filter-container {
+.excel-header-content {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 0.2rem;
-  width: 100%;
+  gap: 8px;
+  height: 100%;
+  padding: 0.8rem 0.4rem;
+  position: relative;
 }
 
-.header-select-filter {
-  width: 90%;
-  max-width: 110px;
-  font-size: 0.7rem;
-  padding: 2px 4px;
-  border: 1px solid #4ade80;
-  border-radius: 4px;
-  background-color: white;
+.filter-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
-  outline: none;
-  font-weight: 600;
-  text-align: center;
 }
 
-.header-select-filter:focus {
-  border-color: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+.filter-icon-wrapper i {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.filter-icon-wrapper i.active-filter {
+  color: #16a34a; /* Green when active */
+}
+
+.invisible-header-select {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  z-index: 5;
 }
 
 .pallets-table th {

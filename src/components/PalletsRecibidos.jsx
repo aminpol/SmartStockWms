@@ -146,6 +146,29 @@ const PalletsRecibidos = ({
     setSearchActive(false);
   };
 
+  // Obtener lotes únicos basados en los OTROS filtros activos (Context-aware)
+  const getContextualLots = () => {
+    return [
+      ...new Set(
+        recibos
+          .filter((r) => {
+            // Filtrar por todo EXCEPTO por el mismo filtro de lote para ver opciones disponibles
+            let fechaRegistro = r.fecha ? r.fecha.split(/[T ]/)[0] : "";
+            const coincideFecha =
+              !filtroFecha.trim() || fechaRegistro === filtroFecha;
+            const coincidePlanta =
+              !filtroPlanta.trim() ||
+              r.planta?.toLowerCase() === filtroPlanta.toLowerCase();
+            const coincideTurno =
+              !filtroTurno || r.turno?.toString() === filtroTurno;
+            return coincideFecha && coincidePlanta && coincideTurno;
+          })
+          .map((r) => r.lote)
+          .filter(Boolean)
+      ),
+    ].sort();
+  };
+
   const filteredRecibos = searchActive ? getFilteredData() : recibos;
 
   return (
@@ -270,7 +293,6 @@ const PalletsRecibidos = ({
               </div>
             </div>
           </div>{" "}
-          {/* Closes search-row responsive-grid */}
           {/* Mostrar turno actual en modo móvil */}
           {window.innerWidth < 1024 && (
             <div
@@ -299,27 +321,32 @@ const PalletsRecibidos = ({
               <tr>
                 <th>CODIGO</th>
                 <th>DESCRIPCION</th>
-                <th className="th-with-filter">
-                  <div className="header-filter-container">
+                <th className="excel-th-filter">
+                  <div className="excel-header-content">
                     <span>LOTE</span>
-                    <select
-                      className="header-select-filter"
-                      value={filtroLote}
-                      onChange={(e) => {
-                        setFiltroLote(e.target.value);
-                        setSearchActive(true);
-                      }}
-                    >
-                      <option value="">(Todos)</option>
-                      {[...new Set(recibos.map((r) => r.lote))]
-                        .filter(Boolean)
-                        .sort()
-                        .map((lot) => (
+                    <div className="filter-icon-wrapper">
+                      <i
+                        className={`fas fa-filter ${
+                          filtroLote ? "active-filter" : ""
+                        }`}
+                      ></i>
+                      <select
+                        className="invisible-header-select"
+                        value={filtroLote}
+                        onChange={(e) => {
+                          setFiltroLote(e.target.value);
+                          setSearchActive(true);
+                        }}
+                        title="Filtrar por lote"
+                      >
+                        <option value="">(Todos)</option>
+                        {getContextualLots().map((lot) => (
                           <option key={lot} value={lot}>
                             {lot}
                           </option>
                         ))}
-                    </select>
+                      </select>
+                    </div>
                   </div>
                 </th>
                 <th>N° PALL</th>
