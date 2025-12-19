@@ -269,32 +269,8 @@ const PalletsRecibidos = ({
                 </select>
               </div>
             </div>
-
-            {/* Lote */}
-            <div className="search-input-group">
-              <label className="search-label">
-                <span className="label-prefix">Filtrar </span>lote
-              </label>
-              <div className="search-input-wrapper">
-                <select
-                  className="search-input"
-                  value={filtroLote}
-                  onChange={(e) => setFiltroLote(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  {[...new Set(recibos.map((r) => r.lote))]
-                    .filter(Boolean)
-                    .sort()
-                    .map((lote) => (
-                      <option key={lote} value={lote}>
-                        {lote}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
+          </div>{" "}
+          {/* Closes search-row responsive-grid */}
           {/* Mostrar turno actual en modo móvil */}
           {window.innerWidth < 1024 && (
             <div
@@ -323,7 +299,29 @@ const PalletsRecibidos = ({
               <tr>
                 <th>CODIGO</th>
                 <th>DESCRIPCION</th>
-                <th>LOTE</th>
+                <th className="th-with-filter">
+                  <div className="header-filter-container">
+                    <span>LOTE</span>
+                    <select
+                      className="header-select-filter"
+                      value={filtroLote}
+                      onChange={(e) => {
+                        setFiltroLote(e.target.value);
+                        setSearchActive(true);
+                      }}
+                    >
+                      <option value="">(Todos)</option>
+                      {[...new Set(recibos.map((r) => r.lote))]
+                        .filter(Boolean)
+                        .sort()
+                        .map((lot) => (
+                          <option key={lot} value={lot}>
+                            {lot}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </th>
                 <th>N° PALL</th>
                 <th className="col-kg">KG</th>
                 {searchActive && (

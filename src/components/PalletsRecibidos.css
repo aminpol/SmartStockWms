@@ -229,6 +229,37 @@
   word-break: break-word;
 }
 
+.pallets-table th.th-with-filter {
+  padding: 0.4rem 0.2rem; /* Menos padding para el filtro */
+}
+
+.header-filter-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+}
+
+.header-select-filter {
+  width: 90%;
+  max-width: 110px;
+  font-size: 0.7rem;
+  padding: 2px 4px;
+  border: 1px solid #4ade80;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  outline: none;
+  font-weight: 600;
+  text-align: center;
+}
+
+.header-select-filter:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
 .pallets-table th {
   background-color: #ecfdf5;
   font-weight: 700;
