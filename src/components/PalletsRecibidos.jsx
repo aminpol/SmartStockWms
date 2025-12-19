@@ -155,83 +155,84 @@ const PalletsRecibidos = ({
         )}
 
         <div className="search-section">
-          <div className="search-row">
-            <div className="search-input-group">
-              <label className="search-label">Filtrar codigo</label>
-              <div className="search-input-wrapper">
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Codigo"
-                  value={filtro}
-                  onChange={(e) => setFiltro(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
-                <button className="btn-search-icon" onClick={handleSearch}>
-                  <i className="fas fa-search"></i>
-                </button>
-                {searchActive && (
+          <div className="search-row-mobile">
+            <div className="search-input-group compact-group">
+              <div className="label-with-actions">
+                <label className="search-label">Codigo</label>
+                <div className="actions-header">
                   <button
-                    className="btn-clear-icon"
-                    onClick={handleClearFilter}
-                    title="Limpiar filtro"
+                    className="btn-search-icon"
+                    onClick={handleSearch}
+                    title="Buscar"
                   >
-                    <i className="fas fa-times"></i>
+                    <i className="fas fa-search"></i>
                   </button>
-                )}
+                  {searchActive && (
+                    <button
+                      className="btn-clear-icon-small"
+                      onClick={handleClearFilter}
+                      title="Limpiar"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  )}
+                </div>
               </div>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Codigo"
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+              />
             </div>
 
-            <div className="search-input-group">
-              <label className="search-label">Filtrar fecha</label>
-              <div className="search-input-wrapper">
-                <input
-                  type="date"
-                  className="search-input"
-                  value={filtroFecha}
-                  onChange={(e) => setFiltroFecha(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
-              </div>
+            <div className="search-input-group compact-group">
+              <label className="search-label">Fecha</label>
+              <input
+                type="date"
+                className="search-input"
+                value={filtroFecha}
+                onChange={(e) => setFiltroFecha(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="search-row-mobile">
+            <div className="search-input-group compact-group">
+              <label className="search-label">Planta</label>
+              <select
+                className="search-input"
+                value={filtroPlanta}
+                onChange={(e) => setFiltroPlanta(e.target.value)}
+              >
+                <option value="">Todas</option>
+                <option value="UPF-22">UPF-22</option>
+                <option value="UPF-30">UPF-30</option>
+              </select>
             </div>
 
-            <div className="search-input-group">
-              <label className="search-label">Filtrar planta</label>
-              <div className="search-input-wrapper">
-                <select
-                  className="search-input"
-                  value={filtroPlanta}
-                  onChange={(e) => setFiltroPlanta(e.target.value)}
-                >
-                  <option value="">Todas</option>
-                  <option value="UPF-22">UPF-22</option>
-                  <option value="UPF-30">UPF-30</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="search-input-group">
-              <label className="search-label">Filtrar turno</label>
-              <div className="search-input-wrapper">
-                <select
-                  className="search-input"
-                  value={filtroTurno}
-                  onChange={(e) => setFiltroTurno(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  <option value="1">Turno 1</option>
-                  <option value="2">Turno 2</option>
-                  <option value="3">Turno 3</option>
-                </select>
-              </div>
+            <div className="search-input-group compact-group">
+              <label className="search-label">Turno</label>
+              <select
+                className="search-input"
+                value={filtroTurno}
+                onChange={(e) => setFiltroTurno(e.target.value)}
+              >
+                <option value="">Todos</option>
+                <option value="1">Turno 1</option>
+                <option value="2">Turno 2</option>
+                <option value="3">Turno 3</option>
+              </select>
             </div>
           </div>
 
