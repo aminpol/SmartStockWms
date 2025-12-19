@@ -1504,44 +1504,6 @@ app.get("/api/pallets-ground", async (req, res) => {
 
     const hasPlantaColumn = columnCheck.length > 0;
 
-    // DIAGNOSTICO PROFUNDO
-    const [allMats] = await db.query(
-      "SELECT id_code, description FROM materiales LIMIT 100"
-    );
-    console.log(
-      "MUESTRA MATERIALES (Primeros 100):",
-      allMats.map((m) => `[${m.id_code}]: ${m.description}`)
-    );
-
-    const [mats61] = await db.query(
-      "SELECT id_code, description FROM materiales WHERE CAST(id_code AS TEXT) LIKE '61%' LIMIT 20"
-    );
-    console.log(
-      "DIAGNOSTICO CODES 61%:",
-      mats61.map((m) => `[${m.id_code}]: ${m.description}`)
-    );
-
-    const [columnsMat] = await db.query(
-      "SELECT column_name FROM information_schema.columns WHERE table_name = 'materiales'"
-    );
-    console.log(
-      "COLUMNAS TABLA MATERIALES:",
-      columnsMat.map((c) => c.column_name)
-    );
-
-    const [anyMatch] = await db.query(
-      "SELECT id_code, description FROM materiales WHERE CAST(id_code AS TEXT) LIKE '%6180001%'"
-    );
-    console.log("BUSQUEDA '%6180001%':", anyMatch);
-
-    const [anyMatch2] = await db.query(
-      "SELECT id_code, description FROM materiales WHERE CAST(id_code AS TEXT) LIKE '%6180%' LIMIT 5"
-    );
-    console.log("BUSQUEDA '%6180%':", anyMatch2);
-
-    const [countMats] = await db.query("SELECT COUNT(*) FROM materiales");
-    console.log("TOTAL MATERIALES EN DB:", countMats[0].count);
-
     let query;
     if (hasPlantaColumn) {
       query = `
