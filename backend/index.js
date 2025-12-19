@@ -187,7 +187,7 @@ app.get("/api/materiales/:code", async (req, res) => {
 
     // La tabla se llama 'materiales' y las columnas son 'id_code', 'description', 'unit', 'type'
     const [rows] = await db.query(
-      "SELECT * FROM materiales WHERE id_code = $1",
+      "SELECT * FROM materiales WHERE TRIM(CAST(id_code AS TEXT)) = TRIM(CAST($1 AS TEXT))",
       [code]
     );
 
@@ -1495,7 +1495,6 @@ app.post("/api/pallets-ground", async (req, res) => {
 // Obtener todos los pallets de GROUND con descripción de materiales
 app.get("/api/pallets-ground", async (req, res) => {
   try {
-    // Primero verificar si la columna planta existe
     const [columnCheck] = await db.query(`
       SELECT column_name 
       FROM information_schema.columns 
@@ -1521,7 +1520,7 @@ app.get("/api/pallets-ground", async (req, res) => {
           pg.usuario,
           pg.fecha
         FROM pallets_ground pg
-        LEFT JOIN materiales m ON TRIM(pg.codigo) = TRIM(m.id_code)
+        LEFT JOIN materiales m ON TRIM(CAST(pg.codigo AS TEXT)) = TRIM(CAST(m.id_code AS TEXT))
         ORDER BY pg.fecha DESC
       `;
     } else {
@@ -1539,13 +1538,21 @@ app.get("/api/pallets-ground", async (req, res) => {
           pg.usuario,
           pg.fecha
         FROM pallets_ground pg
-        LEFT JOIN materiales m ON TRIM(pg.codigo) = TRIM(m.id_code)
+        LEFT JOIN materiales m ON TRIM(CAST(pg.codigo AS TEXT)) = TRIM(CAST(m.id_code AS TEXT))
         ORDER BY pg.fecha DESC
       `;
     }
 
     const [rows] = await db.query(query);
-    console.log("Pallets GROUND con descripción obtenidos:", rows.length);
+    console.log(`Pallets GROUND obtenidos: ${rows.length}`);
+    if (rows.length > 0) {
+      console.log(
+        "Ejemplo primer reg - codigo:",
+        rows[0].codigo,
+        "desc:",
+        rows[0].descripcion
+      );
+    }
     res.json(rows);
   } catch (error) {
     console.error("Error obteniendo pallets GROUND:", error);
