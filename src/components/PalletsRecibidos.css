@@ -191,20 +191,26 @@
 
 .pallets-table th:nth-child(4),
 .pallets-table td:nth-child(4) {
-  width: 8%; /* Columna N° PALL */
-  min-width: 60px;
+  width: 10%; /* Columna N° PALL */
+  min-width: 65px;
 }
 
 .pallets-table th.col-kg,
 .pallets-table td:nth-child(5) {
-  width: 50px; /* Columna KG */
-  min-width: 45px;
+  width: 60px; /* Columna KG */
+  min-width: 50px;
   padding-left: 0.1rem;
   padding-right: 0.1rem;
 }
 
 .pallets-table th:nth-child(6),
 .pallets-table td:nth-child(6) {
+  width: 50px; /* Columna ACCIONES */
+  min-width: 45px;
+}
+
+.pallets-table th:nth-child(7),
+.pallets-table td:nth-child(7) {
   width: 10%; /* Columna USUARIO */
   min-width: 60px;
 }
@@ -337,6 +343,35 @@
   color: white;
 }
 
+.actions-cell {
+  padding: 0.4rem !important;
+}
+
+.btn-delete-pallet {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 0 auto;
+}
+
+.btn-delete-pallet:hover {
+  background: #dc2626;
+  color: white;
+  border-color: #b91c1c;
+}
+
+.btn-delete-pallet i {
+  font-size: 0.9rem;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .pallets-recibidos-screen {
@@ -446,8 +481,14 @@
 
   .pallets-table th:nth-child(2),
   .pallets-table td:nth-child(2) {
-    width: 40% !important; /* Más espacio para DESCRIPCION */
-    min-width: 100px !important;
+    width: 35% !important; /* Ajustado para dejar sitio a ACC */
+    min-width: 90px !important;
+  }
+
+  .pallets-table th:nth-child(6),
+  .pallets-table td:nth-child(6) {
+    width: 45px !important; /* Columna ACCIONES móvil */
+    min-width: 40px !important;
   }
 
   .footer-buttons {

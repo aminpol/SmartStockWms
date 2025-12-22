@@ -1508,6 +1508,7 @@ app.get("/api/pallets-ground", async (req, res) => {
     if (hasPlantaColumn) {
       query = `
         SELECT 
+          pg.id,
           pg.codigo,
           COALESCE(m.description, 'Sin descripción') as descripcion,
           pg.lote,
@@ -1526,6 +1527,7 @@ app.get("/api/pallets-ground", async (req, res) => {
     } else {
       query = `
         SELECT 
+          pg.id,
           pg.codigo,
           COALESCE(m.description, 'Sin descripción') as descripcion,
           pg.lote,
@@ -1557,6 +1559,28 @@ app.get("/api/pallets-ground", async (req, res) => {
   } catch (error) {
     console.error("Error obteniendo pallets GROUND:", error);
     res.status(500).json({ error: "Error obteniendo pallets GROUND" });
+  }
+});
+
+// Eliminar un pallet de GROUND
+app.delete("/api/pallets-ground/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Intentando eliminar pallet de GROUND ID:", id);
+
+    const [result] = await db.query(
+      "DELETE FROM pallets_ground WHERE id = $1",
+      [id]
+    );
+
+    // En pg (PostgreSQL), result puede no tener affectedRows como mysql,
+    // pero db.query en db.js retorna result.rows.
+    // Podríamos verificar si se eliminó algo, pero si no hay error se considera éxito.
+
+    res.json({ message: "Pallet eliminado correctamente" });
+  } catch (error) {
+    console.error("Error eliminando pallet GROUND:", error);
+    res.status(500).json({ error: "Error al eliminar el pallet" });
   }
 });
 

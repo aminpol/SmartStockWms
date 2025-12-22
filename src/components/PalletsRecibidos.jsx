@@ -146,6 +146,42 @@ const PalletsRecibidos = ({
     setSearchActive(false);
   };
 
+  const handleDelete = async (id, numeroPallet) => {
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseas eliminar el pallet N° ${numeroPallet}?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/pallets-ground/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setAlertMessage({
+          type: "success",
+          text: "Pallet eliminado correctamente",
+        });
+        fetchRecibos(); // Recargar la lista
+      } else {
+        const errorData = await response.json();
+        setAlertMessage({
+          type: "error",
+          text: errorData.error || "Error al eliminar el pallet",
+        });
+      }
+    } catch (error) {
+      console.error("Error eliminando pallet:", error);
+      setAlertMessage({
+        type: "error",
+        text: "Error de conexión al intentar eliminar",
+      });
+    }
+  };
+
   // Obtener lotes únicos basados en los OTROS filtros activos (Context-aware)
   const getContextualLots = () => {
     return [
@@ -351,6 +387,7 @@ const PalletsRecibidos = ({
                 </th>
                 <th>N° PALL</th>
                 <th className="col-kg">KG</th>
+                <th>ACC.</th>
                 {searchActive && (
                   <th>
                     <i className="fas fa-user" title="USUARIO"></i>
@@ -376,6 +413,17 @@ const PalletsRecibidos = ({
                     <td>{item.lote}</td>
                     <td>{item.numero_pallet}</td>
                     <td style={{ fontWeight: "700" }}>{item.kg || 0}</td>
+                    <td className="actions-cell">
+                      <button
+                        className="btn-delete-pallet"
+                        onClick={() =>
+                          handleDelete(item.id, item.numero_pallet)
+                        }
+                        title="Eliminar Pallet"
+                      >
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    </td>
                     {searchActive && (
                       <td style={{ fontSize: "0.85rem" }}>{item.usuario}</td>
                     )}
@@ -384,7 +432,7 @@ const PalletsRecibidos = ({
               ) : (
                 <tr>
                   <td
-                    colSpan={searchActive ? 6 : 5}
+                    colSpan={searchActive ? 7 : 6}
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     No hay registros encontrados
