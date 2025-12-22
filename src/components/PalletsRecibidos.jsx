@@ -355,9 +355,9 @@ const PalletsRecibidos = ({
           <table className="pallets-table">
             <thead>
               <tr>
-                <th>CODIGO</th>
-                <th>DESCRIPCION</th>
-                <th className="excel-th-filter">
+                <th className="col-codigo">CODIGO</th>
+                <th className="col-descripcion">DESCRIPCION</th>
+                <th className="excel-th-filter col-lote">
                   <div className="excel-header-content">
                     <span>LOTE</span>
                     <div className="filter-icon-wrapper">
@@ -385,21 +385,21 @@ const PalletsRecibidos = ({
                     </div>
                   </div>
                 </th>
-                <th>N° PALL</th>
+                <th className="col-npall">N° PALL</th>
                 <th className="col-kg">KG</th>
-                <th>ACC.</th>
                 {searchActive && (
-                  <th>
+                  <th className="col-usuario">
                     <i className="fas fa-user" title="USUARIO"></i>
                   </th>
                 )}
+                <th className="col-acciones">ACC.</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td
-                    colSpan={searchActive ? 6 : 5}
+                    colSpan={searchActive ? 7 : 6}
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     Cargando...
@@ -408,12 +408,22 @@ const PalletsRecibidos = ({
               ) : filteredRecibos.length > 0 ? (
                 filteredRecibos.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.codigo}</td>
-                    <td>{item.descripcion}</td>
-                    <td>{item.lote}</td>
-                    <td>{item.numero_pallet}</td>
-                    <td style={{ fontWeight: "700" }}>{item.kg || 0}</td>
-                    <td className="actions-cell">
+                    <td className="col-codigo">{item.codigo}</td>
+                    <td className="col-descripcion">{item.descripcion}</td>
+                    <td className="col-lote">{item.lote}</td>
+                    <td className="col-npall">{item.numero_pallet}</td>
+                    <td className="col-kg" style={{ fontWeight: "700" }}>
+                      {item.kg || 0}
+                    </td>
+                    {searchActive && (
+                      <td
+                        className="col-usuario"
+                        style={{ fontSize: "0.85rem" }}
+                      >
+                        {item.usuario}
+                      </td>
+                    )}
+                    <td className="actions-cell col-acciones">
                       <button
                         className="btn-delete-pallet"
                         onClick={() =>
@@ -424,9 +434,6 @@ const PalletsRecibidos = ({
                         <i className="fas fa-trash-alt"></i>
                       </button>
                     </td>
-                    {searchActive && (
-                      <td style={{ fontSize: "0.85rem" }}>{item.usuario}</td>
-                    )}
                   </tr>
                 ))
               ) : (

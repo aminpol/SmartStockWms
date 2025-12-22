@@ -183,47 +183,40 @@
   font-size: 0.9rem;
 }
 
-.pallets-table th:nth-child(3),
-.pallets-table td:nth-child(3) {
-  width: 25%; /* Columna LOTE más ancha */
+.pallets-table .col-lote {
+  width: 25%; /* Pantalla PC */
   min-width: 120px;
 }
 
-.pallets-table th:nth-child(4),
-.pallets-table td:nth-child(4) {
-  width: 10%; /* Columna N° PALL */
+.pallets-table .col-npall {
+  width: 10%;
   min-width: 65px;
 }
 
-.pallets-table th.col-kg,
-.pallets-table td:nth-child(5) {
-  width: 60px; /* Columna KG */
+.pallets-table .col-kg {
+  width: 60px;
   min-width: 50px;
   padding-left: 0.1rem;
   padding-right: 0.1rem;
 }
 
-.pallets-table th:nth-child(6),
-.pallets-table td:nth-child(6) {
-  width: 50px; /* Columna ACCIONES */
-  min-width: 45px;
+.pallets-table .col-acciones {
+  width: 40px; /* Estrechado ACC */
+  min-width: 40px;
 }
 
-.pallets-table th:nth-child(7),
-.pallets-table td:nth-child(7) {
-  width: 10%; /* Columna USUARIO */
+.pallets-table .col-usuario {
+  width: 10%;
   min-width: 60px;
 }
 
-.pallets-table th:nth-child(1),
-.pallets-table td:nth-child(1) {
-  width: 20%; /* Columna CODIGO */
-  min-width: 100px;
+.pallets-table .col-codigo {
+  width: 12%; /* Estrechado CODIGO (era 20%) */
+  min-width: 90px;
 }
 
-.pallets-table th:nth-child(2),
-.pallets-table td:nth-child(2) {
-  width: 30%; /* Columna DESCRIPCION */
+.pallets-table .col-descripcion {
+  width: 28%;
   min-width: 150px;
 }
 
@@ -279,6 +272,7 @@
   opacity: 0;
   cursor: pointer;
   -webkit-appearance: none;
+  appearance: none;
   z-index: 5;
 }
 
@@ -473,22 +467,24 @@
     padding: 0.4rem 0.2rem;
   }
 
-  .pallets-table th:nth-child(1),
-  .pallets-table td:nth-child(1) {
-    width: 15% !important; /* Columna CODIGO más estrecha */
+  .pallets-table .col-codigo {
+    width: 15% !important;
     min-width: 65px !important;
   }
 
-  .pallets-table th:nth-child(2),
-  .pallets-table td:nth-child(2) {
-    width: 35% !important; /* Ajustado para dejar sitio a ACC */
+  .pallets-table .col-descripcion {
+    width: 35% !important;
     min-width: 90px !important;
   }
 
-  .pallets-table th:nth-child(6),
-  .pallets-table td:nth-child(6) {
-    width: 45px !important; /* Columna ACCIONES móvil */
-    min-width: 40px !important;
+  .pallets-table .col-acciones {
+    width: 42px !important;
+    min-width: 42px !important;
+  }
+
+  .pallets-table .col-usuario {
+    width: 45px !important;
+    min-width: 45px !important;
   }
 
   .footer-buttons {
