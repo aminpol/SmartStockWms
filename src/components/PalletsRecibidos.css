@@ -478,13 +478,23 @@
   }
 
   .pallets-table .col-acciones {
-    width: 42px !important;
-    min-width: 42px !important;
+    width: 32px !important; /* Estrechado al máximo */
+    padding: 0.2rem !important;
   }
 
   .pallets-table .col-usuario {
-    width: 45px !important;
-    min-width: 45px !important;
+    width: 65px !important; /* Más espacio para evitar wrap del nombre */
+    min-width: 60px !important;
+  }
+
+  .btn-delete-pallet {
+    width: 26px !important; /* Más pequeño en móvil */
+    height: 26px !important;
+    border-radius: 4px;
+  }
+
+  .btn-delete-pallet i {
+    font-size: 0.75rem !important; /* Icono más pequeño */
   }
 
   .footer-buttons {
