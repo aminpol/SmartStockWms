@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Ingresa.css";
 import AlertModal from "./AlertModal";
 import { useConfig } from "../context/ConfigContext";
+import API_URL from "../apiConfig";
 
 const Ingresa = ({ onBack, onLogout, user }) => {
   const { t } = useConfig();

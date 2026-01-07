@@ -92,23 +92,39 @@ const registrarMovimiento = async (
   movimiento,
   t_movimi,
   estado,
-  usuario
+  usuario,
+  lote = "",
+  planta = null
 ) => {
   try {
     const turno = getTurno();
     const fecha = getFecha();
 
-    // Obtener unidad desde materiales
-    const [rows] = await db.query(
-      "SELECT unit FROM materiales WHERE id_code = $1",
-      [code]
+    // Obtener unidad desde materiales con su propio try/catch para no bloquear el registro
+    let unit = "UND";
+    try {
+      const [rows] = await db.query(
+        "SELECT unit FROM materiales WHERE id_code = $1",
+        [code]
+      );
+      if (rows.length > 0) {
+        unit = rows[0].unit;
+      }
+    } catch (unitError) {
+      console.warn(
+        "⚠️ Error obteniendo unidad para historial:",
+        unitError.message
+      );
+    }
+
+    console.log(
+      `📝 Registrando movimiento: ${code}, ${t_movimi}, ${movimiento}, Lote: ${lote}`
     );
-    const unit = rows.length > 0 ? rows[0].unit : "UND";
 
     await db.query(
       `INSERT INTO historial_movimientos 
-      (Id_codigo, Descripcion, Movimiento, Unit, T_movimi, Estado, Usuario, Turno, Fecha) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      (id_codigo, descripcion, movimiento, unit, t_movimi, estado, usuario, turno, fecha, lote, planta) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [
         code,
         descripcion,
@@ -119,10 +135,21 @@ const registrarMovimiento = async (
         usuario,
         turno,
         fecha,
+        lote || "",
+        planta,
       ]
     );
+    console.log("✅ Movimiento registrado con éxito.");
   } catch (error) {
-    console.error("Error registrando movimiento:", error);
+    console.error("❌ ERROR CRÍTICO registrando movimiento:", error);
+    // Loggear los parámetros recibidos para facilitar debugging
+    console.error("Datos fallidos:", {
+      code,
+      movimiento,
+      t_movimi,
+      usuario,
+      lote,
+    });
   }
 };
 
@@ -138,17 +165,19 @@ app.get("/api/historial/:codigo", async (req, res) => {
 
     let query = `
       SELECT 
-        Id_codigo AS "Id_codigo", 
-        Descripcion AS "Descripcion", 
-        Movimiento AS "Movimiento", 
-        Unit AS "Unit", 
-        T_movimi AS "T_movimi", 
-        Estado AS "Estado", 
-        Usuario AS "Usuario", 
-        Turno AS "Turno", 
-        Fecha AS "Fecha"
+        id_codigo AS "Id_codigo", 
+        descripcion AS "Descripcion", 
+        movimiento AS "Movimiento", 
+        unit AS "Unit", 
+        t_movimi AS "T_movimi", 
+        estado AS "Estado", 
+        usuario AS "Usuario", 
+        turno AS "Turno", 
+        fecha AS "Fecha",
+        lote AS "lote",
+        planta AS "planta"
       FROM historial_movimientos
-      WHERE Id_codigo = $1
+      WHERE id_codigo = $1
     `;
 
     const params = [codigo];
@@ -581,7 +610,8 @@ app.post("/api/stock/mover", async (req, res) => {
       quantity.toString(),
       "Movimiento",
       `${fromPosition} -> ${toPosition}`,
-      userName
+      userName,
+      origen.lote
     );
   } catch (error) {
     console.error("Error moviendo stock:", error);
@@ -593,6 +623,7 @@ app.post("/api/stock/mover", async (req, res) => {
 app.post("/api/stock/ingresa", async (req, res) => {
   try {
     const { code, quantity, position, user, lote } = req.body;
+    const lotValue = lote || "";
 
     // Extraer el nombre de usuario si user es un objeto, sino usar el string directamente
     const userName =
@@ -690,64 +721,24 @@ app.post("/api/stock/ingresa", async (req, res) => {
       const actual = parseFloat(rows[0].cantidad) || 0;
       newQuantity = actual + qty;
 
-      if (hasLoteColumn) {
-        await db.query(
-          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4 AND lote = $5",
-          [newQuantity, userName, code, position, lote || null]
-        );
-      } else {
-        await db.query(
-          "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
-          [newQuantity, userName, code, position]
-        );
-      }
+      await db.query(
+        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4 AND lote = $5",
+        [newQuantity, userName, code, position, lotValue]
+      );
     } else {
       // Para GROUND, usar tabla especial stock_ground que permite múltiples lotes
-      if (position.toUpperCase() === "GROUND" && hasLoteColumn) {
-        // Verificar si existe la tabla stock_ground
-        try {
-          await db.query(`
-            CREATE TABLE IF NOT EXISTS stock_ground (
-              id TEXT,
-              descrip TEXT,
-              cantidad NUMERIC,
-              posicion TEXT,
-              Usuario TEXT,
-              lote TEXT,
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-          `);
-
-          // Insertar en stock_ground (sin constraint única)
-          await db.query(
-            "INSERT INTO stock_ground (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
-            [code, descrip, newQuantity, position, userName, lote || null]
-          );
-        } catch (tableError) {
-          console.error(
-            "Error creando/insertando en stock_ground:",
-            tableError
-          );
-          // Si falla, intentar en tabla normal como fallback
-          await db.query(
-            "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
-            [code, descrip, newQuantity, position, userName, lote || null]
-          );
-        }
+      if (position.toUpperCase() === "GROUND") {
+        // Insertar en stock_ground (sin constraint única)
+        await db.query(
+          "INSERT INTO stock_ground (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
+          [code, descrip, newQuantity, position, userName, lotValue]
+        );
       } else {
-        // Para otras posiciones o sin lote, inserción normal
-        if (hasLoteColumn) {
-          await db.query(
-            "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
-            [code, descrip, newQuantity, position, userName, lote || null]
-          );
-        } else {
-          await db.query(
-            "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario) VALUES ($1, $2, $3, $4, $5)",
-            [code, descrip, newQuantity, position, userName]
-          );
-        }
+        // Para otras posiciones, inserción normal
+        await db.query(
+          "INSERT INTO stock_ubicaciones (id, descrip, cantidad, posicion, Usuario, lote) VALUES ($1, $2, $3, $4, $5, $6)",
+          [code, descrip, newQuantity, position, userName, lotValue]
+        );
       }
     }
 
@@ -758,7 +749,8 @@ app.post("/api/stock/ingresa", async (req, res) => {
       `+${qty}`,
       "Entro",
       "Almacenado",
-      userName
+      userName,
+      lotValue
     );
 
     res.json({
@@ -1111,7 +1103,8 @@ app.get("/api/stock/all", async (req, res) => {
 // Endpoint para retirar stock (Picking)
 app.post("/api/stock/retirar", async (req, res) => {
   try {
-    const { code, position, quantity, user } = req.body;
+    const { code, position, quantity, user, lote } = req.body;
+    const lotValue = lote || "";
     console.log("=== RETIRO DE STOCK ===");
     console.log("Datos recibidos:", { code, position, quantity, user });
 
@@ -1181,13 +1174,13 @@ app.post("/api/stock/retirar", async (req, res) => {
 
     if (nuevaCantidad > 0) {
       await db.query(
-        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4",
-        [nuevaCantidad, userName, code, position]
+        "UPDATE stock_ubicaciones SET cantidad = $1, Usuario = $2 WHERE id = $3 AND posicion = $4 AND lote = $5",
+        [nuevaCantidad, userName, code, position, lotValue]
       );
     } else {
       await db.query(
-        "DELETE FROM stock_ubicaciones WHERE id = $1 AND posicion = $2",
-        [code, position]
+        "DELETE FROM stock_ubicaciones WHERE id = $1 AND posicion = $2 AND lote = $3",
+        [code, position, lotValue]
       );
     }
 
@@ -1215,7 +1208,8 @@ app.post("/api/stock/retirar", async (req, res) => {
       `-${qty}`,
       "Salio",
       "Despachado",
-      userName
+      userName,
+      lotValue
     );
 
     res.json({
@@ -1281,14 +1275,17 @@ const initDB = async () => {
     await db.query(`
       CREATE TABLE IF NOT EXISTS historial_movimientos (
         id SERIAL PRIMARY KEY,
-        Id_codigo VARCHAR(50),
-        Descripcion VARCHAR(255),
-        Movimiento VARCHAR(50),
-        Unit VARCHAR(20),
-        T_movimi VARCHAR(100),
-        Usuario VARCHAR(100),
-        Turno VARCHAR(50),
-        Fecha VARCHAR(20),
+        id_codigo VARCHAR(50),
+        descripcion VARCHAR(255),
+        movimiento VARCHAR(50),
+        unit VARCHAR(20),
+        t_movimi VARCHAR(100),
+        estado VARCHAR(100) DEFAULT 'Almacenado',
+        usuario VARCHAR(100),
+        turno VARCHAR(50),
+        fecha VARCHAR(20),
+        lote TEXT DEFAULT '',
+        planta VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -1335,6 +1332,30 @@ const initDB = async () => {
         END $$;
       `);
       console.log('Columna "planta" en "pallets_ground" verificada/agregada');
+
+      // Migración para historial_movimientos: agregar lote y estado si no existen
+      await db.query(`
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                         WHERE table_name='historial_movimientos' AND column_name='lote') THEN 
+            ALTER TABLE historial_movimientos ADD COLUMN lote TEXT DEFAULT ''; 
+          END IF; 
+
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                         WHERE table_name='historial_movimientos' AND column_name='estado') THEN 
+            ALTER TABLE historial_movimientos ADD COLUMN estado VARCHAR(100) DEFAULT 'Almacenado'; 
+          END IF;
+
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                         WHERE table_name='historial_movimientos' AND column_name='planta') THEN 
+            ALTER TABLE historial_movimientos ADD COLUMN planta VARCHAR(50); 
+          END IF;
+        END $$;
+      `);
+      console.log(
+        "Columnas de lote, estado y planta en historial_movimientos verificadas/añadidas"
+      );
     } catch (migError) {
       console.warn(
         "No se pudo agregar columna planta (puede que ya exista):",
@@ -1486,6 +1507,30 @@ app.post("/api/pallets-ground", async (req, res) => {
     });
 
     res.json({ message: "Pallet guardado correctamente en GROUND" });
+
+    // Registrar en historial para trazabilidad
+    try {
+      // Obtener descripción para el historial
+      const [matRows] = await db.query(
+        "SELECT description FROM materiales WHERE id_code = $1",
+        [normalizedCodigo]
+      );
+      const descrip =
+        matRows.length > 0 ? matRows[0].description : "Sin descripción";
+
+      await registrarMovimiento(
+        normalizedCodigo,
+        descrip,
+        `+${kg || 0}`,
+        "Entro",
+        "En Ground",
+        usuario,
+        lote,
+        planta
+      );
+    } catch (histError) {
+      console.error("Error registrando historial desde ground:", histError);
+    }
   } catch (error) {
     console.error("Error guardando pallet en GROUND:", error);
     res.status(500).json({ error: "Error al guardar el pallet en GROUND" });

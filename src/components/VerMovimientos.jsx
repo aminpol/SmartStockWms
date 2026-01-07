@@ -172,11 +172,11 @@ const VerMovimientos = () => {
                 <th>{t("consTableDesc")}</th>
                 <th>{t("movQty")}</th>
                 <th>{t("prodUnit")}</th>
-                <th>{t("movType")}</th>
                 <th>ESTADO</th>
                 <th>{t("movUser")}</th>
                 <th>TURNO</th>
                 <th>{t("movDate")}</th>
+                <th>LOTE</th>
               </tr>
             </thead>
             <tbody>
@@ -196,21 +196,11 @@ const VerMovimientos = () => {
                     {mov.Movimiento || "N/A"}
                   </td>
                   <td>{mov.Unit}</td>
-                  <td
-                    className={
-                      mov.T_movimi === "Salio"
-                        ? "tipo-salio"
-                        : mov.T_movimi === "Entro"
-                        ? "tipo-entro"
-                        : ""
-                    }
-                  >
-                    {mov.T_movimi}
-                  </td>
                   <td>{mov.Estado}</td>
                   <td>{mov.Usuario}</td>
                   <td>{mov.Turno}</td>
                   <td>{mov.Fecha}</td>
+                  <td>{mov.lote || "-"}</td>
                 </tr>
               ))}
             </tbody>
