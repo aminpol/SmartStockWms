@@ -61,7 +61,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
       const timer = setTimeout(() => {
         setShowModal(false);
         setTimeout(() => codigoRef.current?.focus(), 100);
-      }, 1000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [showModal]);
