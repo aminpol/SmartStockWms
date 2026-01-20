@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./RecibirDePlanta.css";
 import PalletsRecibidos from "./PalletsRecibidos";
 import API_URL from "../apiConfig";
+import AlertModal from "./AlertModal";
 
 const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   const navigate = useNavigate();
@@ -12,7 +13,10 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   });
 
   const [codigo, setCodigo] = useState("");
-  const [ubicacion, setUbicacion] = useState("");
+  const [ubicacion, setUbicacion] = useState("GROUND");
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("success");
+  const [modalMessage, setModalMessage] = useState("");
 
   // Estados para datos extraidos del QR (ocultos o visibles, necesarios para guardar)
   const [descripcion, setDescripcion] = useState("");
@@ -46,10 +50,21 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
 
   useEffect(() => {
     // Auto-focus logic
-    if (planta && !codigo) {
+    if (planta && !codigo && !showModal) {
       setTimeout(() => codigoRef.current?.focus(), 100);
     }
-  }, [planta]);
+  }, [planta, showModal, codigo]);
+
+  // Auto-close modal after 1.5 seconds
+  useEffect(() => {
+    if (showModal) {
+      const timer = setTimeout(() => {
+        setShowModal(false);
+        setTimeout(() => codigoRef.current?.focus(), 100);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showModal]);
 
   const handleLogoutWrapper = () => {
     // Limpiar planta seleccionada al cerrar sesión
@@ -115,8 +130,12 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     const isParsed = parseQR(val);
 
     if (isParsed) {
-      // Si se parseó correctamente, mover foco a ubicación
-      setTimeout(() => ubicacionRef.current?.focus(), 100);
+      // Si se parseó correctamente, guardar automáticamente en GROUND
+      console.log("QR parseado correctamente, iniciando auto-guardado...");
+      // Pequeño delay para asegurar que los estados de parseQR se aplicaron
+      setTimeout(() => {
+        handleSaveRecibo();
+      }, 100);
     } else {
       // Si no, solo setear código (modo manual o MTE antiguo)
       setCodigo(val);
@@ -143,7 +162,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
         "Configurando auto-guardado en",
         waitTime,
         "ms para:",
-        newUbicacion
+        newUbicacion,
       ); // Debug
 
       ubicacionTimeoutRef.current = setTimeout(() => {
@@ -193,10 +212,9 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     }
 
     if (!codigoInterno || !codigo || !nPallet || !lote) {
-      setMessage({
-        type: "error",
-        text: "Se requiere escanear un QR completo para guardar en GROUND",
-      });
+      setModalType("error");
+      setModalMessage("Se requiere escanear un QR completo");
+      setShowModal(true);
       return;
     }
 
@@ -227,44 +245,46 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
       });
 
       if (groundResponse.ok) {
-        setMessage({
-          type: "success",
-          text: "Pallet guardado correctamente en GROUND",
-        });
+        // Mostrar modal de éxito
+        setModalType("success");
+        setModalMessage("Pallet ingresado");
+        setShowModal(true);
 
-        // Limpiar campos excepto planta
+        // Limpiar campos excepto planta y ubicación (GROUND se mantiene)
         setCodigo("");
-        setUbicacion("");
         setDescripcion("");
         setLote("");
         setNPallet("");
         setCodigoInterno("");
         setPeso("");
-        setKg(""); // Limpiar KG
+        // No limpiamos kg si el usuario quiere que siga funcionando como está,
+        // pero usualmente para un nuevo pallet se debería limpiar o mantener según flujo.
+        // El usuario dijo "dejalo como esta actual mente", así que si antes se limpiaba, se limpia.
+        setKg("");
         setRefreshTrigger((prev) => prev + 1); // Actualizar lista
+
+        // El foco debe volver a código
         setTimeout(() => codigoRef.current?.focus(), 100);
       } else {
         const errorData = await groundResponse.json().catch(() => ({}));
 
         if (groundResponse.status === 409) {
-          setMessage({
-            type: "error",
-            text: "¡Error! Este pallet ya ha sido ingresado previamente",
-          });
+          setModalType("error");
+          setModalMessage("Este pallet ya fue ingresado");
+          setShowModal(true);
         } else {
-          setMessage({
-            type: "error",
-            text: errorData.error || "Error al guardar pallet en GROUND",
-          });
+          setModalType("error");
+          setModalMessage(errorData.error || "Error al guardar pallet");
+          setShowModal(true);
         }
       }
     } catch (error) {
       console.error("Error saving recibo:", error);
-      setMessage({ type: "error", text: "Error de conexión" });
+      setModalType("error");
+      setModalMessage("Error de conexión");
+      setShowModal(true);
     } finally {
       setIsLoading(false);
-      // Limpiar mensaje después de 3s
-      setTimeout(() => setMessage(null), 3000);
     }
   };
 
@@ -289,8 +309,15 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
       <div className="recibo-container box-shadow-container">
         <h2 className="title">Recibo de Planta</h2>
 
-        {message && (
-          <div className={`message-banner ${message.type}`}>{message.text}</div>
+        {showModal && (
+          <AlertModal
+            type={modalType}
+            message={modalMessage}
+            onClose={() => {
+              setShowModal(false);
+              setTimeout(() => codigoRef.current?.focus(), 100);
+            }}
+          />
         )}
 
         <div className="form-group custom-select-container">
@@ -340,18 +367,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
           />
         </div>
 
-        <div className="input-group">
-          <input
-            ref={ubicacionRef}
-            type="text"
-            placeholder="Scannera nueva ubicacion"
-            value={ubicacion}
-            onChange={handleUbicacionChange}
-            onKeyDown={handleUbicacionKeyDown}
-            className="input-field scanner-input"
-            disabled={isLoading}
-          />
-        </div>
+        {/* Campo de ubicación eliminado ya que se guarda en GROUND automáticamente */}
 
         <button
           className="btn-received mobile-only-btn"

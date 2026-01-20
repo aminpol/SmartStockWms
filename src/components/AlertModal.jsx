@@ -9,6 +9,13 @@ const AlertModal = ({ type, message, extra, onClose }) => {
           type === "success" ? "alert-success" : "alert-error"
         }`}
       >
+        <div className="alert-icon">
+          {type === "success" ? (
+            <i className="fas fa-check-circle icon-success"></i>
+          ) : (
+            <i className="fas fa-times-circle icon-error"></i>
+          )}
+        </div>
         <p className="alert-message">{message}</p>
 
         {extra && (
