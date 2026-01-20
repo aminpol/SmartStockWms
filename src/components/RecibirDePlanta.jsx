@@ -118,24 +118,28 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
         peso: parts[4] || "",
       });
 
-      return true;
+      return {
+        codigoInterno: parts[0],
+        codigo: parts[1],
+        nPallet: parts[2],
+        lote: parts[3],
+        peso: parts[4] || "",
+      };
     }
 
-    return false;
+    return null;
   };
 
   const handleCodigoChange = (e) => {
     const val = e.target.value;
     // Intentar parsear si es un QR completo pegado de golpe
-    const isParsed = parseQR(val);
+    const parsedData = parseQR(val);
 
-    if (isParsed) {
+    if (parsedData) {
       // Si se parseó correctamente, guardar automáticamente en GROUND
       console.log("QR parseado correctamente, iniciando auto-guardado...");
-      // Pequeño delay para asegurar que los estados de parseQR se aplicaron
-      setTimeout(() => {
-        handleSaveRecibo();
-      }, 100);
+      // Pasamos los datos parseados directamente
+      handleSaveRecibo(parsedData);
     } else {
       // Si no, solo setear código (modo manual o MTE antiguo)
       setCodigo(val);
@@ -175,7 +179,14 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     }
   };
 
-  const handleSaveRecibo = async () => {
+  const handleSaveRecibo = async (data = null) => {
+    // Si vienen datos directos (del parseo automático), usarlos. Si no, usar el estado.
+    const currentCodigo = data ? data.codigo : codigo;
+    const currentCodigoInterno = data ? data.codigoInterno : codigoInterno;
+    const currentNPallet = data ? data.nPallet : nPallet;
+    const currentLote = data ? data.lote : lote;
+    const currentPeso = data ? data.peso : peso;
+
     // Forzar lectura actual del estado
     const currentUbicacion = ubicacionRef.current?.value || ubicacion;
 
@@ -183,16 +194,16 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
       planta,
       codigo,
       ubicacion: currentUbicacion,
-      codigoInterno,
-      nPallet,
-      lote,
-      peso,
+      codigoInterno: currentCodigoInterno,
+      nPallet: currentNPallet,
+      lote: currentLote,
+      peso: currentPeso,
     }); // Debug
 
-    if (!planta || !codigo || !currentUbicacion) {
+    if (!planta || !currentCodigo || !currentUbicacion) {
       console.log("Validación fallida - Datos faltantes:", {
         planta,
-        codigo,
+        codigo: currentCodigo,
         ubicacion: currentUbicacion,
       }); // Debug
       setMessage({
@@ -211,7 +222,12 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
       return;
     }
 
-    if (!codigoInterno || !codigo || !nPallet || !lote) {
+    if (
+      !currentCodigoInterno ||
+      !currentCodigo ||
+      !currentNPallet ||
+      !currentLote
+    ) {
       setModalType("error");
       setModalMessage("Se requiere escanear un QR completo");
       setShowModal(true);
@@ -221,11 +237,11 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     setIsLoading(true);
     try {
       console.log("Guardando pallet en GROUND con datos completos:", {
-        codigoInterno,
-        codigo,
-        nPallet,
-        lote,
-        peso,
+        codigoInterno: currentCodigoInterno,
+        codigo: currentCodigo,
+        nPallet: currentNPallet,
+        lote: currentLote,
+        peso: currentPeso,
         kg,
       });
 
@@ -233,11 +249,11 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          codigo_interno: codigoInterno,
-          codigo: codigo,
-          numero_pallet: nPallet,
-          lote: lote,
-          peso: peso,
+          codigo_interno: currentCodigoInterno,
+          codigo: currentCodigo,
+          numero_pallet: currentNPallet,
+          lote: currentLote,
+          peso: currentPeso,
           planta: planta,
           kg: parseInt(kg) || 0, // Enviar kg manual
           usuario: user?.usuario || "Desconocido",
