@@ -32,8 +32,10 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   const [message, setMessage] = useState(null); // Feedback message
 
   // Focus refs
+  // Focus refs
   const codigoRef = useRef(null);
   const ubicacionRef = useRef(null);
+  const kgRef = useRef(null);
 
   // Timeout para debounce de ubicación
   const ubicacionTimeoutRef = useRef(null);
@@ -51,7 +53,11 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
   useEffect(() => {
     // Auto-focus logic
     if (planta && !codigo && !showModal) {
-      setTimeout(() => codigoRef.current?.focus(), 100);
+      if (planta === "UPF-30") {
+        setTimeout(() => kgRef.current?.focus(), 100);
+      } else {
+        setTimeout(() => codigoRef.current?.focus(), 100);
+      }
     }
   }, [planta, showModal, codigo]);
 
@@ -60,11 +66,15 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
     if (showModal) {
       const timer = setTimeout(() => {
         setShowModal(false);
-        setTimeout(() => codigoRef.current?.focus(), 100);
+        if (planta === "UPF-30") {
+          setTimeout(() => kgRef.current?.focus(), 100);
+        } else {
+          setTimeout(() => codigoRef.current?.focus(), 100);
+        }
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [showModal]);
+  }, [showModal, planta]);
 
   const handleLogoutWrapper = () => {
     // Limpiar planta seleccionada al cerrar sesión
@@ -279,8 +289,12 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
         setKg("");
         setRefreshTrigger((prev) => prev + 1); // Actualizar lista
 
-        // El foco debe volver a código
-        setTimeout(() => codigoRef.current?.focus(), 100);
+        // El foco debe volver a código o a Kilos según la planta
+        if (planta === "UPF-30") {
+          setTimeout(() => kgRef.current?.focus(), 100);
+        } else {
+          setTimeout(() => codigoRef.current?.focus(), 100);
+        }
       } else {
         const errorData = await groundResponse.json().catch(() => ({}));
 
@@ -331,7 +345,12 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
             message={modalMessage}
             onClose={() => {
               setShowModal(false);
-              setTimeout(() => codigoRef.current?.focus(), 100);
+              setShowModal(false);
+              if (planta === "UPF-30") {
+                setTimeout(() => kgRef.current?.focus(), 100);
+              } else {
+                setTimeout(() => codigoRef.current?.focus(), 100);
+              }
             }}
           />
         )}
@@ -356,9 +375,15 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
           <label className="label-text">Peso Bruto</label>
           <div className="input-wrapper">
             <input
+              ref={kgRef}
               type="number"
               value={kg}
               onChange={(e) => setKg(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  codigoRef.current?.focus();
+                }
+              }}
               placeholder="Ingrese Kilos"
               className="scanner-input"
             />
