@@ -71,7 +71,7 @@ const RecibirDePlanta = ({ onBack, onLogout, user }) => {
         } else {
           setTimeout(() => codigoRef.current?.focus(), 100);
         }
-      }, 1500);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [showModal, planta]);
