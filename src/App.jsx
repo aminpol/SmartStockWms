@@ -23,6 +23,7 @@ import CodeGeneraView from "./components/CodeGeneraView";
 import "./index.css";
 
 import { useConfig } from "./context/ConfigContext";
+import API_URL from "./apiConfig";
 
 const AppContent = () => {
   const navigate = useNavigate();
@@ -43,6 +44,26 @@ const AppContent = () => {
     }
     return null;
   });
+
+  // Keep-alive mechanism for Render
+  useEffect(() => {
+    const pingServer = async () => {
+      try {
+        await fetch(`${API_URL}/api/materiales`);
+        console.log("Keep-alive ping sent");
+      } catch (error) {
+        // Ignore errors, just trying to keep connection alive
+      }
+    };
+
+    // Ping immediately on load
+    pingServer();
+
+    // Ping every 5 minutes (300000 ms)
+    const interval = setInterval(pingServer, 300000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogin = (userData) => {
     setIsAuthenticated(true);
