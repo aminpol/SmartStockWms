@@ -59,8 +59,8 @@ const AppContent = () => {
     // Ping immediately on load
     pingServer();
 
-    // Ping every 5 minutes (300000 ms)
-    const interval = setInterval(pingServer, 300000);
+    // Ping every 3 minutes (180000 ms)
+    const interval = setInterval(pingServer, 180000);
 
     return () => clearInterval(interval);
   }, []);
