@@ -12,6 +12,23 @@
   height: 100dvh;
 }
 
+.show-only-mobile {
+  display: none !important;
+}
+
+.show-only-pc {
+  display: flex !important;
+}
+
+@media (max-width: 1024px) {
+  .show-only-mobile {
+    display: flex !important;
+  }
+  .show-only-pc {
+    display: none !important;
+  }
+}
+
 .main-container {
   width: 100%;
   max-width: 800px;

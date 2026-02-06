@@ -362,8 +362,9 @@ const PalletsRecibidos = ({
                       <i className="fas fa-times"></i>
                     </button>
                   )}
+                  {/* Boton Excel SOLO para Movil aquí */}
                   <button
-                    className="btn-excel-icon"
+                    className="btn-excel-icon show-only-mobile"
                     onClick={exportToExcel}
                     title="Exportar a Excel"
                   >
@@ -430,9 +431,20 @@ const PalletsRecibidos = ({
 
             {/* Turno */}
             <div className="search-input-group">
-              <label className="search-label">
-                <span className="label-prefix">Filtrar </span>turno
-              </label>
+              <div className="search-label-row">
+                <label className="search-label">
+                  <span className="label-prefix">Filtrar </span>turno
+                </label>
+                <div className="search-actions show-only-pc">
+                  <button
+                    className="btn-excel-icon"
+                    onClick={exportToExcel}
+                    title="Exportar a Excel"
+                  >
+                    <i className="fas fa-file-excel"></i>
+                  </button>
+                </div>
+              </div>
               <div className="search-input-wrapper">
                 <select
                   className="search-input"
