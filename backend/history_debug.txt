@@ -1,0 +1,16 @@
+Columnas:
+- created_at (timestamp without time zone)
+- id (integer)
+- descripcion (character varying)
+- movimiento (character varying)
+- unit (character varying)
+- t_movimi (character varying)
+- usuario (character varying)
+- turno (character varying)
+- fecha (character varying)
+- lote (text)
+- estado (text)
+- planta (character varying)
+- id_codigo (character varying)
+
+Registros: 2

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "./PalletsRecibidos.css";
 import AlertModal from "./AlertModal";
 import API_URL from "../apiConfig";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 
 const PalletsRecibidos = ({
   onBack,
@@ -65,7 +67,7 @@ const PalletsRecibidos = ({
       } else {
         console.error(
           "Error fetching pallets GROUND - Status:",
-          response.status
+          response.status,
         );
         const errorText = await response.text();
         console.error("Error text:", errorText);
@@ -146,10 +148,119 @@ const PalletsRecibidos = ({
     setSearchActive(false);
   };
 
+  const exportToExcel = async () => {
+    const data = getFilteredData();
+
+    if (data.length === 0) {
+      setAlertMessage({
+        type: "error",
+        text: "No hay datos para exportar con los filtros seleccionados",
+      });
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Pallets Recibidos");
+
+    // Agrupar por lote
+    const groupedByLote = data.reduce((acc, item) => {
+      const lote = item.lote || "SIN LOTE";
+      if (!acc[lote]) acc[lote] = [];
+      acc[lote].push(item);
+      return acc;
+    }, {});
+
+    // Ordenar los lotes por el ID más bajo (orden de creación/recepción)
+    const lotes = Object.keys(groupedByLote).sort((a, b) => {
+      const minIdA = Math.min(...groupedByLote[a].map((item) => item.id));
+      const minIdB = Math.min(...groupedByLote[b].map((item) => item.id));
+      return minIdA - minIdB;
+    });
+
+    let currentRow = 1;
+
+    lotes.forEach((lote) => {
+      // Encabezado del Lote
+      const loteRow = worksheet.getRow(currentRow);
+      loteRow.getCell(1).value = `LOTE: ${lote}`;
+      loteRow.getCell(1).font = { size: 14, bold: true };
+      currentRow += 1;
+
+      // Encabezado de columnas para este lote
+      const headerRow = worksheet.getRow(currentRow);
+      headerRow.values = [
+        "CODIGO",
+        "DESCRIPCION",
+        "LOTE",
+        "N° PALL",
+        "KG",
+        "USUARIO",
+        "FECHA",
+      ];
+      headerRow.font = { bold: true };
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFECFDF5" },
+        };
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
+      currentRow += 1;
+
+      // Datos del lote
+      groupedByLote[lote].forEach((item) => {
+        const dataRow = worksheet.getRow(currentRow);
+        dataRow.values = [
+          item.codigo,
+          item.descripcion,
+          item.lote,
+          item.numero_pallet,
+          item.kg || 0,
+          item.usuario,
+          item.fecha ? item.fecha.split(/[T ]/)[0] : "",
+        ];
+        dataRow.eachCell((cell) => {
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          };
+        });
+        currentRow += 1;
+      });
+
+      // Fila vacía entre lotes
+      currentRow += 1;
+    });
+
+    // Ajustar ancho de columnas
+    worksheet.columns = [
+      { width: 15 },
+      { width: 35 },
+      { width: 20 },
+      { width: 10 },
+      { width: 10 },
+      { width: 15 },
+      { width: 15 },
+    ];
+
+    // Generar archivo
+    const buffer = await workbook.xlsx.writeBuffer();
+    const fileName = `Pallets_${filtroPlanta || "General"}_${filtroFecha || "Hoy"}_T${filtroTurno || "X"}.xlsx`;
+    saveAs(new Blob([buffer]), fileName);
+  };
+
   const handleDelete = async (id, numeroPallet) => {
     if (
       !window.confirm(
-        `¿Estás seguro de que deseas eliminar el pallet N° ${numeroPallet}?`
+        `¿Estás seguro de que deseas eliminar el pallet N° ${numeroPallet}?`,
       )
     ) {
       return;
@@ -200,7 +311,7 @@ const PalletsRecibidos = ({
             return coincideFecha && coincidePlanta && coincideTurno;
           })
           .map((r) => r.lote)
-          .filter(Boolean)
+          .filter(Boolean),
       ),
     ].sort();
   };
@@ -251,6 +362,13 @@ const PalletsRecibidos = ({
                       <i className="fas fa-times"></i>
                     </button>
                   )}
+                  <button
+                    className="btn-excel-icon"
+                    onClick={exportToExcel}
+                    title="Exportar a Excel"
+                  >
+                    <i className="fas fa-file-excel"></i>
+                  </button>
                 </div>
               </div>
               <div className="search-input-wrapper">
