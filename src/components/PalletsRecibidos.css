@@ -62,9 +62,9 @@
 
 .search-row.responsive-grid {
   display: flex;
-  gap: 1.5rem; /* Separación original PC */
+  gap: 1rem; /* Reducido de 1.5rem para que quepan 4 */
   align-items: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Evitar que salten de línea en PC */
   width: 100%;
 }
 
@@ -75,8 +75,8 @@
     "input actions";
   grid-template-columns: 1fr auto;
   gap: 0.4rem;
-  flex: 0 1 auto;
-  min-width: 130px;
+  flex: 1; /* Permitir que crezcan proporcionalmente */
+  min-width: 0; /* Permitir que se encojan si es necesario */
   position: relative;
 }
 
@@ -118,7 +118,8 @@
   border-radius: 10px;
   font-size: 0.95rem;
   outline: none;
-  width: 130px; /* Ancho fijo moderado para consistencia PC */
+  width: 100%; /* Ocupar el 100% del grupo */
+  max-width: 180px; /* Limitar para no verse gigante */
 }
 
 .search-input-wrapper {
