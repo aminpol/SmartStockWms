@@ -207,6 +207,30 @@
   color: white;
 }
 
+.btn-pdf-icon {
+  background-color: #dc2626; /* Rojo PDF */
+  border: 1px solid #b91c1c;
+  border-radius: 8px;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  transition: all 0.2s;
+}
+
+.btn-pdf-icon:hover {
+  background-color: #b91c1c;
+  transform: scale(1.05);
+}
+
+.btn-pdf-icon i {
+  font-size: 1.3rem;
+  color: white;
+}
+
 /* Tabla */
 .table-container {
   flex: 1;
@@ -479,7 +503,8 @@
 
   .btn-search-icon,
   .btn-clear-icon-small,
-  .btn-excel-icon {
+  .btn-excel-icon,
+  .btn-pdf-icon {
     width: 28px;
     height: 28px;
     border-radius: 6px;
@@ -487,7 +512,8 @@
 
   .btn-search-icon i,
   .btn-clear-icon-small i,
-  .btn-excel-icon i {
+  .btn-excel-icon i,
+  .btn-pdf-icon i {
     font-size: 0.85rem;
   }
 

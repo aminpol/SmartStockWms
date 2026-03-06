@@ -4,6 +4,8 @@ import AlertModal from "./AlertModal";
 import API_URL from "../apiConfig";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 const PalletsRecibidos = ({
   onBack,
@@ -162,48 +164,63 @@ const PalletsRecibidos = ({
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Pallets Recibidos");
 
-    // Agrupar por lote
-    const groupedByLote = data.reduce((acc, item) => {
-      const lote = item.lote || "SIN LOTE";
-      if (!acc[lote]) acc[lote] = [];
-      acc[lote].push(item);
-      return acc;
-    }, {});
+    // Configuración de metadatos en las primeras filas
+    worksheet.mergeCells("A1:G1");
+    const titleCell = worksheet.getCell("A1");
+    titleCell.value = "REPORTE DE PALLETS RECIBIDOS EN PLANTA";
+    titleCell.font = { size: 16, bold: true };
+    titleCell.alignment = { vertical: "middle", horizontal: "center" };
 
-    // Ordenar los lotes por el ID más bajo (orden de creación/recepción)
-    const lotes = Object.keys(groupedByLote).sort((a, b) => {
-      const minIdA = Math.min(...groupedByLote[a].map((item) => item.id));
-      const minIdB = Math.min(...groupedByLote[b].map((item) => item.id));
-      return minIdA - minIdB;
+    worksheet.getRow(2).values = [
+      "PLANTA:",
+      filtroPlanta || "TODAS",
+      "TURNO:",
+      filtroTurno || "TODOS",
+      "FECHA:",
+      filtroFecha || "HOY",
+    ];
+    worksheet.getRow(2).font = { bold: true };
+
+    // Encabezado de la tabla (Fila 4)
+    const headerRow = worksheet.getRow(4);
+    headerRow.values = [
+      "ITEM",
+      "CODIGO",
+      "DESCRIPCION",
+      "LOTE",
+      "N° PALL",
+      "KG",
+      "USUARIO",
+    ];
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF3B82F6" }, // Azul similar al UI
+      };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+      cell.alignment = { horizontal: "center" };
     });
 
-    let currentRow = 1;
-
-    lotes.forEach((lote) => {
-      // Encabezado del Lote
-      const loteRow = worksheet.getRow(currentRow);
-      loteRow.getCell(1).value = `LOTE: ${lote}`;
-      loteRow.getCell(1).font = { size: 14, bold: true };
-      currentRow += 1;
-
-      // Encabezado de columnas para este lote
-      const headerRow = worksheet.getRow(currentRow);
-      headerRow.values = [
-        "CODIGO",
-        "DESCRIPCION",
-        "LOTE",
-        "N° PALL",
-        "KG",
-        "USUARIO",
-        "FECHA",
+    // Datos (Lista plana, no agrupada)
+    data.forEach((item, index) => {
+      const dataRow = worksheet.getRow(5 + index);
+      dataRow.values = [
+        index + 1,
+        item.codigo,
+        item.descripcion,
+        item.lote,
+        item.numero_pallet,
+        item.kg || 0,
+        item.usuario,
       ];
-      headerRow.font = { bold: true };
-      headerRow.eachCell((cell) => {
-        cell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "FFECFDF5" },
-        };
+      dataRow.eachCell((cell) => {
         cell.border = {
           top: { style: "thin" },
           left: { style: "thin" },
@@ -211,50 +228,92 @@ const PalletsRecibidos = ({
           right: { style: "thin" },
         };
       });
-      currentRow += 1;
-
-      // Datos del lote
-      groupedByLote[lote].forEach((item) => {
-        const dataRow = worksheet.getRow(currentRow);
-        dataRow.values = [
-          item.codigo,
-          item.descripcion,
-          item.lote,
-          item.numero_pallet,
-          item.kg || 0,
-          item.usuario,
-          item.fecha ? item.fecha.split(/[T ]/)[0] : "",
-        ];
-        dataRow.eachCell((cell) => {
-          cell.border = {
-            top: { style: "thin" },
-            left: { style: "thin" },
-            bottom: { style: "thin" },
-            right: { style: "thin" },
-          };
-        });
-        currentRow += 1;
-      });
-
-      // Fila vacía entre lotes
-      currentRow += 1;
     });
 
     // Ajustar ancho de columnas
     worksheet.columns = [
-      { width: 15 },
-      { width: 35 },
-      { width: 20 },
-      { width: 10 },
-      { width: 10 },
-      { width: 15 },
-      { width: 15 },
+      { width: 8 }, // ITEM
+      { width: 15 }, // CODIGO
+      { width: 40 }, // DESCRIPCION
+      { width: 20 }, // LOTE
+      { width: 12 }, // N° PALL
+      { width: 10 }, // KG
+      { width: 20 }, // USUARIO
     ];
 
     // Generar archivo
     const buffer = await workbook.xlsx.writeBuffer();
     const fileName = `Pallets_${filtroPlanta || "General"}_${filtroFecha || "Hoy"}_T${filtroTurno || "X"}.xlsx`;
     saveAs(new Blob([buffer]), fileName);
+  };
+
+  const exportToPDF = () => {
+    const data = getFilteredData();
+
+    if (data.length === 0) {
+      setAlertMessage({
+        type: "error",
+        text: "No hay datos para exportar con los filtros seleccionados",
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+
+    // Título
+    doc.setFontSize(18);
+    doc.text("Reporte de Pallets Recibidos", 105, 15, { align: "center" });
+
+    // Metadatos
+    doc.setFontSize(11);
+    doc.text(`Planta: ${filtroPlanta || "Todas"}`, 14, 25);
+    doc.text(`Turno: ${filtroTurno || "Todos"}`, 80, 25);
+    doc.text(`Fecha: ${filtroFecha || "Hoy"}`, 140, 25);
+
+    const tableColumn = [
+      "Item",
+      "Código",
+      "Descripción",
+      "Lote",
+      "N° Pall",
+      "KG",
+      "Usuario",
+    ];
+    const tableRows = [];
+
+    data.forEach((item, index) => {
+      const rowData = [
+        index + 1,
+        item.codigo,
+        item.descripcion,
+        item.lote,
+        item.numero_pallet,
+        item.kg || 0,
+        item.usuario,
+      ];
+      tableRows.push(rowData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 32,
+      theme: "grid",
+      headStyles: { fillColor: [59, 130, 246] }, // Azul
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 15 },
+        5: { cellWidth: 15 },
+        6: { cellWidth: 35 },
+      },
+      styles: { fontSize: 8, overflow: "linebreak" },
+    });
+
+    const fileName = `Pallets_${filtroPlanta || "General"}_${filtroFecha || "Hoy"}_T${filtroTurno || "X"}.pdf`;
+    doc.save(fileName);
   };
 
   const handleDelete = async (id, numeroPallet) => {
@@ -370,6 +429,14 @@ const PalletsRecibidos = ({
                   >
                     <i className="fas fa-file-excel"></i>
                   </button>
+                  {/* Boton PDF SOLO para Movil aquí */}
+                  <button
+                    className="btn-pdf-icon show-only-mobile"
+                    onClick={exportToPDF}
+                    title="Exportar a PDF"
+                  >
+                    <i className="fas fa-file-pdf"></i>
+                  </button>
                 </div>
               </div>
               <div className="search-input-wrapper">
@@ -442,6 +509,13 @@ const PalletsRecibidos = ({
                     title="Exportar a Excel"
                   >
                     <i className="fas fa-file-excel"></i>
+                  </button>
+                  <button
+                    className="btn-pdf-icon"
+                    onClick={exportToPDF}
+                    title="Exportar a PDF"
+                  >
+                    <i className="fas fa-file-pdf"></i>
                   </button>
                 </div>
               </div>
