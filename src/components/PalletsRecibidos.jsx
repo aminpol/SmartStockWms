@@ -5,7 +5,7 @@ import API_URL from "../apiConfig";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 const PalletsRecibidos = ({
   onBack,
@@ -259,57 +259,133 @@ const PalletsRecibidos = ({
     }
 
     const doc = new jsPDF();
+    const logoBase64 =
+      "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wgARCAKCA8QDASIAAhEBAxEB/8QAHAAAAQUBAQEAAAAAAAAAAAAAAQIDBAUGAAcI/8QAGQEBAQEBAQEAAAAAAAAAAAAAAAECAwQF/9oADAMBAAMAYpIAAAf7P7v7S7u6B7u6B7v6O7m6O7u6B0D3d0AAHQPd0D3QPdB0D3R0D3QdIAnpIAb6S7E6S7E6S7A6S7A6S7A6S7A6S7A6S7A6S6A6S6AA7p6S7idS6B6m7A909A6S6A9JdAdS7idIAnQPQAAdQ9QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdA9AAHQAAdA9AAB0AAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAAHQAA6AAHQAA6AAdA/u6AAdAd3dA9AAdA+p6A6S6A6S6A6S6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv6AAAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAT8Qf//Z";
 
-    // Título
-    doc.setFontSize(18);
-    doc.text("Reporte de Pallets Recibidos", 105, 15, { align: "center" });
+    // Header info
+    const addHeader = (doc) => {
+      // Logo
+      try {
+        doc.addImage(logoBase64, "JPEG", 14, 10, 50, 15);
+      } catch (e) {
+        console.error("Error adding logo:", e);
+      }
 
-    // Metadatos
-    doc.setFontSize(11);
-    doc.text(`Planta: ${filtroPlanta || "Todas"}`, 14, 25);
-    doc.text(`Turno: ${filtroTurno || "Todos"}`, 80, 25);
-    doc.text(`Fecha: ${filtroFecha || "Hoy"}`, 140, 25);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(
+        "PLANILLA DE CONTROL DE PRODUCTO TERMINADO TRASLADADO A BODEGA",
+        105,
+        25,
+        { align: "center" },
+      );
 
-    const tableColumn = [
-      "Item",
-      "Código",
-      "Descripción",
-      "Lote",
-      "N° Pall",
-      "KG",
-      "Usuario",
+      // Metadatos Grid Header
+      doc.setFontSize(8);
+      doc.text(
+        `FECHA: ${filtroFecha || new Date().toISOString().split("T")[0]}`,
+        14,
+        32,
+      );
+      doc.text(`OPERARIO: ${recibos[0]?.usuario || ""}`, 80, 32);
+      doc.text(`TURNO: ${filtroTurno || ""}`, 150, 32);
+
+      doc.text(`CÓDIGO: ${filtro || data[0]?.codigo || ""}`, 14, 38);
+      doc.text(`LOTE: ${filtroLote || data[0]?.lote || ""}`, 80, 38);
+      doc.text(`CANTIDAD DE PALLETS: ${data.length}`, 150, 38);
+
+      // Línea divisoria
+      doc.setLineWidth(0.5);
+      doc.line(14, 42, 196, 42);
+    };
+
+    const tableColumn = ["# DE PALLET", "KG", "USUARIO"];
+
+    // Agrupar por Lote
+    const groupedByLote = data.reduce((acc, curr) => {
+      if (!acc[curr.lote]) acc[curr.lote] = [];
+      acc[curr.lote].push(curr);
+      return acc;
+    }, {});
+
+    const lotes = Object.keys(groupedByLote);
+
+    // Coordenadas para el grid 2x2
+    // Secciones: 0(izq-arriba), 1(der-arriba), 2(izq-abajo), 3(der-abajo)
+    const sections = [
+      { x: 14, y: 45, w: 90 },
+      { x: 106, y: 45, w: 90 },
+      { x: 14, y: 160, w: 90 }, // Ajustado para que quepan 20 filas por cuadro aprox
+      { x: 106, y: 160, w: 90 },
     ];
-    const tableRows = [];
 
-    data.forEach((item, index) => {
-      const rowData = [
-        index + 1,
-        item.codigo,
-        item.descripcion,
-        item.lote,
+    addHeader(doc);
+
+    let currentSection = 0;
+
+    lotes.forEach((lote, loteIdx) => {
+      const items = groupedByLote[lote];
+      const rows = items.map((item) => [
         item.numero_pallet,
         item.kg || 0,
         item.usuario,
-      ];
-      tableRows.push(rowData);
-    });
+      ]);
 
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 32,
-      theme: "grid",
-      headStyles: { fillColor: [59, 130, 246] }, // Azul
-      columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 55 },
-        3: { cellWidth: 30 },
-        4: { cellWidth: 15 },
-        5: { cellWidth: 15 },
-        6: { cellWidth: 35 },
-      },
-      styles: { fontSize: 8, overflow: "linebreak" },
+      // Si cambiamos de lote, intentamos ir a la siguiente sección si la actual tiene muchos datos
+      // Pero el requerimiento dice "separar en otros cuadros aparte esos pallets"
+
+      // Dividir los items del lote en bloques de 20 para que quepan en las secciones
+      const chunkSize = 20;
+      for (let i = 0; i < rows.length; i += chunkSize) {
+        if (currentSection >= 4) {
+          doc.addPage();
+          addHeader(doc);
+          currentSection = 0;
+        }
+
+        const chunk = rows.slice(i, i + chunkSize);
+        const section = sections[currentSection];
+
+        // Título del lote dentro del cuadro si es el inicio de un lote o continuación
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text(
+          `LOTE: ${lote} ${i > 0 ? "(cont.)" : ""}`,
+          section.x,
+          section.y - 1,
+        );
+
+        autoTable(doc, {
+          head: [tableColumn],
+          body: chunk,
+          startY: section.y,
+          margin: { left: section.x, right: 210 - (section.x + section.w) },
+          tableWidth: section.w,
+          theme: "grid",
+          headStyles: {
+            fillColor: [255, 255, 255],
+            textColor: [0, 0, 0],
+            lineWidth: 0.1,
+            fontSize: 7,
+            halign: "center",
+          },
+          styles: {
+            fontSize: 7,
+            cellPadding: 1,
+            halign: "center",
+          },
+          columnStyles: {
+            0: { cellWidth: 20 },
+            1: { cellWidth: 20 },
+            2: { cellWidth: "auto" },
+          },
+          didDrawPage: (data) => {
+            // No queremos que autotable cree páginas automáticamente aquí
+          },
+        });
+
+        currentSection++;
+      }
     });
 
     const fileName = `Pallets_${filtroPlanta || "General"}_${filtroFecha || "Hoy"}_T${filtroTurno || "X"}.pdf`;
